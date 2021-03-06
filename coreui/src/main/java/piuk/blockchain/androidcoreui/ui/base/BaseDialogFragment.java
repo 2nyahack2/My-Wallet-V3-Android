@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 import piuk.blockchain.androidcoreui.utils.logging.Logging;
 
+@Deprecated
 public abstract class BaseDialogFragment<VIEW extends View, PRESENTER extends BasePresenter<VIEW>>
         extends AppCompatDialogFragment {
 

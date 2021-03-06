@@ -4,14 +4,8 @@ fun Wallet.nonArchivedLegacyAddressStrings() =
     nonArchivedLegacyAddresses()
         .addressSet()
 
-fun Wallet.nonArchivedWatchOnlyLegacyAddressStrings() =
-    nonArchivedLegacyAddresses()
-        .filter { it.isWatchOnly }
-        .addressSet()
-
 fun Wallet.spendableLegacyAddressStrings() =
     nonArchivedLegacyAddresses()
-        .filterNot { it.isWatchOnly }
         .addressSet()
 
 fun Wallet.allSpendableAccountsAndAddresses() =

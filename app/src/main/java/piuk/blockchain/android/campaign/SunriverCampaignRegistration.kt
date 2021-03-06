@@ -1,13 +1,13 @@
 package piuk.blockchain.android.campaign
 
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.CampaignData
-import com.blockchain.swap.nabu.models.nabu.KycState
-import com.blockchain.swap.nabu.models.nabu.RegisterCampaignRequest
-import com.blockchain.swap.nabu.models.nabu.UserState
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.CampaignData
+import com.blockchain.nabu.models.responses.nabu.KycState
+import com.blockchain.nabu.models.responses.nabu.RegisterCampaignRequest
+import com.blockchain.nabu.models.responses.nabu.UserState
 import piuk.blockchain.android.ui.kyc.settings.KycStatusHelper
-import com.blockchain.swap.nabu.NabuToken
-import com.blockchain.swap.nabu.models.tokenresponse.NabuOfflineTokenResponse
+import com.blockchain.nabu.NabuToken
+import com.blockchain.nabu.models.responses.tokenresponse.NabuOfflineTokenResponse
 import com.blockchain.remoteconfig.FeatureFlag
 import com.blockchain.sunriver.XlmDataManager
 import info.blockchain.balance.AccountReference

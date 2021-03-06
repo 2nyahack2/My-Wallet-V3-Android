@@ -8,6 +8,7 @@ import piuk.blockchain.androidcoreui.utils.logging.Logging
 /**
  * Logs Fragments that have been visited for statistics purposes using Crashlytics' answers.
  */
+@Deprecated("Use the newer Kotlin MVP or move to MVI/MVVM")
 abstract class BaseFragment<VIEW : View, PRESENTER : BasePresenter<VIEW>> :
     BaseMvpFragment<VIEW, PRESENTER>() {
 

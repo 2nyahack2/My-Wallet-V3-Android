@@ -8,9 +8,13 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
+import info.blockchain.balance.CryptoCurrency
 import info.blockchain.wallet.api.Environment
+import info.blockchain.wallet.ethereum.Erc20TokenData
 import info.blockchain.wallet.ethereum.EthAccountApi
 import info.blockchain.wallet.ethereum.EthereumWallet
+import info.blockchain.wallet.ethereum.data.Erc20AddressResponse
+import info.blockchain.wallet.ethereum.data.Erc20TransferResponse
 import info.blockchain.wallet.ethereum.data.EthAddressResponse
 import info.blockchain.wallet.ethereum.data.EthAddressResponseMap
 import info.blockchain.wallet.ethereum.data.EthLatestBlockNumber
@@ -19,18 +23,22 @@ import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
+import junit.framework.Assert
 import org.amshove.kluent.`should contain`
 import org.amshove.kluent.`should equal to`
 import org.amshove.kluent.`should equal`
 import org.amshove.kluent.any
+import org.amshove.kluent.itReturns
 import org.amshove.kluent.mock
 import org.bitcoinj.core.ECKey
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.web3j.crypto.RawTransaction
 import piuk.blockchain.androidcore.data.api.EnvironmentConfig
+import piuk.blockchain.androidcore.data.erc20.Erc20DataModel
+import piuk.blockchain.androidcore.data.erc20.Erc20Transfer
+import piuk.blockchain.androidcore.data.erc20.datastores.Erc20DataStore
 import piuk.blockchain.androidcore.data.ethereum.datastores.EthDataStore
 import piuk.blockchain.androidcore.data.ethereum.models.CombinedEthModel
 import piuk.blockchain.androidcore.data.metadata.MetadataManager
@@ -41,45 +49,46 @@ import java.math.BigInteger
 
 class EthDataManagerTest {
 
-    private lateinit var subject: EthDataManager
-    private val payloadManager: PayloadDataManager = mock()
-    private val ethAccountApi: EthAccountApi = mock()
-    private val ethDataStore: EthDataStore = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
-    private val walletOptionsDataManager: WalletOptionsDataManager = mock()
-    private val metadataManager: MetadataManager = mock()
-    private val environmentSettings: EnvironmentConfig = mock()
-    private val lastTxUpdater: LastTxUpdater = mock()
-    private val rxBus = RxBus()
-
     @get:Rule
     val initSchedulers = rxInit {
         mainTrampoline()
         ioTrampoline()
     }
 
-    @Before
-    fun setUp() {
-        subject = EthDataManager(
+    private val payloadManager: PayloadDataManager = mock()
+    private val ethAccountApi: EthAccountApi = mock()
+    private val ethDataStore: EthDataStore = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    private val erc20DataStore: Erc20DataStore = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    private val walletOptionsDataManager: WalletOptionsDataManager = mock()
+    private val metadataManager: MetadataManager = mock()
+    private val environmentSettings: EnvironmentConfig = mock()
+    private val lastTxUpdater: LastTxUpdater = mock()
+    private val rxBus = RxBus()
+
+    private val subject = EthDataManager(
             payloadManager,
             ethAccountApi,
             ethDataStore,
+            erc20DataStore,
             walletOptionsDataManager,
             metadataManager,
             environmentSettings,
             lastTxUpdater,
             rxBus
         )
-    }
 
     @Test
     fun clearEthAccountDetails() {
         // Arrange
 
         // Act
-        subject.clearEthAccountDetails()
+        subject.clearAccountDetails()
         // Assert
+
         verify(ethDataStore).clearData()
+        verify(erc20DataStore).clearData()
         verifyNoMoreInteractions(ethDataStore)
+        verifyNoMoreInteractions(erc20DataStore)
     }
 
     @Test
@@ -447,5 +456,114 @@ class EthDataManagerTest {
         verifyNoMoreInteractions(ethereumWallet)
         verify(metadataManager).saveToMetadata(any(), any())
         verifyNoMoreInteractions(metadataManager)
+    }
+
+    private val erc20AddressResponsePax = Erc20AddressResponse().apply {
+        accountHash = "0x4058a004dd718babab47e14dd0d744742e5b9903"
+        tokenHash = "0x8e870d67f660d95d5be530380d0ec0bd388289e1"
+        balance = 2838277460000000000.toBigInteger()
+        transfers = listOf(Erc20TransferResponse(), Erc20TransferResponse())
+    }
+
+    @Test
+    fun fetchErc20AddressPax() {
+        // Arrange
+        val ethAddress = "ADDRESS"
+        val tokenData: Erc20TokenData = mock {
+            on { contractAddress } itReturns "CONTRACT_ADDRESS"
+        }
+        whenever(ethDataStore.ethWallet!!.account.address).thenReturn(ethAddress)
+        whenever(ethDataStore.ethWallet!!.getErc20TokenData(any()))
+            .thenReturn(tokenData)
+        whenever(environmentSettings.environment).thenReturn(Environment.PRODUCTION)
+        whenever(ethAccountApi.getErc20Address("ADDRESS", "CONTRACT_ADDRESS"))
+            .thenReturn(Observable.just(erc20AddressResponsePax))
+        ethDataStore.ethWallet
+        // Act
+        val testObserver = subject.fetchErc20DataModel(CryptoCurrency.PAX).test()
+
+        // Assert
+        testObserver.assertComplete()
+        testObserver.assertNoErrors()
+        testObserver.assertValue {
+            it.accountHash == erc20AddressResponsePax.accountHash &&
+            it.totalBalance.toBigInteger() == erc20AddressResponsePax.balance &&
+            it.totalBalance.currency == CryptoCurrency.PAX
+        }
+    }
+
+    @Test
+    fun `no transactions should be returned from empty model PAX`() {
+        whenever(erc20DataStore.erc20DataModel[CryptoCurrency.PAX])
+            .thenReturn(null)
+
+        // Act
+        subject.getErc20Transactions(CryptoCurrency.PAX)
+            .test()
+            .assertValue { it.isEmpty() }
+            .assertComplete()
+            .assertNoErrors()
+    }
+
+    @Test
+    fun `transactions from not null model should return the correct transactions PAX`() {
+        // Arrange
+        whenever(erc20DataStore.erc20DataModel[CryptoCurrency.PAX])
+            .thenReturn(Erc20DataModel(erc20AddressResponsePax, CryptoCurrency.PAX))
+
+        // Act
+        val testObserver = subject.getErc20Transactions(CryptoCurrency.PAX)
+            .test()
+
+        // Assert
+        testObserver.assertComplete()
+        testObserver.assertNoErrors()
+        testObserver.assertValue {
+            it[0] == Erc20Transfer(erc20AddressResponsePax.transfers[0]) &&
+            it[1] == Erc20Transfer(erc20AddressResponsePax.transfers[1]) &&
+            it.size == 2
+        }
+    }
+
+    @Test
+    fun `account has should be the correct one PAX`() {
+        // Arrange
+        whenever(erc20DataStore.erc20DataModel[CryptoCurrency.PAX])
+            .thenReturn(Erc20DataModel(erc20AddressResponsePax, CryptoCurrency.PAX))
+
+        // Act
+        val testObserver = subject.getErc20AccountHash(CryptoCurrency.PAX)
+            .test()
+
+        // Assert
+        testObserver.assertComplete()
+        testObserver.assertNoErrors()
+        testObserver.assertValue {
+            it == erc20AddressResponsePax.accountHash
+        }
+    }
+
+    @Test
+    fun `raw transaction fields should be correct PAX`() {
+        val nonce = 10.toBigInteger()
+        val to = "0xD1220A0cf47c7B9Be7A2E63A89F429762e7b9aDb"
+        val contractAddress = "0x8E870D67F660D95d5be530380D0eC0bd388289E1"
+        val gasPrice = 1.toBigInteger()
+        val gasLimit = 5.toBigInteger()
+        val amount = 7.toBigInteger()
+
+        val rawTransaction =
+            subject.createErc20Transaction(nonce, to, contractAddress, gasPrice, gasLimit, amount)
+
+        Assert.assertEquals(nonce, rawTransaction!!.nonce)
+        Assert.assertEquals(gasPrice, rawTransaction.gasPrice)
+        Assert.assertEquals(gasLimit, rawTransaction.gasLimit)
+        Assert.assertEquals("0x8E870D67F660D95d5be530380D0eC0bd388289E1", rawTransaction.to)
+        Assert.assertEquals(0.toBigInteger(), rawTransaction.value)
+        Assert.assertEquals(
+            "a9059cbb000000000000000000000000d1220a0cf47c7b9be7a2e63a89f429762e7b" +
+            "9adb0000000000000000000000000000000000000000000000000000000000000007",
+            rawTransaction.data
+        )
     }
 }

@@ -1,9 +1,9 @@
 package piuk.blockchain.android.ui.dashboard.announcements.rule
 
-import com.blockchain.swap.nabu.datamanagers.CustodialWalletManager
-import com.blockchain.swap.nabu.datamanagers.LinkedBank
-import com.blockchain.swap.nabu.datamanagers.featureflags.Feature
-import com.blockchain.swap.nabu.datamanagers.featureflags.KycFeatureEligibility
+import com.blockchain.nabu.datamanagers.CustodialWalletManager
+import com.blockchain.nabu.datamanagers.Beneficiary
+import com.blockchain.nabu.datamanagers.featureflags.Feature
+import com.blockchain.nabu.datamanagers.featureflags.KycFeatureEligibility
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.reactivex.Single
@@ -50,7 +50,7 @@ class FiatFundsKycAnnouncementTest {
         whenever(kycFeatureEligibility.isEligibleFor(Feature.SIMPLEBUY_BALANCE))
             .thenReturn(Single.just(true))
 
-        whenever(custodialWalletManager.getLinkedBanks()).thenReturn(Single.just(emptyList()))
+        whenever(custodialWalletManager.getLinkedBeneficiaries()).thenReturn(Single.just(emptyList()))
 
         subject.shouldShow()
             .test()
@@ -65,8 +65,8 @@ class FiatFundsKycAnnouncementTest {
         whenever(kycFeatureEligibility.isEligibleFor(Feature.SIMPLEBUY_BALANCE))
             .thenReturn(Single.just(true))
 
-        whenever(custodialWalletManager.getLinkedBanks()).thenReturn(
-            Single.just(listOf(LinkedBank("", "", "", "")))
+        whenever(custodialWalletManager.getLinkedBeneficiaries()).thenReturn(
+            Single.just(listOf(Beneficiary("", "", "", "")))
         )
 
         subject.shouldShow()
@@ -82,7 +82,7 @@ class FiatFundsKycAnnouncementTest {
         whenever(kycFeatureEligibility.isEligibleFor(Feature.SIMPLEBUY_BALANCE))
             .thenReturn(Single.just(false))
 
-        whenever(custodialWalletManager.getLinkedBanks()).thenReturn(Single.just(emptyList()))
+        whenever(custodialWalletManager.getLinkedBeneficiaries()).thenReturn(Single.just(emptyList()))
 
         subject.shouldShow()
             .test()

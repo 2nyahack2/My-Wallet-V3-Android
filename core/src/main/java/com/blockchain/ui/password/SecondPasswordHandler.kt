@@ -1,53 +1,24 @@
 package com.blockchain.ui.password
 
+import android.content.Context
 import io.reactivex.Maybe
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.subjects.PublishSubject
 
 interface SecondPasswordHandler {
 
     val hasSecondPasswordSet: Boolean
+    val verifiedPassword: String?
 
     interface ResultListener {
-
         fun onNoSecondPassword()
-
         fun onSecondPasswordValidated(validatedSecondPassword: String)
+        fun onCancelled() {}
     }
 
-    interface ResultListenerEx : ResultListener {
+    fun validate(ctx: Context, listener: ResultListener)
+    @Deprecated(message = "Context access is deprecated. Use validate(ctx, listener) instead")
+    fun validate(listener: ResultListener)
 
-        fun onCancelled()
-    }
-
-    fun validateExtended(listener: ResultListenerEx)
-
-    fun validate(listener: ResultListener) {
-        validate(object : ResultListenerEx, ResultListener by listener {
-            override fun onCancelled() {}
-        })
-    }
-}
-
-fun SecondPasswordHandler.secondPassword(): Maybe<String> {
-    val password = PublishSubject.create<String>()
-
-    return Maybe.defer {
-        validateExtended(
-            object : SecondPasswordHandler.ResultListenerEx {
-                override fun onCancelled() {
-                    password.onComplete()
-                }
-
-                override fun onNoSecondPassword() {
-                    password.onComplete()
-                }
-
-                override fun onSecondPasswordValidated(validatedSecondPassword: String) {
-                    password.onNext(validatedSecondPassword)
-                }
-            }
-        )
-        password.firstElement()
-    }.subscribeOn(AndroidSchedulers.mainThread())
+    fun secondPassword(ctx: Context): Maybe<String>
+    @Deprecated(message = "Context access is deprecated. Use secondPassword(ctx) instead")
+    fun secondPassword(): Maybe<String>
 }

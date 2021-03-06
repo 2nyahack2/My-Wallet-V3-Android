@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.adapters.AdapterDelegate
 import piuk.blockchain.android.ui.dashboard.EmptyDashboardItem
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
+import piuk.blockchain.android.util.inflate
 
 class EmptyCardDelegate<in T> : AdapterDelegate<T> {
 

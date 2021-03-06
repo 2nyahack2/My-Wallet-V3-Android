@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="TrendingPairsView">
+        <attr name="trending_type" format="flags">
+            <flag name="swap" value="0" />
+            <flag name="other" value="1" /> <!-- TODO add extra flags here if needed in other places -->
+        </attr>
+    </declare-styleable>
+</resources>

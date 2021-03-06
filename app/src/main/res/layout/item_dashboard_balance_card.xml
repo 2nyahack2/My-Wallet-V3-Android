@@ -61,20 +61,6 @@
             app:use_gradient="true"
             tools:text="7.14%" />
 
-        <com.elyeproj.loaderviewlibrary.LoaderTextView
-            android:id="@+id/delta_interval"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            style="@style/Text.Light.14"
-            android:layout_marginTop="8dp"
-            android:layout_marginStart="3dp"
-            app:layout_constraintStart_toEndOf="@id/balance_delta_percent"
-            app:layout_constraintTop_toBottomOf="@id/total_balance"
-            app:width_weight="0.9"
-            app:height_weight="0.8"
-            app:use_gradient="true"
-            tools:text="Today" />
-
         <androidx.constraintlayout.widget.Guideline
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -90,7 +76,7 @@
             android:layout_marginEnd="@dimen/small_margin"
             app:layout_constraintStart_toEndOf="@id/guideline"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

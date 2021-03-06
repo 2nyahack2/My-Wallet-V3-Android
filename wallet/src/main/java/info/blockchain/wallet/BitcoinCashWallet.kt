@@ -79,7 +79,7 @@ open class BitcoinCashWallet : DeterministicWallet {
             Completable.complete()
         } else {
             Completable.fromCallable {
-                balanceManager.updateAllBalances(allAccountsAndAddresses, legacyAddressList, emptySet())
+                balanceManager.updateAllBalances(allAccountsAndAddresses, legacyAddressList)
             }.subscribeOn(Schedulers.io())
         }
 
@@ -102,7 +102,6 @@ open class BitcoinCashWallet : DeterministicWallet {
      */
     fun getTransactions(
         legacyAddressList: List<String>?,
-        watchOnly: List<String>,
         activeXpubs: List<String>,
         context: String?,
         limit: Int,
@@ -115,15 +114,12 @@ open class BitcoinCashWallet : DeterministicWallet {
         } else {
             multiAddressFactory.getAccountTransactions(
                 activeXpubs,
-                watchOnly,
                 legacyAddressList,
                 context,
                 limit,
                 offset,
                 BCH_FORK_HEIGHT
-            ).filter {
-                !it.isWatchOnly
-            }.toMutableList()
+            ).toMutableList()
         }
 
     /**

@@ -16,7 +16,7 @@
 
         <include layout="@layout/toolbar_general" />
 
-        <piuk.blockchain.android.ui.customviews.ExpandableCurrencyHeader
+        <piuk.blockchain.android.ui.addresses.ExpandableCurrencyHeader
             android:id="@+id/currency_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

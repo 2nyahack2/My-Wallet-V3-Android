@@ -8,10 +8,15 @@
 
     <piuk.blockchain.android.ui.customviews.PrefixedOrSuffixedEditText
         android:id="@+id/enter_amount"
-        style="@style/Text.Semibold.48"
+        style="@style/Text.Semibold.40"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="15dp"
+        android:layout_margin="@dimen/small_margin"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/content_desc_enter_amount"
+        android:digits="0123456789-.,"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:gravity="center"
         android:inputType="numberDecimal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -19,14 +24,27 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:text="$1241" />
 
+    <TextView
+        android:id="@+id/fake_hint"
+        style="@style/Text.Semibold.40"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/common_zero"
+        android:textColor="@color/grey_200"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/enter_amount"
+        app:layout_constraintStart_toStartOf="@+id/enter_amount"
+        app:layout_constraintTop_toTopOf="@+id/enter_amount"
+        tools:visibility="gone" />
+
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/exchange_amount"
         style="@style/Text.Semibold.14"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/tiny_margin"
         android:gravity="center"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="@dimen/tiny_margin"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/enter_amount"
         tools:text="12423" />
@@ -39,17 +57,43 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/enter_amount"
-        app:srcCompat="@drawable/ic_currency_type_swap" />
+        app:srcCompat="@drawable/ic_currency_type_swap"
+        tools:visibility="visible" />
 
     <androidx.appcompat.widget.AppCompatTextView
-        style="@style/Text.Error"
         android:id="@+id/error"
-        android:layout_marginTop="@dimen/tiny_margin"
+        style="@style/Text.Error"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/size_massive"
+        android:layout_marginTop="@dimen/tiny_margin"
+        android:layout_marginEnd="@dimen/size_massive"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constrainedWidth="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/enter_amount"
-        tools:text="$ 200000 Max" />
+        tools:text="$ 200000 Max"
+        tools:visibility="visible" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/info"
+        style="@style/Text.Info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/size_massive"
+        android:layout_marginTop="@dimen/tiny_margin"
+        android:layout_marginEnd="@dimen/size_massive"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/enter_amount"
+        tools:text="Tap here to trade more"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

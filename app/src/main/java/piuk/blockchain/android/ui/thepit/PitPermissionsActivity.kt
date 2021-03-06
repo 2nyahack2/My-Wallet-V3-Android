@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import com.blockchain.koin.scopedInject
 import com.blockchain.notifications.analytics.Analytics
-import piuk.blockchain.android.ui.customviews.ErrorBottomDialog
 import com.blockchain.ui.extensions.throttledClicks
 import com.blockchain.ui.urllinks.URL_THE_PIT_LANDING_LEARN_MORE
 import io.reactivex.disposables.CompositeDisposable
@@ -16,6 +15,7 @@ import kotlinx.android.synthetic.main.toolbar_general.*
 import org.koin.android.ext.android.get
 import piuk.blockchain.android.R
 import piuk.blockchain.android.thepit.PitAnalyticsEvent
+import piuk.blockchain.android.ui.customviews.ErrorBottomDialog
 import piuk.blockchain.android.util.launchUrlInBrowser
 import piuk.blockchain.androidcoreui.ui.base.BaseMvpActivity
 
@@ -50,8 +50,8 @@ class PitPermissionsActivity : PitPermissionsView, BaseMvpActivity<PitPermission
                     analytics.logEvent(PitAnalyticsEvent.LearnMoreEvent)
                     launchUrlInBrowser(
                         URL_THE_PIT_LANDING_LEARN_MORE +
-                                "/?utm_source=android_wallet" +
-                                "&utm_medium=wallet_linking"
+                            "/?utm_source=android_wallet" +
+                            "&utm_medium=wallet_linking"
                     )
                 }
             )
@@ -77,11 +77,11 @@ class PitPermissionsActivity : PitPermissionsView, BaseMvpActivity<PitPermission
         PitStateBottomDialog.newInstance(
             PitStateBottomDialog.StateContent(
                 ErrorBottomDialog.Content(
-                    getString(R.string.the_exchange_connection_error_title),
-                    getString(R.string.the_exchange_connection_error_description),
-                    R.string.try_again,
-                    0,
-                    R.drawable.vector_pit_request_failure), false
+                    title = getString(R.string.the_exchange_connection_error_title),
+                    description = getString(R.string.the_exchange_connection_error_description),
+                    ctaButtonText = R.string.common_try_again,
+                    dismissText = 0,
+                    icon = R.drawable.vector_pit_request_failure), false
             )).apply {
             onCtaClick = {
                 doLinkClickHandler()
@@ -96,11 +96,11 @@ class PitPermissionsActivity : PitPermissionsView, BaseMvpActivity<PitPermission
         PitStateBottomDialog.newInstance(
             PitStateBottomDialog.StateContent(
                 ErrorBottomDialog.Content(
-                    getString(R.string.the_exchange_connection_success_title),
-                    getString(R.string.the_exchange_connection_success_description),
-                    R.string.btn_close,
-                    0,
-                    R.drawable.vector_pit_request_ok), false
+                    title = getString(R.string.the_exchange_connection_success_title),
+                    description = getString(R.string.the_exchange_connection_success_description),
+                    ctaButtonText = R.string.btn_close,
+                    dismissText = 0,
+                    icon = R.drawable.vector_pit_request_ok), false
             )).apply {
             onCtaClick = {
                 dismiss()
@@ -115,11 +115,11 @@ class PitPermissionsActivity : PitPermissionsView, BaseMvpActivity<PitPermission
             loadingDialog = PitStateBottomDialog.newInstance(
                 PitStateBottomDialog.StateContent(
                     ErrorBottomDialog.Content(
-                        getString(R.string.the_exchange_loading_dialog_title),
-                        getString(R.string.the_exchange_loading_dialog_description),
-                        0,
-                        0,
-                        0
+                        title = getString(R.string.the_exchange_loading_dialog_title),
+                        description = getString(R.string.the_exchange_loading_dialog_description),
+                        ctaButtonText = 0,
+                        dismissText = 0,
+                        icon = 0
                     ),
                     true
                 ))
@@ -144,11 +144,11 @@ class PitPermissionsActivity : PitPermissionsView, BaseMvpActivity<PitPermission
         val emailVerifiedBottomDialog =
             PitEmailVerifiedBottomDialog.newInstance(
                 ErrorBottomDialog.Content(
-                    getString(R.string.the_exchange_email_verified_title),
-                    getString(R.string.the_exchange_email_verified_description),
-                    R.string.the_exchange_connect_now,
-                    0,
-                    R.drawable.vector_email_verified
+                    title = getString(R.string.the_exchange_email_verified_title),
+                    description = getString(R.string.the_exchange_email_verified_description),
+                    ctaButtonText = R.string.the_exchange_connect_now,
+                    dismissText = 0,
+                    icon = R.drawable.vector_email_verified
                 )
             ).apply {
                 onCtaClick = { doLinkClickHandler() }

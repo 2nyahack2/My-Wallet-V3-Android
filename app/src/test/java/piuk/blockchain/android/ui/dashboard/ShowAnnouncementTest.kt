@@ -17,14 +17,12 @@ class ShowAnnouncementTest {
                 CryptoCurrency.ETHER to initialEthState,
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = CryptoCurrency.ETHER,
             announcement = null
         )
 
         val result = subject.reduce(initialState)
 
         assertEquals(result.assets, initialState.assets)
-        assertEquals(result.showAssetSheetFor, initialState.showAssetSheetFor)
         assertEquals(result.announcement, testAnnouncementCard_1)
     }
 
@@ -37,14 +35,12 @@ class ShowAnnouncementTest {
                 CryptoCurrency.ETHER to initialEthState,
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = CryptoCurrency.ETHER,
             announcement = testAnnouncementCard_2
         )
 
         val result = subject.reduce(initialState)
 
         assertEquals(result.assets, initialState.assets)
-        assertEquals(result.showAssetSheetFor, initialState.showAssetSheetFor)
         assertEquals(result.announcement, testAnnouncementCard_1)
     }
 }

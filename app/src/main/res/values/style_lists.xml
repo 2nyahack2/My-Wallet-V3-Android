@@ -22,10 +22,4 @@
         <item name="android:layout_marginLeft">@dimen/small_margin</item>
     </style>
 
-    <style name="DashboardCardLayout.Announce">
-        <item name="cardBackgroundColor">@color/announce_background</item>
-        <item name="android:layout_marginTop">@dimen/small_margin</item>
-        <item name="android:layout_marginBottom">8dp</item>
-    </style>
-
 </resources>

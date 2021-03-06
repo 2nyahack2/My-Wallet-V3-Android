@@ -16,22 +16,18 @@ import com.fasterxml.jackson.databind.ObjectMapper
     creatorVisibility = JsonAutoDetect.Visibility.NONE,
     isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 data class MetadataResponse(
-    var version: Int = 0,
-    var payload: String = "",
-    var signature: String = "",
-    @get:JsonProperty("prev_magic_hash")
-    @set:JsonProperty("prev_magic_hash")
-    var prevMagicHash: String? = null,
-    @get:JsonProperty("type_id")
-    @set:JsonProperty("type_id")
-    var typeId: Int = 0,
-    @get:JsonProperty("created_at")
-    @set:JsonProperty("created_at")
-    var createdAt: Long = 0,
-    @get:JsonProperty("updated_at")
-    @set:JsonProperty("updated_at")
-    var updatedAt: Long = 0,
-    var address: String = ""
+    val version: Int = 0,
+    val payload: String = "",
+    val signature: String = "",
+    @JsonProperty("prev_magic_hash")
+    val prevMagicHash: String? = null,
+    @JsonProperty("type_id")
+    val typeId: Int = 0,
+    @JsonProperty("created_at")
+    val createdAt: Long = 0,
+    @JsonProperty("updated_at")
+    val updatedAt: Long = 0,
+    val address: String = ""
 ) {
     @JsonIgnore
     @Throws(JsonProcessingException::class)

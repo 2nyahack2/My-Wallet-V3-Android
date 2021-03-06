@@ -1,36 +1,36 @@
 package piuk.blockchain.android.ui.dashboard.announcements
 
 import com.blockchain.koin.coinifyUsersToKyc
+import com.blockchain.koin.dgldFeatureFlag
 import com.blockchain.koin.payloadScope
 import com.blockchain.koin.payloadScopeQualifier
-import com.blockchain.koin.pitAnnouncementFeatureFlag
 import io.reactivex.android.schedulers.AndroidSchedulers
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import piuk.blockchain.android.ui.dashboard.announcements.rule.AlgorandAvailableAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.BackupPhraseAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.BitpayAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.BuyBitcoinAnnouncement
+import piuk.blockchain.android.ui.dashboard.announcements.rule.CloudBackupAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.FiatFundsKycAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.FiatFundsNoKycAnnouncement
+import piuk.blockchain.android.ui.dashboard.announcements.rule.InterestAvailableAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.IntroTourAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.KycForAirdropsAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.KycIncompleteAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.KycMoreInfoAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.KycResubmissionAnnouncement
-import piuk.blockchain.android.ui.dashboard.announcements.rule.PaxAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.PitAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.RegisterFingerprintsAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.RegisteredForAirdropMiniAnnouncement
+import piuk.blockchain.android.ui.dashboard.announcements.rule.SellIntroAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.SimpleBuyAddCardAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.SimpleBuyFinishSignupAnnouncement
-import piuk.blockchain.android.ui.dashboard.announcements.rule.SimpleBuyPendingBuyAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.StxCompleteAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.SwapAnnouncement
-import piuk.blockchain.android.ui.dashboard.announcements.rule.TetherAvailableAnnouncement
-import piuk.blockchain.android.ui.dashboard.announcements.rule.TransferBitcoinAnnouncement
+import piuk.blockchain.android.ui.dashboard.announcements.rule.TransferCryptoAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.TwoFAAnnouncement
 import piuk.blockchain.android.ui.dashboard.announcements.rule.VerifyEmailAnnouncement
+import piuk.blockchain.android.ui.dashboard.announcements.rule.WDGLDAvailableAnnouncement
 
 val dashboardAnnouncementsModule = module {
 
@@ -91,16 +91,7 @@ val dashboardAnnouncementsModule = module {
             PitAnnouncement(
                 pitLink = get(),
                 dismissRecorder = get(),
-                featureFlag = get(pitAnnouncementFeatureFlag),
                 analytics = get()
-            )
-        }.bind(AnnouncementRule::class)
-
-        factory {
-            PaxAnnouncement(
-                analytics = get(),
-                dismissRecorder = get(),
-                walletStatus = get()
             )
         }.bind(AnnouncementRule::class)
 
@@ -120,14 +111,6 @@ val dashboardAnnouncementsModule = module {
         }.bind(AnnouncementRule::class)
 
         factory {
-            SwapAnnouncement(
-                dataManager = get(),
-                queries = get(),
-                dismissRecorder = get()
-            )
-        }.bind(AnnouncementRule::class)
-
-        factory {
             VerifyEmailAnnouncement(
                 dismissRecorder = get(),
                 walletSettings = get()
@@ -143,6 +126,14 @@ val dashboardAnnouncementsModule = module {
         }.bind(AnnouncementRule::class)
 
         factory {
+            SwapAnnouncement(
+                dismissRecorder = get(),
+                queries = get(),
+                eligibilityProvider = get()
+            )
+        }.bind(AnnouncementRule::class)
+
+        factory {
             BackupPhraseAnnouncement(
                 dismissRecorder = get(),
                 walletStatus = get()
@@ -151,20 +142,19 @@ val dashboardAnnouncementsModule = module {
 
         factory {
             BuyBitcoinAnnouncement(
-                dismissRecorder = get(),
-                simpleBuyAvailability = get()
+                dismissRecorder = get()
             )
         }.bind(AnnouncementRule::class)
 
         factory {
             RegisterFingerprintsAnnouncement(
                 dismissRecorder = get(),
-                fingerprints = get()
+                biometricsController = get()
             )
         }.bind(AnnouncementRule::class)
 
         factory {
-            TransferBitcoinAnnouncement(
+            TransferCryptoAnnouncement(
                 dismissRecorder = get(),
                 walletStatus = get()
             )
@@ -200,14 +190,6 @@ val dashboardAnnouncementsModule = module {
         }.bind(AnnouncementRule::class)
 
         factory {
-            SimpleBuyPendingBuyAnnouncement(
-                dismissRecorder = get(),
-                analytics = get(),
-                queries = get()
-            )
-        }.bind(AnnouncementRule::class)
-
-        factory {
             SimpleBuyAddCardAnnouncement(
                 dismissRecorder = get(),
                 analytics = get(),
@@ -231,14 +213,30 @@ val dashboardAnnouncementsModule = module {
         }.bind(AnnouncementRule::class)
 
         factory {
-            AlgorandAvailableAnnouncement(
+            SellIntroAnnouncement(
+                dismissRecorder = get(),
+                eligibilityProvider = get(),
+                coincore = get(),
+                analytics = get()
+            )
+        }.bind(AnnouncementRule::class)
+
+        factory {
+            CloudBackupAnnouncement(
                 dismissRecorder = get()
             )
         }.bind(AnnouncementRule::class)
 
         factory {
-            TetherAvailableAnnouncement(
+            InterestAvailableAnnouncement(
                 dismissRecorder = get()
+            )
+        }.bind(AnnouncementRule::class)
+
+        factory {
+            WDGLDAvailableAnnouncement(
+                dismissRecorder = get(),
+                dgldFeatureFlag = get(dgldFeatureFlag)
             )
         }.bind(AnnouncementRule::class)
     }

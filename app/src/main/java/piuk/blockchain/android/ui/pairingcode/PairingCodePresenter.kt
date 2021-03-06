@@ -3,11 +3,11 @@ package piuk.blockchain.android.ui.pairingcode
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import io.reactivex.Observable
+import io.reactivex.rxkotlin.plusAssign
 import okhttp3.ResponseBody
 import piuk.blockchain.android.R
-import piuk.blockchain.android.data.datamanagers.QrCodeDataManager
+import piuk.blockchain.android.scan.QrCodeDataManager
 import piuk.blockchain.android.util.StringUtils
-import piuk.blockchain.android.util.extensions.addToCompositeDisposable
 import piuk.blockchain.androidcore.data.auth.AuthDataManager
 import piuk.blockchain.androidcore.data.payload.PayloadDataManager
 import piuk.blockchain.androidcoreui.ui.base.BasePresenter
@@ -32,11 +32,10 @@ class PairingCodePresenter(
 
     @SuppressLint("CheckResult")
     internal fun generatePairingQr() {
-        pairingEncryptionPasswordObservable
+        compositeDisposable += pairingEncryptionPasswordObservable
             .doOnSubscribe { view.showProgressSpinner() }
             .doAfterTerminate { view.hideProgressSpinner() }
             .flatMap { encryptionPassword -> generatePairingCodeObservable(encryptionPassword.string()) }
-            .addToCompositeDisposable(this)
             .subscribe(
                 { bitmap ->
                     view.onQrLoaded(bitmap)

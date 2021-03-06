@@ -1,11 +1,11 @@
 package piuk.blockchain.android.ui.kyc.tiersplash
 
 import androidx.navigation.NavDirections
-import com.blockchain.swap.nabu.models.nabu.KycTierLevel
-import com.blockchain.swap.nabu.models.nabu.KycTierState
+import com.blockchain.nabu.models.responses.nabu.KycTierLevel
+import com.blockchain.nabu.models.responses.nabu.KycTierState
 import piuk.blockchain.android.ui.kyc.reentry.KycNavigator
-import com.blockchain.swap.nabu.service.TierService
-import com.blockchain.swap.nabu.service.TierUpdater
+import com.blockchain.nabu.service.TierService
+import com.blockchain.nabu.service.TierUpdater
 import io.reactivex.Maybe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.plusAssign
@@ -33,7 +33,7 @@ class KycTierSplashPresenter(
                         view!!.renderTiersList(it)
                     },
                     onError = {
-                        view!!.showErrorToast(R.string.kyc_non_specific_server_error)
+                        view!!.showError(R.string.kyc_non_specific_server_error)
                     }
                 )
     }
@@ -60,7 +60,7 @@ class KycTierSplashPresenter(
                     view!!.navigateTo(it, tier)
                 },
                 onError = {
-                    view!!.showErrorToast(R.string.kyc_non_specific_server_error)
+                    view!!.showError(R.string.kyc_non_specific_server_error)
                 }
             )
     }

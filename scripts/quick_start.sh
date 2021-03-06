@@ -16,7 +16,7 @@ echo "{
       \"client_info\": {
         \"mobilesdk_app_id\": \"1:623252783566:android:02baff6e6c46ed96232b9f\",
         \"android_client_info\": {
-          \"package_name\": \"piuk.blockchain.android\"
+          \"package_name\": \"piuk.blockchain.android.dev\"
         }
       },
       \"oauth_client\": [
@@ -48,9 +48,5 @@ echo "{
 popd > /dev/null
 
 printf "Google services json copy complete\n"
-
-printf "Installing submodule dependency\n"
-git submodule update --init
-printf "Submodule installation complete\n"
 
 printf "Quickstart complete!\n"

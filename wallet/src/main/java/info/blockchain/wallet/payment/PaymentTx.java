@@ -95,7 +95,7 @@ class PaymentTx {
 
             Coin coin = Coin.valueOf(amount.longValue());
 
-            if (FormatsUtil.isValidBitcoinCashAddress(networkParameters, toAddress)) {
+            if (FormatsUtil.isValidBCHAddress(networkParameters, toAddress)) {
                 toAddress = CashAddress.toLegacy(networkParameters, toAddress);
             }
 
@@ -167,7 +167,7 @@ class PaymentTx {
 
         BigInteger change = inputValueSum.subtract(outputValueSum).subtract(fee);
         String base58Change;
-        if (FormatsUtil.isValidBitcoinCashAddress(networkParameters, changeAddress)) {
+        if (FormatsUtil.isValidBCHAddress(networkParameters, changeAddress)) {
             base58Change = CashAddress.toLegacy(networkParameters, changeAddress);
         } else {
             base58Change = changeAddress;

@@ -3,6 +3,7 @@ package piuk.blockchain.android.ui.dashboard.adapter
 import com.blockchain.notifications.analytics.Analytics
 import com.blockchain.preferences.CurrencyPrefs
 import info.blockchain.balance.CryptoCurrency
+import piuk.blockchain.android.coincore.Coincore
 import piuk.blockchain.android.coincore.FiatAccount
 import piuk.blockchain.android.ui.adapters.AdapterDelegatesManager
 import piuk.blockchain.android.ui.adapters.DelegationAdapter
@@ -13,7 +14,8 @@ class DashboardDelegateAdapter(
     prefs: CurrencyPrefs,
     onCardClicked: (CryptoCurrency) -> Unit,
     analytics: Analytics,
-    onFundsItemClicked: (FiatAccount) -> Unit
+    onFundsItemClicked: (FiatAccount) -> Unit,
+    coincore: Coincore
 ) : DelegationAdapter<Any>(AdapterDelegatesManager(), emptyList()) {
 
     init {
@@ -21,7 +23,7 @@ class DashboardDelegateAdapter(
         with(delegatesManager) {
             addAdapterDelegate(StdAnnouncementDelegate(analytics))
             addAdapterDelegate(MiniAnnouncementDelegate(analytics))
-            addAdapterDelegate(BalanceCardDelegate(prefs.selectedFiatCurrency))
+            addAdapterDelegate(BalanceCardDelegate(prefs.selectedFiatCurrency, coincore))
             addAdapterDelegate(
                 FundsCardDelegate(
                     prefs.selectedFiatCurrency,

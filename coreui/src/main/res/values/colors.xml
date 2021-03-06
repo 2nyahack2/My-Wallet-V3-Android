@@ -19,10 +19,8 @@
     <color name="toast_info_text">@color/green_800</color>
 
     <!-- ZXing -->
-    <color name="barcode_viewfinder_laser">@color/red_600</color>
-    <color name="barcode_viewfinder_mask">@color/grey_fade_400</color>
-    <color name="barcode_possible_result_points">@color/blue_600</color>
-    <color name="barcode_result_view">@color/black</color>
+    <color name="qr_viewfinder_reticle_outline">@color/white</color>
+    <color name="qr_viewfinder_bg">@color/grey_fade_900</color>
 
     <color name="primary_navy_dark">@color/blue_900</color>
     <color name="primary_blue_light">@color/blue_200</color>
@@ -43,6 +41,7 @@
     <!-- For warning messages -->
     <color name="product_green_medium">@color/green_600</color>
     <color name="product_red_medium">@color/red_600</color>
+    <color name="product_orange_medium">@color/orange_600</color>
 
     <!-- Specified in designs but not named in spec -->
     <color name="primary_grey_dark">@color/grey_800</color>
@@ -73,6 +72,7 @@
     <color name="color_pax_logo">@color/pax</color>
     <color name="color_algo_logo">@color/algo</color>
     <color name="color_usdt_logo">@color/usdt</color>
+    <color name="color_dgld_logo">@color/dgld</color>
 
     <!-- Non-Spendable colours -->
     <color name="non_spendable_button_background">@color/grey_100</color>

@@ -614,10 +614,7 @@ private fun givenSeedFor(mnemonic: String): SeedAccess =
         override val seedPromptIfRequired: Maybe<Seed>
             get() = throw Exception("Unexpected")
 
-        override val seedForcePrompt: Maybe<Seed>
-            get() = throw Exception("Unexpected")
-
-        override fun seed(validatedSecondPassword: String): Maybe<Seed> {
+        override fun seed(validatedSecondPassword: String?): Maybe<Seed> {
             throw Exception("Unexpected")
         }
     }
@@ -631,10 +628,7 @@ private fun givenSeedPresentOnlyWithSecondPasswordFor(mnemonic: String): SeedAcc
         override val seedPromptIfRequired: Maybe<Seed>
             get() = mnemonic.toSeed()
 
-        override val seedForcePrompt: Maybe<Seed>
-            get() = throw Exception("Unexpected")
-
-        override fun seed(validatedSecondPassword: String): Maybe<Seed> {
+        override fun seed(validatedSecondPassword: String?): Maybe<Seed> {
             throw Exception("Unexpected")
         }
     }
@@ -656,10 +650,7 @@ private fun givenNoSeed(): SeedAccess =
         override val seedPromptIfRequired: Maybe<Seed>
             get() = Maybe.empty()
 
-        override val seedForcePrompt: Maybe<Seed>
-            get() = throw Exception("Unexpected")
-
-        override fun seed(validatedSecondPassword: String): Maybe<Seed> {
+        override fun seed(validatedSecondPassword: String?): Maybe<Seed> {
             throw Exception("Unexpected")
         }
     }

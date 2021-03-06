@@ -1,6 +1,7 @@
 package com.blockchain.sunriver.models
 
 import com.blockchain.sunriver.HorizonKeyPair
+import com.blockchain.sunriver.Memo
 import info.blockchain.balance.CryptoValue
 
 data class XlmTransaction(
@@ -8,6 +9,7 @@ data class XlmTransaction(
     val value: CryptoValue,
     val fee: CryptoValue,
     val hash: String,
+    val memo: Memo,
     val to: HorizonKeyPair.Public,
     val from: HorizonKeyPair.Public
 ) {

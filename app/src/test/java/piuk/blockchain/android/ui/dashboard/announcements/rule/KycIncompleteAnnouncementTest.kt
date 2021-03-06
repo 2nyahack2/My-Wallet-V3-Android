@@ -1,6 +1,6 @@
 package piuk.blockchain.android.ui.dashboard.announcements.rule
 
-import com.blockchain.swap.nabu.status.KycTiersQueries
+import com.blockchain.nabu.status.KycTiersQueries
 import piuk.blockchain.android.campaign.SunriverCampaignRegistration
 import com.nhaarman.mockito_kotlin.whenever
 import io.reactivex.Single

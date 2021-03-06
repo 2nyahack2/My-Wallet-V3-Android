@@ -1,98 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/coordinator_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/white"
-    tools:context=".ui.send.SendFragment">
+    android:layout_height="match_parent">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/transfer_pager"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:animateLayoutChanges="true"
-        android:fitsSystemWindows="true"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:layout_height="match_parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/send_blurb"
-            style="@style/Text.Semibold.20"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/transfer_tabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/standard_margin"
-            android:paddingBottom="@dimen/standard_margin"
-            android:text="@string/transfer_send_crypto"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:background="@color/primary_blue_dark"
+            app:tabIndicatorColor="@color/white"
+            app:tabIndicatorHeight="3dp"
+            app:tabRippleColor="@null"
+            app:tabSelectedTextColor="@android:color/white"
+            app:tabTextAppearance="@style/Text.Semibold.16"
+            app:tabTextColor="@color/white_with_opacity" />
 
-        <piuk.blockchain.android.ui.customviews.account.AccountList
-            android:id="@+id/account_list"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/send_blurb" />
+    </androidx.viewpager.widget.ViewPager>
 
-        <LinearLayout
-            android:id="@+id/empty_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/white"
-            android:orientation="vertical"
-            android:padding="@dimen/standard_margin"
-            android:paddingBottom="@dimen/standard_margin"
-            android:visibility="gone"
-            tools:visibility="gone">
-
-            <androidx.appcompat.widget.AppCompatTextView
-                style="@style/Text.Semibold.Centered.20"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/transfer_wallets_empty_title" />
-
-            <androidx.appcompat.widget.AppCompatTextView
-                style="@style/Text.Standard.Centered.14"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/tiny_margin"
-                android:text="@string/transfer_wallets_empty_details" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                app:srcCompat="@drawable/ic_wallet_intro_image" />
-
-            <Button
-                android:id="@+id/button_buy_crypto"
-                style="@style/CtaButton.Blue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="@string/transfer_wallet_buy_crypto"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/account_list" />
-
-
-        </LinearLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <piuk.blockchain.androidcoreui.ui.customviews.NumericKeyboard
-        android:id="@+id/keyboard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:visibility="gone"
-        tools:visibility="gone" />
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/confirm_sheet_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/tiny_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/vector_sheet_indicator_small" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/confirm_sheet_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/small_margin"
+        android:background="@android:color/transparent"
+        android:padding="@dimen/tiny_margin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/confirm_sheet_title"
+        app:srcCompat="@drawable/ic_arrow_back_blue" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/confirm_sheet_title"
+        style="@style/Text.Semibold.20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/xlarge_margin"
+        android:layout_marginTop="@dimen/very_small_margin"
+        android:layout_marginEnd="@dimen/standard_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/confirm_sheet_back"
+        app:layout_constraintTop_toBottomOf="@id/confirm_sheet_indicator" />
+
+    <View
+        android:id="@+id/confirm_title_separator"
+        style="@style/SeparatorWithoutMargins"
+        android:layout_marginTop="@dimen/very_small_margin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/confirm_sheet_title" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/amount"
+        style="@style/Text.Semibold.32"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/standard_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/confirm_sheet_title"
+        tools:text="0.04129485 BTC" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/confirm_details_list"
+        style="@style/Text.Semibold.14"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/small_margin"
+        android:layout_marginBottom="@dimen/miniscule_margin"
+        android:fadingEdge="vertical"
+        android:fadingEdgeLength="@dimen/very_small_margin"
+        android:requiresFadingEdge="vertical"
+        android:scrollbarSize="@dimen/miniscule_margin"
+        android:scrollbars="vertical"
+        app:layout_constrainedHeight="true"
+        app:layout_constraintBottom_toTopOf="@id/confirm_disclaimer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/amount"
+        tools:listitem="@layout/item_send_confirm_details" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/confirm_disclaimer"
+        style="@style/Text.Standard.12"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginEnd="@dimen/standard_margin"
+        android:layout_marginBottom="@dimen/tiny_margin"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@id/confirm_cta_button"
+        tools:text="Disclaimer blurb that spans several lines that spans several lines" />
+
+    <Button
+        android:id="@+id/confirm_cta_button"
+        style="@style/CtaButton.Blue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/standard_margin"
+        android:contentDescription="@string/next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Send 100000 BTC" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

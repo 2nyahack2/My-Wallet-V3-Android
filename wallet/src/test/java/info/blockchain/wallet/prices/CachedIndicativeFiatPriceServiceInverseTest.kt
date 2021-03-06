@@ -10,6 +10,7 @@ import org.amshove.kluent.`should equal`
 import org.junit.Rule
 import org.junit.Test
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 class CachedIndicativeFiatPriceServiceInverseTest {
 
@@ -31,7 +32,7 @@ class CachedIndicativeFiatPriceServiceInverseTest {
             .indicativeRateStream(fromFiat = "GBP", to = CryptoCurrency.BTC)
             .assertSingle()
             .apply {
-                rate `should equal` BigDecimal.valueOf(1 / 99.0)
+                rate `should equal` BigDecimal.ONE.divide(99.toBigDecimal(), 8, RoundingMode.HALF_UP)
                 from `should equal` "GBP"
                 to `should equal` CryptoCurrency.BTC
             }

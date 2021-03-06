@@ -6,12 +6,8 @@ include ':app',
         ':common:network',
         ':core',
         ':coreui',
-        ':lockbox',
-        ':swap',
         ':nabu',
         ':sunriver',
-        ':sunriver:stellar-sdk-wrapper',
         ':testutils',
         ':testutils-android',
-        ':veriff',
-        ':zxing'
+        ':veriff'

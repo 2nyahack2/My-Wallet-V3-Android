@@ -28,15 +28,15 @@ import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
 import piuk.blockchain.androidcore.utils.helperfunctions.consume
 import piuk.blockchain.androidcoreui.ui.base.BaseFragment
-import com.blockchain.ui.dialog.MaterialProgressDialog
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.ParentActivityDelegate
-import piuk.blockchain.androidcoreui.utils.ViewUtils
-import piuk.blockchain.androidcoreui.utils.extensions.getTextString
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.toast
+import piuk.blockchain.androidcoreui.ui.customviews.toast
+import piuk.blockchain.android.ui.kyc.ParentActivityDelegate
+import piuk.blockchain.android.util.ViewUtils
+import piuk.blockchain.android.util.getTextString
+import piuk.blockchain.android.util.inflate
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -51,7 +51,9 @@ class KycProfileFragment : BaseFragment<KycProfileView, KycProfilePresenter>(), 
 
     private val presenter: KycProfilePresenter by scopedInject()
     private val analytics: Analytics by inject()
-    private val progressListener: KycProgressListener by ParentActivityDelegate(this)
+    private val progressListener: KycProgressListener by ParentActivityDelegate(
+        this
+    )
     private val compositeDisposable = CompositeDisposable()
     override val firstName: String
         get() = editTextFirstName.getTextString()
@@ -62,6 +64,12 @@ class KycProfileFragment : BaseFragment<KycProfileView, KycProfilePresenter>(), 
             arguments ?: Bundle()
         ).countryCode
     }
+
+    override val state: String?
+        get() = KycProfileFragmentArgs.fromBundle(
+            arguments ?: Bundle()
+        ).stateCode.takeIf { it.isNotEmpty() }
+
     override var dateOfBirth: Calendar? = null
     private var progressDialog: MaterialProgressDialog? = null
 
@@ -76,7 +84,6 @@ class KycProfileFragment : BaseFragment<KycProfileView, KycProfilePresenter>(), 
         logEvent(AnalyticsEvents.KycProfile)
 
         progressListener.setHostTitle(R.string.kyc_profile_title)
-        progressListener.incrementProgress(KycStep.ProfilePage)
 
         editTextFirstName.setOnEditorActionListener { _, i, _ ->
             consume { if (i == EditorInfo.IME_ACTION_NEXT) editTextLastName.requestFocus() }
@@ -105,9 +112,13 @@ class KycProfileFragment : BaseFragment<KycProfileView, KycProfilePresenter>(), 
                 .subscribeBy(
                     onNext = {
                         presenter.onContinueClicked(progressListener.campaignType)
-                        analytics.logEvent(KYCAnalyticsEvents.PersonalDetailsSet("${editTextFirstName.text}," +
-                                "${editTextLastName.text}," +
-                                "${editTextDob.text}"))
+                        analytics.logEvent(
+                            KYCAnalyticsEvents.PersonalDetailsSet(
+                                "${editTextFirstName.text}," +
+                                    "${editTextLastName.text}," +
+                                    "${editTextDob.text}"
+                            )
+                        )
                     },
                     onError = { Timber.e(it) }
                 )
@@ -171,7 +182,6 @@ class KycProfileFragment : BaseFragment<KycProfileView, KycProfilePresenter>(), 
             .map { mapToCompleted(it) }
             .doOnNext(presenterPropAssignment)
             .distinctUntilChanged()
-            .doOnNext { updateProgress(it, kycStep) }
 
     private fun onDateOfBirthClicked() {
         (requireActivity() as? AppCompatActivity)?.let {
@@ -194,7 +204,7 @@ class KycProfileFragment : BaseFragment<KycProfileView, KycProfilePresenter>(), 
     private val datePickerCallback: DatePickerDialog.OnDateSetListener
         @SuppressLint("SimpleDateFormat")
         get() = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
-            progressListener.incrementProgress(KycStep.Birthday)
+
             presenter.dateSet = true
             dateOfBirth = Calendar.getInstance().apply {
                 set(year, month, dayOfMonth)
@@ -206,14 +216,6 @@ class KycProfileFragment : BaseFragment<KycProfileView, KycProfilePresenter>(), 
         }
 
     private fun mapToCompleted(text: String): Boolean = !text.isEmpty()
-
-    private fun updateProgress(stepCompleted: Boolean, kycStep: KycStep) {
-        if (stepCompleted) {
-            progressListener.incrementProgress(kycStep)
-        } else {
-            progressListener.decrementProgress(kycStep)
-        }
-    }
 
     override fun setButtonEnabled(enabled: Boolean) {
         buttonNext.isEnabled = enabled

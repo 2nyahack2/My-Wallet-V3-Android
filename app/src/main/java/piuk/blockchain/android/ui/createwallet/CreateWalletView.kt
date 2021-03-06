@@ -2,21 +2,16 @@ package piuk.blockchain.android.ui.createwallet
 
 import androidx.annotation.StringRes
 import piuk.blockchain.androidcoreui.ui.base.View
-import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
 
 interface CreateWalletView : View {
-
-    fun setTitleText(text: Int)
-
-    fun setNextText(text: Int)
 
     fun setEntropyStrength(score: Int)
 
     fun setEntropyLevel(level: Int)
 
-    fun showToast(@StringRes message: Int, @ToastCustom.ToastType toastType: String)
+    fun showError(@StringRes message: Int)
 
-    fun showWeakPasswordDialog(email: String, password: String)
+    fun warnWeakPassword(email: String, password: String)
 
     fun startPinEntryActivity()
 

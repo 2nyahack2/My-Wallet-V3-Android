@@ -1,24 +1,21 @@
 package piuk.blockchain.android.ui.start
 
 import com.blockchain.android.testutils.rxInit
+import com.blockchain.logging.CrashLogger
 import com.blockchain.notifications.analytics.Analytics
 import com.nhaarman.mockito_kotlin.whenever
-
 import info.blockchain.wallet.payload.data.Wallet
-
-import org.junit.Before
-import org.junit.Test
-
-import piuk.blockchain.androidcore.data.auth.AuthDataManager
-import piuk.blockchain.androidcore.data.payload.PayloadDataManager
-import piuk.blockchain.android.util.AppUtil
-import piuk.blockchain.androidcore.utils.PrefsUtil
-
 import org.amshove.kluent.any
 import org.amshove.kluent.mock
+import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import piuk.blockchain.android.util.AppUtil
+import piuk.blockchain.androidcore.data.auth.AuthDataManager
+import piuk.blockchain.androidcore.data.payload.PayloadDataManager
+import piuk.blockchain.androidcore.utils.PrefsUtil
 
 class ManualPairingPresenterTest {
 
@@ -31,6 +28,7 @@ class ManualPairingPresenterTest {
     private val wallet: Wallet = mock()
     private val prefsUtil: PrefsUtil = mock()
     private val analytics: Analytics = mock()
+    private val crashLogger: CrashLogger = mock()
 
     @get:Rule
     val initSchedulers = rxInit {
@@ -45,7 +43,8 @@ class ManualPairingPresenterTest {
             authDataManager,
             payloadDataManager,
             prefsUtil,
-            analytics
+            analytics,
+            crashLogger
         )
         subject.attachView(view)
 

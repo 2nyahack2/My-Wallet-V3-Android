@@ -1,14 +1,13 @@
 package piuk.blockchain.android.ui.dashboard.announcements
 
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.Scope
-import com.blockchain.swap.nabu.NabuToken
-import com.blockchain.swap.nabu.datamanagers.OrderState
-import com.blockchain.swap.nabu.datamanagers.PaymentMethod
-import com.blockchain.swap.nabu.models.nabu.KycTierLevel
-import com.blockchain.swap.nabu.models.nabu.KycTiers
-import com.blockchain.swap.nabu.models.nabu.UserCampaignState
-import com.blockchain.swap.nabu.service.TierService
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.Scope
+import com.blockchain.nabu.NabuToken
+import com.blockchain.nabu.datamanagers.PaymentMethod
+import com.blockchain.nabu.models.responses.nabu.KycTierLevel
+import com.blockchain.nabu.models.responses.nabu.KycTiers
+import com.blockchain.nabu.models.responses.nabu.UserCampaignState
+import com.blockchain.nabu.service.TierService
 import io.reactivex.Single
 import io.reactivex.rxkotlin.Singles
 import io.reactivex.rxkotlin.zipWith
@@ -74,13 +73,6 @@ class AnnouncementQueries(
                 }
             } ?: Single.just(false)
         }
-    }
-
-    fun isSimpleBuyTransactionPending(): Single<Boolean> {
-        return Single.just(
-            sbStateFactory.currentState()?.order?.orderState == OrderState.AWAITING_FUNDS &&
-                    sbStateFactory.currentState()?.selectedPaymentMethod?.isBank() == true
-        )
     }
 
     private fun hasSelectedToAddNewCard(): Single<Boolean> =

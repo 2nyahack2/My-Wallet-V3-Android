@@ -4,14 +4,14 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import org.junit.Before
 import org.junit.Test
+import piuk.blockchain.android.data.biometrics.BiometricsController
 import piuk.blockchain.android.ui.dashboard.announcements.DismissRecorder
-import piuk.blockchain.android.ui.fingerprint.FingerprintHelper
 
 class RegisterFingerprintsAnnouncementTest {
 
     private val dismissRecorder: DismissRecorder = mock()
     private val dismissEntry: DismissRecorder.DismissEntry = mock()
-    private val fingerprints: FingerprintHelper = mock()
+    private val biometricsController: BiometricsController = mock()
 
     private lateinit var subject: RegisterFingerprintsAnnouncement
 
@@ -25,7 +25,7 @@ class RegisterFingerprintsAnnouncementTest {
         subject =
             RegisterFingerprintsAnnouncement(
                 dismissRecorder = dismissRecorder,
-                fingerprints = fingerprints
+                biometricsController = biometricsController
             )
     }
 
@@ -44,8 +44,8 @@ class RegisterFingerprintsAnnouncementTest {
     fun `should show, when not already shown, and there is no fingerprint hardware`() {
         whenever(dismissEntry.isDismissed).thenReturn(false)
 
-        whenever(fingerprints.isHardwareDetected()).thenReturn(false)
-        whenever(fingerprints.isFingerprintUnlockEnabled()).thenReturn(false)
+        whenever(biometricsController.isHardwareDetected).thenReturn(false)
+        whenever(biometricsController.isFingerprintUnlockEnabled).thenReturn(false)
 
         subject.shouldShow()
             .test()
@@ -58,8 +58,8 @@ class RegisterFingerprintsAnnouncementTest {
     fun `should not show, when not already shown, fingerprint hardware exists and fingerprints are registered`() {
         whenever(dismissEntry.isDismissed).thenReturn(false)
 
-        whenever(fingerprints.isHardwareDetected()).thenReturn(true)
-        whenever(fingerprints.isFingerprintUnlockEnabled()).thenReturn(true)
+        whenever(biometricsController.isHardwareDetected).thenReturn(true)
+        whenever(biometricsController.isFingerprintUnlockEnabled).thenReturn(true)
 
         subject.shouldShow()
             .test()
@@ -72,8 +72,8 @@ class RegisterFingerprintsAnnouncementTest {
     fun `should show, when not already shown, fingerprint hardware exists and fingerprints are not registered`() {
         whenever(dismissEntry.isDismissed).thenReturn(false)
 
-        whenever(fingerprints.isHardwareDetected()).thenReturn(true)
-        whenever(fingerprints.isFingerprintUnlockEnabled()).thenReturn(false)
+        whenever(biometricsController.isHardwareDetected).thenReturn(true)
+        whenever(biometricsController.isFingerprintUnlockEnabled).thenReturn(false)
 
         subject.shouldShow()
             .test()

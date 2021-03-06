@@ -8,12 +8,12 @@ import info.blockchain.wallet.exceptions.TransactionHashApiException
 import info.blockchain.wallet.payment.Payment
 import info.blockchain.wallet.payment.SpendableUnspentOutputs
 import io.reactivex.Observable
+import io.reactivex.Single
 import org.apache.commons.lang3.tuple.Pair
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Transaction
 import piuk.blockchain.androidcore.data.api.EnvironmentConfig
 import piuk.blockchain.androidcore.utils.annotations.WebRequest
-import java.io.UnsupportedEncodingException
 import java.math.BigInteger
 import java.util.HashMap
 
@@ -45,7 +45,7 @@ class PaymentService(
         bigIntAmount: BigInteger
     ): Observable<String> = Observable.fromCallable {
 
-        val tx = signAngGetTx(unspentOutputBundle, keys, toAddress, changeAddress, bigIntFee, bigIntAmount)
+        val tx = signAngGetBtcTx(unspentOutputBundle, keys, toAddress, changeAddress, bigIntFee, bigIntAmount)
         val response = payment.publishSimpleTransaction(tx).execute()
 
         when {
@@ -54,7 +54,18 @@ class PaymentService(
         }
     }
 
-    internal fun signAngGetTx(
+    @WebRequest
+    internal fun submitBtcPayment(
+        signedTx: Transaction
+    ): Single<String> = Single.fromCallable {
+        val response = payment.publishSimpleTransaction(signedTx).execute()
+        when {
+            response.isSuccessful -> signedTx.hashAsString
+            else -> throw TransactionHashApiException.fromResponse(signedTx.hashAsString, response)
+        }
+    }
+
+    internal fun signAngGetBtcTx(
         unspentOutputBundle: SpendableUnspentOutputs,
         keys: List<ECKey>,
         toAddress: String,
@@ -178,15 +189,13 @@ class PaymentService(
      * @return An [SpendableUnspentOutputs] object, which wraps a list of spendable outputs
      * for the given inputs
      */
-    @Throws(UnsupportedEncodingException::class)
     internal fun getSpendableCoins(
         unspentCoins: UnspentOutputs,
         paymentAmount: BigInteger,
         feePerKb: BigInteger,
-        includeReplayProtection: Boolean,
-        useNewCoinSelection: Boolean
+        includeReplayProtection: Boolean
     ): SpendableUnspentOutputs =
-        payment.getSpendableCoins(unspentCoins, paymentAmount, feePerKb, includeReplayProtection, useNewCoinSelection)
+        payment.getSpendableCoins(unspentCoins, paymentAmount, feePerKb, includeReplayProtection)
 
     /**
      * Calculates the total amount of bitcoin that can be swept from an [UnspentOutputs]
@@ -203,13 +212,11 @@ class PaymentService(
     internal fun getMaximumAvailable(
         unspentCoins: UnspentOutputs,
         feePerKb: BigInteger,
-        includeReplayProtection: Boolean,
-        useNewCoinSelection: Boolean
+        includeReplayProtection: Boolean
     ): Pair<BigInteger, BigInteger> = payment.getMaximumAvailable(
         unspentCoins,
         feePerKb,
-        includeReplayProtection,
-        useNewCoinSelection
+        includeReplayProtection
     )
 
     /**

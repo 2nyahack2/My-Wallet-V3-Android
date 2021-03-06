@@ -2,13 +2,13 @@ package piuk.blockchain.android.ui.customviews
 
 import android.os.Bundle
 import android.os.Parcelable
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import android.text.method.LinkMovementMethod
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import com.blockchain.notifications.analytics.Analytics
 import com.blockchain.notifications.analytics.AnalyticsEvents
 import com.blockchain.ui.extensions.throttledClicks
@@ -20,8 +20,8 @@ import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.error_bottom_dialog.*
 import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.visible
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.visible
 
 open class ErrorBottomDialog : BottomSheetDialogFragment() {
 
@@ -29,7 +29,8 @@ open class ErrorBottomDialog : BottomSheetDialogFragment() {
     data class
     Content(
         val title: CharSequence,
-        val description: CharSequence,
+        val description: CharSequence = "",
+        val descriptionToFormat: Pair<Int, String>? = null,
         @StringRes val ctaButtonText: Int = 0,
         @StringRes val dismissText: Int = 0,
         @DrawableRes val icon: Int
@@ -93,7 +94,9 @@ open class ErrorBottomDialog : BottomSheetDialogFragment() {
             } ?: dialog_icon.gone()
 
             dialog_body.apply {
-                text = description
+                text = descriptionToFormat?.let {
+                    getString(descriptionToFormat.first, descriptionToFormat.second)
+                } ?: description
                 movementMethod = LinkMovementMethod.getInstance()
             }
 

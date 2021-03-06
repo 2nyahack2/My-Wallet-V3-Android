@@ -60,7 +60,7 @@ internal class UpgradeWalletPresenter constructor(
                     .subscribe(
                         { view.showToast(R.string.password_changed, ToastCustom.TYPE_OK) },
                         {
-                            view.showToast(R.string.remote_save_ko, ToastCustom.TYPE_ERROR)
+                            view.showToast(R.string.remote_save_failed, ToastCustom.TYPE_ERROR)
                             view.showToast(R.string.password_unchanged, ToastCustom.TYPE_ERROR)
                         })
             }

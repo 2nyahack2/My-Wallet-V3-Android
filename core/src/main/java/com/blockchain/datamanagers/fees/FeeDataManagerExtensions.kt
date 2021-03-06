@@ -31,12 +31,13 @@ fun FeeDataManager.getFeeOptions(cryptoCurrency: CryptoCurrency): Single<out Net
         }
         CryptoCurrency.XLM -> xlmFeeOptions.map {
             XlmFees(
-                CryptoValue.lumensFromStroop(it.regularFee.toBigInteger()),
-                CryptoValue.lumensFromStroop(it.priorityFee.toBigInteger())
+                CryptoValue.fromMinor(CryptoCurrency.XLM, it.regularFee.toBigInteger()),
+                CryptoValue.fromMinor(CryptoCurrency.XLM, it.priorityFee.toBigInteger())
             )
         }
         CryptoCurrency.PAX,
-        CryptoCurrency.USDT -> ethFeeOptions.map {
+        CryptoCurrency.USDT,
+        CryptoCurrency.DGLD -> ethFeeOptions.map {
             EthereumFees(
                 it.regularFee,
                 it.priorityFee,

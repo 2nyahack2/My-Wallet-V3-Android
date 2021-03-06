@@ -3,17 +3,20 @@ package com.blockchain.sunriver
 import com.blockchain.sunriver.derivation.deriveXlmAccountKeyPair
 import com.blockchain.wallet.SeedAccess
 import io.reactivex.Maybe
+import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 
 internal class XlmSecretAccess(private val seedAccess: SeedAccess) {
 
     /**
      * Searches for an account that matches the public.
-     * Forces a second password prompt when second password is set.
      */
-    fun getPrivate(forPublic: HorizonKeyPair.Public): Maybe<HorizonKeyPair.Private> =
+    fun getPrivate(
+        forPublic: HorizonKeyPair.Public,
+        secondPassword: String?
+    ): Single<HorizonKeyPair.Private> =
         seedAccess
-            .seedForcePrompt
+            .seed(secondPassword)
             .observeOn(Schedulers.computation())
             .flatMap { seed ->
                 for (i in 0..20) {
@@ -23,5 +26,5 @@ internal class XlmSecretAccess(private val seedAccess: SeedAccess) {
                     }
                 }
                 Maybe.empty<HorizonKeyPair.Private>()
-            }
+            }.toSingle()
 }

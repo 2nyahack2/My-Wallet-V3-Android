@@ -30,7 +30,7 @@ class BackupWalletActivity : BaseAuthActivity() {
 
         if (isBackedUp()) {
             startFragment(
-                BackupWalletCompletedFragment.newInstance(false),
+                BackupWalletCompletedFragment.newInstance(),
                 BackupWalletCompletedFragment.TAG
             )
         } else {

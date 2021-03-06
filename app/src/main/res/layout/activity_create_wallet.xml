@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -43,7 +44,7 @@
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <piuk.blockchain.android.ui.customviews.AnimatedPasswordInputLayout
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/passwordLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -53,7 +54,8 @@
                 android:hint="@string/password"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/emailLayout">
+                app:layout_constraintTop_toBottomOf="@+id/emailLayout"
+                app:passwordToggleEnabled="true">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/wallet_pass"
@@ -64,15 +66,12 @@
                     android:inputType="textPassword"
                     android:maxLines="1" />
 
-            </piuk.blockchain.android.ui.customviews.AnimatedPasswordInputLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <include
+            <piuk.blockchain.android.ui.customviews.PasswordStrengthView
                 android:id="@+id/entropy_container"
-                layout="@layout/include_entropy_meter"
                 android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
+                android:layout_height="wrap_content"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/passwordLayout" />
@@ -100,17 +99,41 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
+            <androidx.appcompat.widget.AppCompatCheckBox
+                android:id="@+id/wallet_password_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/standard_margin"
+                android:layout_marginTop="@dimen/standard_margin"
+                android:background="@color/white"
+                android:button="@drawable/checkbox_selector_blue"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/confirmPasswordLayout" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/wallet_password_blurb"
+                style="@style/Text.Standard.14"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/very_small_margin"
+                android:layout_marginEnd="@dimen/standard_margin"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="@dimen/standard_margin"
+                app:layout_constraintStart_toEndOf="@id/wallet_password_checkbox"
+                app:layout_constraintTop_toBottomOf="@id/confirmPasswordLayout"
+                tools:text="@string/password_disclaimer" />
+
+            <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/tos"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/standard_margin"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/medium_margin"
                 android:layout_marginEnd="@dimen/standard_margin"
                 android:textColor="@color/primary_grey_dark"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/confirmPasswordLayout"
+                app:layout_constraintTop_toBottomOf="@+id/wallet_password_blurb"
                 tools:text="@string/you_agree_terms_of_service" />
 
             <Button

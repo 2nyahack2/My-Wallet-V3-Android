@@ -37,6 +37,18 @@ class FcmCallbackService : FirebaseMessagingService() {
             val payload = NotificationPayload(remoteMessage.data)
             rxBus.emitEvent(NotificationPayload::class.java, payload)
             sendNotification(payload)
+        } else {
+            // If there is no data field, provide this default behaviour
+            NotificationsUtil(applicationContext, notificationManager, analytics).triggerNotification(
+                remoteMessage.notification?.title ?: "",
+                remoteMessage.notification?.title ?: "",
+                remoteMessage.notification?.body ?: "",
+                R.mipmap.ic_launcher,
+                // Don't want to launch an activity
+                PendingIntent.getActivity(applicationContext, 0, Intent(), PendingIntent.FLAG_UPDATE_CURRENT),
+                ID_BACKGROUND_NOTIFICATION_2FA,
+                remoteMessage.notification?.channelId
+            )
         }
     }
 
@@ -125,7 +137,7 @@ class FcmCallbackService : FirebaseMessagingService() {
             payload.title ?: "",
             payload.title ?: "",
             payload.body ?: "",
-            R.drawable.ic_notification_white,
+            R.mipmap.ic_launcher,
             pendingIntent,
             notificationId
         )
@@ -137,5 +149,6 @@ class FcmCallbackService : FirebaseMessagingService() {
         const val EXTRA_CONTACT_ACCEPTED = "contact_accepted"
         const val ID_BACKGROUND_NOTIFICATION = 1337
         const val ID_FOREGROUND_NOTIFICATION = 1338
+        const val ID_BACKGROUND_NOTIFICATION_2FA = 1339
     }
 }

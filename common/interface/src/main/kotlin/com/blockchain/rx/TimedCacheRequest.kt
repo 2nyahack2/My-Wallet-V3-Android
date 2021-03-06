@@ -20,6 +20,27 @@ class TimedCacheRequest<T>(
                 Single.timer(cacheLifetimeSeconds, TimeUnit.SECONDS)
                     .subscribeBy(onSuccess = { expired.set(true) })
             }
-        current
+            current
+        }
+}
+
+class ParameteredTimedCacheRequest<INPUT, OUTPUT>(
+    private val cacheLifetimeSeconds: Long,
+    private val refreshFn: (INPUT) -> Single<OUTPUT>
+) {
+    val expired = hashMapOf<INPUT, Boolean>()
+    lateinit var current: Single<OUTPUT>
+
+    fun getCachedSingle(input: INPUT): Single<OUTPUT> =
+        Single.defer {
+            if (expired[input] != false) {
+                current = refreshFn.invoke(input).cache().doOnSuccess {
+                    expired[input] = false
+                }
+
+                Single.timer(cacheLifetimeSeconds, TimeUnit.SECONDS)
+                    .subscribeBy(onSuccess = { expired[input] = true })
+            }
+            current
         }
 }

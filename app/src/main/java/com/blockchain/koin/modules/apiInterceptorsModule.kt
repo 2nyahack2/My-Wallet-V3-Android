@@ -16,7 +16,7 @@ val apiInterceptorsModule = module {
         val env: EnvironmentConfig = get()
         val versionName = BuildConfig.VERSION_NAME.removeSuffix(BuildConfig.VERSION_NAME_SUFFIX)
         OkHttpInterceptors(
-            if (env.shouldShowDebugMenu()) {
+            if (env.isRunningInDebugMode()) {
                 listOf(
                     // Stetho for debugging network ops via Chrome
                     StethoInterceptor(),

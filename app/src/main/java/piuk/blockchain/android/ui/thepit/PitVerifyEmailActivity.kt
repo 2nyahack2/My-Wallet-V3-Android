@@ -6,11 +6,10 @@ import android.os.Bundle
 import androidx.appcompat.widget.Toolbar
 import com.blockchain.koin.scopedInject
 import kotlinx.android.synthetic.main.activity_pit_verify_email_layout.*
-import org.koin.android.ext.android.get
 import piuk.blockchain.android.R
 import piuk.blockchain.androidcoreui.ui.base.BaseMvpActivity
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.extensions.toast
+import piuk.blockchain.androidcoreui.ui.customviews.toast
 
 class PitVerifyEmailActivity : BaseMvpActivity<PitVerifyEmailView, PitVerifyEmailPresenter>(), PitVerifyEmailView {
 

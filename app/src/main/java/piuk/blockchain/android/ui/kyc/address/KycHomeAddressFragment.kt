@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity.RESULT_OK
 import android.content.Intent
 import android.location.Geocoder
 import android.os.Bundle
-import com.google.android.material.textfield.TextInputLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import android.view.LayoutInflater
@@ -23,7 +22,6 @@ import piuk.blockchain.android.ui.kyc.address.models.AddressDialog
 import piuk.blockchain.android.ui.kyc.address.models.AddressIntent
 import piuk.blockchain.android.ui.kyc.address.models.AddressModel
 import piuk.blockchain.android.ui.kyc.extensions.skipFirstUnless
-import piuk.blockchain.android.ui.kyc.hyperlinks.renderTermsLinks
 import com.blockchain.notifications.analytics.logEvent
 import piuk.blockchain.android.ui.kyc.navhost.KycProgressListener
 import piuk.blockchain.android.ui.kyc.navhost.models.KycStep
@@ -51,12 +49,13 @@ import piuk.blockchain.android.R
 import piuk.blockchain.androidcore.utils.helperfunctions.consume
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
 import piuk.blockchain.androidcoreui.ui.base.BaseMvpFragment
-import com.blockchain.ui.dialog.MaterialProgressDialog
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.ParentActivityDelegate
-import piuk.blockchain.androidcoreui.utils.ViewUtils
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.toast
+import piuk.blockchain.androidcoreui.ui.customviews.toast
+import piuk.blockchain.android.ui.kyc.ParentActivityDelegate
+import piuk.blockchain.android.ui.kyc.countryselection.util.toUiUSState
+import piuk.blockchain.android.util.ViewUtils
+import piuk.blockchain.android.util.inflate
 import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -73,14 +72,15 @@ import kotlinx.android.synthetic.main.fragment_kyc_home_address.input_layout_kyc
 import kotlinx.android.synthetic.main.fragment_kyc_home_address.input_layout_kyc_address_state as textInputLayoutState
 import kotlinx.android.synthetic.main.fragment_kyc_home_address.input_layout_kyc_address_zip_code as textInputLayoutZipCode
 import kotlinx.android.synthetic.main.fragment_kyc_home_address.search_view_kyc_address as searchViewAddress
-import kotlinx.android.synthetic.main.fragment_kyc_home_address.text_view_kyc_terms_and_conditions as textViewTerms
 
 class KycHomeAddressFragment : BaseMvpFragment<KycHomeAddressView, KycHomeAddressPresenter>(),
     KycHomeAddressView {
 
     private val presenter: KycHomeAddressPresenter by scopedInject()
     private val analytics: Analytics by inject()
-    private val progressListener: KycProgressListener by ParentActivityDelegate(this)
+    private val progressListener: KycProgressListener by ParentActivityDelegate(
+        this
+    )
     private val compositeDisposable = CompositeDisposable()
     private var progressDialog: MaterialProgressDialog? = null
     override val profileModel: ProfileModel by unsafeLazy {
@@ -111,10 +111,7 @@ class KycHomeAddressFragment : BaseMvpFragment<KycHomeAddressView, KycHomeAddres
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         logEvent(AnalyticsEvents.KycAddress)
-        textViewTerms.renderTermsLinks(R.string.kyc_splash_terms_and_conditions_submit)
-
         progressListener.setHostTitle(R.string.kyc_address_title)
-        progressListener.incrementProgress(KycStep.AddressPage)
 
         setupImeOptions()
         localiseUi()
@@ -128,7 +125,7 @@ class KycHomeAddressFragment : BaseMvpFragment<KycHomeAddressView, KycHomeAddres
     }
 
     @Suppress("ConstantConditionIf")
-    override fun continueToOnfidoSplash(countryCode: String) {
+    override fun continueToVeriffSplash(countryCode: String) {
         closeKeyboard()
         navigate(KycNavXmlDirections.actionStartVeriff(countryCode))
     }
@@ -258,14 +255,13 @@ class KycHomeAddressFragment : BaseMvpFragment<KycHomeAddressView, KycHomeAddres
                 .onDelayedChange(KycStep.City)
                 .doOnNext { addressSubject.onNext(AddressIntent.City(it)) }
                 .subscribe()
-            compositeDisposable += editTextState
-                .onDelayedChange(KycStep.State)
-                .doOnNext { addressSubject.onNext(AddressIntent.State(it)) }
-                .subscribe()
+
             compositeDisposable += editTextZipCode
                 .onDelayedChange(KycStep.ZipCode)
                 .doOnNext { addressSubject.onNext(AddressIntent.PostCode(it)) }
                 .subscribe()
+
+            addressSubject.onNext(AddressIntent.State(profileModel.state ?: ""))
 
             compositeDisposable +=
                 searchViewAddress.getEditText()
@@ -321,21 +317,21 @@ class KycHomeAddressFragment : BaseMvpFragment<KycHomeAddressView, KycHomeAddres
                 R.string.kyc_address_search_hint,
                 getString(R.string.kyc_address_search_hint_zipcode)
             )
-            setHint(textInputAddress1, getString(R.string.kyc_address_street_line_1), true)
-            setHint(textInputAddress2, getString(R.string.kyc_address_street_line_2), false)
-            setHint(textInputCity, getString(R.string.kyc_address_address_city_hint), true)
-            setHint(textInputLayoutState, getString(R.string.kyc_address_address_state_hint), true)
-            setHint(textInputLayoutZipCode, getString(R.string.kyc_address_address_zip_code_hint), true)
+            textInputAddress1.hint = getString(R.string.kyc_address_address_line_1)
+            textInputAddress2.hint = getString(R.string.kyc_address_address_line_2)
+            textInputCity.hint = getString(R.string.kyc_address_address_city_hint)
+            textInputLayoutState.hint = getString(R.string.kyc_address_address_state_hint)
+            textInputLayoutZipCode.hint = getString(R.string.kyc_address_address_zip_code_hint_1)
         } else {
             searchViewAddress.queryHint = getString(
                 R.string.kyc_address_search_hint,
                 getString(R.string.kyc_address_search_hint_postcode)
             )
-            setHint(textInputAddress1, getString(R.string.kyc_address_address_line_1), true)
-            setHint(textInputAddress2, getString(R.string.kyc_address_address_line_2), false)
-            setHint(textInputCity, getString(R.string.kyc_address_city_town_village), true)
-            setHint(textInputLayoutState, getString(R.string.kyc_address_state_region_province_county), true)
-            setHint(textInputLayoutZipCode, getString(R.string.kyc_address_postal_code), false)
+            textInputAddress1.hint = getString(R.string.kyc_address_address_line_1)
+            textInputAddress2.hint = getString(R.string.kyc_address_address_line_2)
+            textInputCity.hint = getString(R.string.kyc_address_city_town_village)
+            textInputLayoutState.hint = getString(R.string.kyc_address_state_region_province_county)
+            textInputLayoutZipCode.hint = getString(R.string.kyc_address_postal_code)
         }
 
         editTextCountry.setText(
@@ -344,10 +340,10 @@ class KycHomeAddressFragment : BaseMvpFragment<KycHomeAddressView, KycHomeAddres
                 profileModel.countryCode
             ).displayCountry
         )
-    }
 
-    private fun setHint(textInput: TextInputLayout, hint: String, isRequired: Boolean) {
-        textInput.hint = if (isRequired) "$hint*" else hint
+        editTextState.setText(
+            profileModel.state?.toUiUSState() ?: ""
+        )
     }
 
     private fun TextView.onDelayedChange(kycStep: KycStep): Observable<String> =
@@ -357,17 +353,8 @@ class KycHomeAddressFragment : BaseMvpFragment<KycHomeAddressView, KycHomeAddres
             .skipFirstUnless { !it.isEmpty() }
             .observeOn(AndroidSchedulers.mainThread())
             .distinctUntilChanged()
-            .doOnNext { updateProgress(mapToCompleted(it), kycStep) }
 
     private fun mapToCompleted(text: String): Boolean = !text.isEmpty()
-
-    private fun updateProgress(stepCompleted: Boolean, kycStep: KycStep) {
-        if (stepCompleted) {
-            progressListener.incrementProgress(kycStep)
-        } else {
-            progressListener.decrementProgress(kycStep)
-        }
-    }
 
     private fun setupImeOptions() {
         val editTexts = listOf(

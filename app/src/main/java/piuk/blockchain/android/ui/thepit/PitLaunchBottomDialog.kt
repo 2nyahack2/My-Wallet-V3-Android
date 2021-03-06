@@ -5,8 +5,8 @@ import androidx.fragment.app.FragmentActivity
 import com.blockchain.ui.urllinks.URL_THE_PIT_LAUNCH_SUPPORT
 import piuk.blockchain.android.BuildConfig
 import piuk.blockchain.android.R
-import piuk.blockchain.android.util.launchUrlInBrowser
 import piuk.blockchain.android.ui.customviews.ErrorBottomDialog
+import piuk.blockchain.android.util.launchUrlInBrowser
 
 class PitLaunchBottomDialog : ErrorBottomDialog() {
     override val layout: Int
@@ -26,11 +26,11 @@ class PitLaunchBottomDialog : ErrorBottomDialog() {
         fun launch(activity: FragmentActivity) {
             newInstance(
                 Content(
-                    activity.getString(R.string.the_exchange_title),
-                    "",
-                    R.string.launch_the_exchange,
-                    R.string.the_exchange_contact_support,
-                    R.drawable.ic_the_exchange_colour
+                    title = activity.getString(R.string.the_exchange_title),
+                    description = "",
+                    ctaButtonText = R.string.launch_the_exchange,
+                    dismissText = R.string.the_exchange_contact_support,
+                    icon = R.drawable.ic_the_exchange_colour
                 )
             ).apply {
                 onCtaClick = { activity.launchUrlInBrowser(BuildConfig.PIT_LAUNCHING_URL) }

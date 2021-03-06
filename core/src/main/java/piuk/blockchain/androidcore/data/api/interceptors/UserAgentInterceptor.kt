@@ -2,6 +2,7 @@ package piuk.blockchain.androidcore.data.api.interceptors
 
 import okhttp3.Interceptor
 import okhttp3.Response
+import java.util.Locale
 
 class UserAgentInterceptor(
     private val versionName: String,
@@ -18,6 +19,7 @@ class UserAgentInterceptor(
         val originalRequest = chain.request()
         val requestWithUserAgent = originalRequest.newBuilder()
             .header("User-Agent", userAgent)
+            .header("Accept-Language", Locale.getDefault().toLanguageTag())
             .build()
         return chain.proceed(requestWithUserAgent)
     }

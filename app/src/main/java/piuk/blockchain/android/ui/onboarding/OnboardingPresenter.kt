@@ -3,15 +3,13 @@ package piuk.blockchain.android.ui.onboarding
 import androidx.annotation.VisibleForTesting
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
-
+import piuk.blockchain.android.data.biometrics.BiometricsController
 import piuk.blockchain.androidcore.data.access.AccessState
 import piuk.blockchain.androidcore.data.settings.SettingsDataManager
-import piuk.blockchain.androidcore.utils.PersistentPrefs
 import piuk.blockchain.androidcoreui.ui.base.BasePresenter
-import piuk.blockchain.android.ui.fingerprint.FingerprintHelper
 
 internal class OnboardingPresenter constructor(
-    private val fingerprintHelper: FingerprintHelper,
+    private val biometricsController: BiometricsController,
     private val accessState: AccessState,
     private val settingsDataManager: SettingsDataManager
 ) : BasePresenter<OnboardingView>() {
@@ -36,7 +34,7 @@ internal class OnboardingPresenter constructor(
      * or enroll one if the fingerprint sensor has never been set up.
      */
     internal fun onEnableFingerprintClicked() {
-        if (fingerprintHelper.isFingerprintAvailable()) {
+        if (biometricsController.isFingerprintAvailable) {
             val pin = accessState.pin
 
             if (pin.isNotEmpty()) {
@@ -44,7 +42,7 @@ internal class OnboardingPresenter constructor(
             } else {
                 throw IllegalStateException("PIN not found")
             }
-        } else if (fingerprintHelper.isHardwareDetected()) {
+        } else if (biometricsController.isHardwareDetected) {
             // Hardware available but user has never set up fingerprints
             view.showEnrollFingerprintsDialog()
         } else {
@@ -58,10 +56,7 @@ internal class OnboardingPresenter constructor(
      * @param enabled Whether or not the fingerprint unlock feature is set up
      */
     internal fun setFingerprintUnlockEnabled(enabled: Boolean) {
-        fingerprintHelper.setFingerprintUnlockEnabled(enabled)
-        if (!enabled) {
-            fingerprintHelper.clearEncryptedData(PersistentPrefs.KEY_ENCRYPTED_PIN_CODE)
-        }
+        biometricsController.setFingerprintUnlockEnabled(enabled)
     }
 
     private fun checkAppState() {

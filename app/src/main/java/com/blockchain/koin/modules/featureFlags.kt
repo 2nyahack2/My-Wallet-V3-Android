@@ -1,13 +1,11 @@
 package com.blockchain.koin.modules
 
-import com.blockchain.koin.cardPaymentsFeatureFlag
+import com.blockchain.koin.achFeatureFlag
+import com.blockchain.koin.bankLinkingFeatureFlag
 import com.blockchain.koin.coinifyFeatureFlag
 import com.blockchain.koin.coinifyUsersToKyc
-import com.blockchain.koin.interestAccount
-import com.blockchain.koin.pitAnnouncementFeatureFlag
-import com.blockchain.koin.pitFeatureFlag
-import com.blockchain.koin.simpleBuyFeatureFlag
-import com.blockchain.koin.simpleBuyFundsFeatureFlag
+import com.blockchain.koin.dgldFeatureFlag
+import com.blockchain.koin.interestAccountFeatureFlag
 import com.blockchain.koin.smsVerifFeatureFlag
 import com.blockchain.koin.sunriver
 import com.blockchain.remoteconfig.RemoteConfig
@@ -19,28 +17,8 @@ val featureFlagsModule = module {
         get<RemoteConfig>().featureFlag("android_notify_coinify_users_to_kyc")
     }
 
-    factory(pitFeatureFlag) {
-        get<RemoteConfig>().featureFlag("pit_linking_enabled")
-    }
-
     factory(coinifyFeatureFlag) {
         get<RemoteConfig>().featureFlag("coinify_enabled")
-    }
-
-    factory(cardPaymentsFeatureFlag) {
-        get<RemoteConfig>().featureFlag("simple_buy_method_card_enabled")
-    }
-
-    factory(simpleBuyFundsFeatureFlag) {
-        get<RemoteConfig>().featureFlag("simple_buy_method_funds_enabled")
-    }
-
-    factory(simpleBuyFeatureFlag) {
-        get<RemoteConfig>().featureFlag("simple_buy_enabled")
-    }
-
-    factory(pitAnnouncementFeatureFlag) {
-        get<RemoteConfig>().featureFlag("pit_show_announcement")
     }
 
     factory(smsVerifFeatureFlag) {
@@ -51,7 +29,19 @@ val featureFlagsModule = module {
         get<RemoteConfig>().featureFlag("android_sunriver_airdrop_enabled")
     }
 
-    factory(interestAccount) {
+    factory(interestAccountFeatureFlag) {
         get<RemoteConfig>().featureFlag("interest_account_enabled")
+    }
+
+    factory(dgldFeatureFlag) {
+        get<RemoteConfig>().featureFlag("wdgld_enabled")
+    }
+
+    factory(achFeatureFlag) {
+        get<RemoteConfig>().featureFlag("ach_enabled")
+    }
+
+    factory(bankLinkingFeatureFlag) {
+        get<RemoteConfig>().featureFlag("bank_linking_enabled")
     }
 }

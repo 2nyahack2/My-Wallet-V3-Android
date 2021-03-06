@@ -13,7 +13,7 @@ class MetadataNodeFactory(
     walletPassword: String,
     private val metadataDerivation: MetadataDerivation
 ) {
-    var sharedMetadataNode: DeterministicKey? = null
+    private var sharedMetadataNode: DeterministicKey? = null
     var metadataNode: DeterministicKey? = null
 
     val secondPwNode = deriveSecondPasswordNode(guid, sharedKey, walletPassword)

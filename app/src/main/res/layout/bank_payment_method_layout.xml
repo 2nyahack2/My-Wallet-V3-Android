@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/payment_method_root"
@@ -35,6 +36,20 @@
         app:layout_constraintTop_toTopOf="@+id/payment_method_icon" />
 
     <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/payment_method_details"
+        style="@style/Text.Light.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/small_margin"
+        android:ellipsize="end"
+        app:layout_constraintBottom_toTopOf="@id/payment_method_limit"
+        app:layout_constraintHorizontal_bias="1"
+        app:layout_constraintStart_toStartOf="@id/payment_method_title"
+        app:layout_constraintTop_toBottomOf="@id/payment_method_title"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Checking account 0961" />
+
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/payment_method_limit"
         style="@style/Text.Light.14"
         android:layout_width="wrap_content"
@@ -43,7 +58,7 @@
         android:layout_marginBottom="@dimen/small_margin"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/payment_method_icon"
-        app:layout_constraintTop_toBottomOf="@+id/payment_method_title"
+        app:layout_constraintTop_toBottomOf="@+id/payment_method_details"
         tools:text="$5,000 USD Limit" />
 
     <View

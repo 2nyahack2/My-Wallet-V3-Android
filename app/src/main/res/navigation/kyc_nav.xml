@@ -17,6 +17,7 @@
             android:id="@+id/action_kycCountrySelectionFragment_to_kycInvalidCountryFragment"
             app:destination="@id/kycInvalidCountryFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/kycSplashFragment"
         android:name="piuk.blockchain.android.ui.kyc.splash.KycSplashFragment"
@@ -47,6 +48,9 @@
             app:destination="@id/kycHomeAddressFragment" />
         <argument
             android:name="countryCode"
+            app:argType="string" />
+        <argument
+            android:name="stateCode"
             app:argType="string" />
     </fragment>
     <fragment
@@ -203,6 +207,7 @@
     <action
         android:id="@+id/action_startAddressEntry"
         app:destination="@id/kycHomeAddressFragment" />
+
     <fragment
         android:id="@+id/kycResubmissionSplashFragment"
         android:name="piuk.blockchain.android.ui.kyc.resubmission.KycResubmissionSplashFragment"

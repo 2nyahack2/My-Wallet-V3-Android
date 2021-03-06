@@ -267,9 +267,7 @@ public class Wallet {
         if (getLegacyAddressList() != null) {
             List<LegacyAddress> legacyAddresses = getLegacyAddressList();
             for (LegacyAddress legacyAddress : legacyAddresses) {
-                if (!legacyAddress.isWatchOnly()) {
-                    keyList.add(legacyAddress.getPrivateKey());
-                }
+                keyList.add(legacyAddress.getPrivateKey());
             }
         }
 
@@ -475,22 +473,6 @@ public class Wallet {
         List<String> addrs = new ArrayList<>(keys.size());
         for (LegacyAddress legacyAddress : keys) {
             if (!LegacyAddressExtensionsKt.isArchived(legacyAddress)) {
-                addrs.add(legacyAddress.getAddress());
-            }
-        }
-
-        return addrs;
-    }
-
-    /**
-     * @deprecated watch only addresses are no longer supported
-     */
-    @Deprecated
-    public List<String> getWatchOnlyAddressStringList() {
-
-        List<String> addrs = new ArrayList<>(keys.size());
-        for (LegacyAddress legacyAddress : keys) {
-            if (legacyAddress.isWatchOnly()) {
                 addrs.add(legacyAddress.getAddress());
             }
         }

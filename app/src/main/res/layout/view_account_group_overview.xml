@@ -32,7 +32,7 @@
         app:layout_constraintTop_toTopOf="@id/icon" />
 
     <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/asset_name"
+        android:id="@+id/asset_subtitle"
         style="@style/Text.Semibold.Light.14"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -57,8 +57,8 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/standard_margin"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/asset_name"
-        app:layout_constraintBottom_toBottomOf="@id/asset_name"
+        app:layout_constraintTop_toTopOf="@id/asset_subtitle"
+        app:layout_constraintBottom_toBottomOf="@id/asset_subtitle"
         tools:text="1.638192 BTC" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

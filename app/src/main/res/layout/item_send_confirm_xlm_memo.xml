@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/confirm_details_memo_parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/standard_margin"
+    android:layout_marginEnd="@dimen/standard_margin"
+    android:paddingBottom="@dimen/very_small_margin">
+
+    <androidx.appcompat.widget.AppCompatSpinner
+        android:id="@+id/confirm_details_memo_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/spinner_arrow_bkgd"
+        android:spinnerMode="dropdown"
+        android:overlapAnchor="false"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:entries="@array/xlm_memo_types_manual" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/confirm_details_memo_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/very_small_margin"
+        android:background="@color/grey_000"
+        android:imeOptions="actionDone"
+        android:padding="@dimen/tiny_margin"
+        app:layout_constraintBottom_toTopOf="@id/confirm_details_memo_exchange"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/confirm_details_memo_spinner"
+        tools:hint="Add a memo" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/confirm_details_memo_exchange"
+        style="@style/Text.Light.12"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/small_margin"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/confirm_details_memo_input"
+        tools:text="Sending to exchange"
+        tools:visibility="visible" />
+</androidx.constraintlayout.widget.ConstraintLayout>

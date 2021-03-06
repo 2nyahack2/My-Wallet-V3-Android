@@ -10,10 +10,6 @@ import android.widget.TextView
 import com.blockchain.koin.scopedInject
 import com.blockchain.notifications.analytics.Analytics
 import com.blockchain.notifications.analytics.KYCAnalyticsEvents
-import piuk.blockchain.android.ui.kyc.extensions.skipFirstUnless
-import piuk.blockchain.android.ui.kyc.navhost.KycProgressListener
-import piuk.blockchain.android.ui.kyc.navhost.models.KycStep
-import piuk.blockchain.android.ui.kyc.navigate
 import com.blockchain.ui.extensions.throttledClicks
 import com.jakewharton.rxbinding2.widget.afterTextChangeEvents
 import io.reactivex.Observable
@@ -23,13 +19,17 @@ import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.plusAssign
 import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
+import piuk.blockchain.android.ui.kyc.extensions.skipFirstUnless
+import piuk.blockchain.android.ui.kyc.navhost.KycProgressListener
+import piuk.blockchain.android.ui.kyc.navhost.models.KycStep
+import piuk.blockchain.android.ui.kyc.navigate
 import piuk.blockchain.androidcoreui.ui.base.BaseFragment
-import com.blockchain.ui.dialog.MaterialProgressDialog
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.ParentActivityDelegate
-import piuk.blockchain.androidcoreui.utils.extensions.getTextString
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.toast
+import piuk.blockchain.androidcoreui.ui.customviews.toast
+import piuk.blockchain.android.ui.kyc.ParentActivityDelegate
+import piuk.blockchain.android.util.getTextString
+import piuk.blockchain.android.util.inflate
 import java.util.concurrent.TimeUnit
 import kotlinx.android.synthetic.main.fragment_kyc_add_email.button_kyc_email_next as buttonNext
 import kotlinx.android.synthetic.main.fragment_kyc_add_email.edit_text_kyc_email as editTextEmail
@@ -40,7 +40,9 @@ class KycEmailEntryFragment : BaseFragment<KycEmailEntryView, KycEmailEntryPrese
 
     private val presenter: KycEmailEntryPresenter by scopedInject()
     private val analytics: Analytics by inject()
-    private val progressListener: KycProgressListener by ParentActivityDelegate(this)
+    private val progressListener: KycProgressListener by ParentActivityDelegate(
+        this
+    )
     private val compositeDisposable = CompositeDisposable()
     private val emailObservable
         get() = editTextEmail.afterTextChangeEvents()
@@ -68,7 +70,6 @@ class KycEmailEntryFragment : BaseFragment<KycEmailEntryView, KycEmailEntryPrese
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         progressListener.setHostTitle(R.string.kyc_email_title)
-        progressListener.incrementProgress(KycStep.EmailPage)
 
         editTextEmail.setOnFocusChangeListener { _, hasFocus ->
             inputLayoutEmail.hint = if (hasFocus) {
@@ -79,6 +80,11 @@ class KycEmailEntryFragment : BaseFragment<KycEmailEntryView, KycEmailEntryPrese
         }
 
         onViewReady()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        presenter.dispose()
     }
 
     override fun onResume() {
@@ -99,9 +105,8 @@ class KycEmailEntryFragment : BaseFragment<KycEmailEntryView, KycEmailEntryPrese
         editTextEmail.setText(email)
     }
 
-    override fun showErrorToast(message: Int) {
+    override fun showError(message: Int) =
         toast(message, ToastCustom.TYPE_ERROR)
-    }
 
     override fun continueSignUp(email: String) {
         navigate(KycEmailEntryFragmentDirections.actionValidateEmail(email))
@@ -131,19 +136,10 @@ class KycEmailEntryFragment : BaseFragment<KycEmailEntryView, KycEmailEntryPrese
             .map { mapToCompleted(it) }
             .distinctUntilChanged()
             .doOnNext {
-                updateProgress(it, kycStep)
                 buttonNext.isEnabled = it
             }
 
     private fun mapToCompleted(text: String): Boolean = emailIsValid(text)
-
-    private fun updateProgress(stepCompleted: Boolean, kycStep: KycStep) {
-        if (stepCompleted) {
-            progressListener.incrementProgress(kycStep)
-        } else {
-            progressListener.decrementProgress(kycStep)
-        }
-    }
 
     override fun createPresenter(): KycEmailEntryPresenter = presenter
 

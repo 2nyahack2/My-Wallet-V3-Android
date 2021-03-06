@@ -1,11 +1,11 @@
 package piuk.blockchain.android.ui.kyc.address
 
 import piuk.blockchain.android.ui.kyc.BaseKycPresenter
-import com.blockchain.swap.nabu.models.nabu.Scope
+import com.blockchain.nabu.models.responses.nabu.Scope
 import piuk.blockchain.android.ui.kyc.address.models.AddressModel
 import piuk.blockchain.android.campaign.CampaignType
-import com.blockchain.swap.nabu.NabuToken
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.NabuToken
+import com.blockchain.nabu.datamanagers.NabuDataManager
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
@@ -149,7 +149,7 @@ class KycHomeAddressPresenter(
                             if (it.phoneNeedsToBeVerified) {
                                 view.continueToMobileVerification(it.countryCode)
                             } else {
-                                view.continueToOnfidoSplash(it.countryCode)
+                                view.continueToVeriffSplash(it.countryCode)
                             }
                     }
                 },

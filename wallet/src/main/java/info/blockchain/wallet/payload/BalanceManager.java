@@ -1,5 +1,12 @@
 package info.blockchain.wallet.payload;
 
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.Nonnull;
+
 import info.blockchain.api.blockexplorer.BlockExplorer;
 import info.blockchain.api.blockexplorer.FilterType;
 import info.blockchain.api.data.Balance;
@@ -7,16 +14,10 @@ import info.blockchain.balance.CryptoCurrency;
 import info.blockchain.balance.CryptoValue;
 import retrofit2.Call;
 
-import javax.annotation.Nonnull;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
 public abstract class BalanceManager {
 
-    private BlockExplorer blockExplorer;
-    private CryptoCurrency cryptoCurrency;
+    private final BlockExplorer blockExplorer;
+    private final CryptoCurrency cryptoCurrency;
 
     @Nonnull
     private CryptoBalanceMap balanceMap;
@@ -46,22 +47,15 @@ public abstract class BalanceManager {
         return balanceMap.getTotalSpendableLegacy().toBigInteger();
     }
 
-    @Nonnull
-    BigInteger getWatchOnlyBalance() {
-        return balanceMap.getTotalWatchOnly().toBigInteger();
-    }
-
     public void updateAllBalances(
             Set<String> xpubs,
-            Set<String> legacyAddresses,
-            Set<String> legacyWatchOnlyAddresses
+            Set<String> legacyAddresses
     ) {
         balanceMap = CryptoBalanceMapKt.calculateCryptoBalanceMap(
                 cryptoCurrency,
                 getBalanceQuery(),
                 xpubs,
-                legacyAddresses,
-                legacyWatchOnlyAddresses
+                legacyAddresses
         );
     }
 
@@ -72,7 +66,7 @@ public abstract class BalanceManager {
     /**
      * @deprecated Use getBalanceQuery
      */
-    @Deprecated // Used only in swipe to receive
+    @Deprecated
     public Call<HashMap<String, Balance>> getBalanceOfAddresses(List<String> addresses) {
         return getBlockExplorer().getBalance("btc", addresses, FilterType.RemoveUnspendable);
     }

@@ -44,8 +44,7 @@ WalletBase
  */
 public final class WalletTest extends WalletApiMockedResponseTest {
 
-    private NetworkParameters networkParameters = BitcoinMainNetParams.get();
-    private boolean useNewCoinSelection = true;
+    private final NetworkParameters networkParameters = BitcoinMainNetParams.get();
 
     private Wallet givenWalletFromResouce(String resourceName) {
         try {
@@ -410,8 +409,7 @@ public final class WalletTest extends WalletApiMockedResponseTest {
                 .getSpendableCoins(unspentOutputs,
                         BigInteger.valueOf(spendAmount),
                         BigInteger.valueOf(1000L),
-                        false,
-                        useNewCoinSelection);
+                        false);
 
         assertEquals(789, paymentBundle.getAbsoluteFee().longValue());
 

@@ -1,6 +1,5 @@
 package com.blockchain.sunriver
 
-import com.blockchain.transactions.Memo
 import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
 import java.net.URI

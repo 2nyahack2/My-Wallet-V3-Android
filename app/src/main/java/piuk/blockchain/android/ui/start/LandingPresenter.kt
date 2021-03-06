@@ -23,7 +23,7 @@ class LandingPresenter(
     override val enableLogoutTimer = false
 
     override fun onViewAttached() {
-        if (environmentSettings.shouldShowDebugMenu()) {
+        if (environmentSettings.isRunningInDebugMode()) {
             view?.let {
                 it.showToast(
                     "Current environment: ${environmentSettings.environment.getName()}",

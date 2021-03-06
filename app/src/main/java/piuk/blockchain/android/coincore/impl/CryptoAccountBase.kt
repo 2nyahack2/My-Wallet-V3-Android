@@ -1,40 +1,41 @@
 package piuk.blockchain.android.coincore.impl
 
-import com.blockchain.swap.nabu.datamanagers.BuyOrder
-import com.blockchain.swap.nabu.datamanagers.CustodialWalletManager
-import com.blockchain.swap.nabu.datamanagers.OrderState
+import com.blockchain.nabu.datamanagers.CustodialWalletManager
+import com.blockchain.nabu.datamanagers.TransferDirection
+import com.blockchain.nabu.datamanagers.repositories.swap.TradeTransactionItem
+import com.blockchain.nabu.models.responses.interest.DisabledReason
 import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
 import info.blockchain.balance.ExchangeRates
 import info.blockchain.balance.FiatValue
 import info.blockchain.balance.Money
 import info.blockchain.balance.total
+import info.blockchain.wallet.multiaddress.TransactionSummary
+import io.reactivex.Completable
 import io.reactivex.Single
+import piuk.blockchain.android.coincore.AccountGroup
 import piuk.blockchain.android.coincore.ActivitySummaryItem
 import piuk.blockchain.android.coincore.ActivitySummaryList
 import piuk.blockchain.android.coincore.AssetAction
 import piuk.blockchain.android.coincore.AvailableActions
-import piuk.blockchain.android.coincore.AccountGroup
 import piuk.blockchain.android.coincore.BlockchainAccount
 import piuk.blockchain.android.coincore.CryptoAccount
-import piuk.blockchain.android.coincore.CryptoAddress
-import piuk.blockchain.android.coincore.SingleAccountList
-import piuk.blockchain.android.coincore.CustodialActivitySummaryItem
+import piuk.blockchain.android.coincore.NonCustodialAccount
+import piuk.blockchain.android.coincore.NonCustodialActivitySummaryItem
 import piuk.blockchain.android.coincore.ReceiveAddress
-import piuk.blockchain.android.coincore.SendProcessor
-import piuk.blockchain.android.coincore.SendState
+import piuk.blockchain.android.coincore.SingleAccountList
+import piuk.blockchain.android.coincore.TradeActivitySummaryItem
+import piuk.blockchain.android.coincore.TxEngine
+import piuk.blockchain.android.coincore.TxSourceState
+import piuk.blockchain.androidcore.data.api.EnvironmentConfig
 import piuk.blockchain.androidcore.data.exchangerate.ExchangeRateDataManager
-import piuk.blockchain.androidcore.utils.extensions.mapList
-import piuk.blockchain.androidcore.utils.extensions.switchToSingleIfEmpty
-import timber.log.Timber
-import java.util.concurrent.atomic.AtomicBoolean
+import piuk.blockchain.androidcore.data.payload.PayloadDataManager
+import java.math.BigInteger
 
 internal const val transactionFetchCount = 50
 internal const val transactionFetchOffset = 0
 
-abstract class CryptoAccountBase(
-    final override val asset: CryptoCurrency
-) : CryptoAccount {
+abstract class CryptoAccountBase : CryptoAccount {
 
     protected abstract val exchangeRates: ExchangeRateDataManager
 
@@ -45,205 +46,201 @@ abstract class CryptoAccountBase(
         fiatCurrency: String,
         exchangeRates: ExchangeRates
     ): Single<Money> =
-        balance.map { it.toFiat(exchangeRates, fiatCurrency) }
+        accountBalance.map { it.toFiat(exchangeRates, fiatCurrency) }
 
     protected fun setHasTransactions(hasTransactions: Boolean) {
         this.hasTransactions = hasTransactions
     }
 
-    override val sendState: Single<SendState>
-        get() = Single.just(SendState.NOT_SUPPORTED)
-}
+    protected abstract val directions: Set<TransferDirection>
 
-open class CustodialTradingAccount(
-    cryptoCurrency: CryptoCurrency,
-    override val label: String,
-    override val exchangeRates: ExchangeRateDataManager,
-    val custodialWalletManager: CustodialWalletManager
-) : CryptoAccountBase(cryptoCurrency) {
+    override val sourceState: Single<TxSourceState>
+        get() = Single.just(TxSourceState.NOT_SUPPORTED)
 
-    private val hasSeenFunds = AtomicBoolean(false)
+    override val isEnabled: Single<Boolean>
+        get() = Single.just(true)
 
-    override val receiveAddress: Single<ReceiveAddress>
-        get() = Single.error(NotImplementedError("Custodial accounts don't support receive"))
+    override val disabledReason: Single<DisabledReason>
+        get() = Single.just(DisabledReason.NONE)
 
-    override val balance: Single<Money>
-        get() = custodialWalletManager.getBalanceForAsset(asset)
-            .doOnComplete { hasSeenFunds.set(false) }
-            .doOnSuccess { hasSeenFunds.set(true) }
-            .switchToSingleIfEmpty { Single.just(CryptoValue.zero(asset)) }
-            .onErrorReturn {
-                Timber.d("Unable to get custodial trading balance: $it")
-                CryptoValue.zero(asset)
-            }
-            .map { it as Money }
-
-    override val activity: Single<ActivitySummaryList>
-        get() = custodialWalletManager.getAllBuyOrdersFor(asset)
-            .mapList { buyOrderToSummary(it) }
-            .filterActivityStates()
-            .doOnSuccess { setHasTransactions(it.isNotEmpty()) }
-            .onErrorReturn { emptyList() }
-
-    override val isFunded: Boolean
-        get() = hasSeenFunds.get()
-
-    override val isDefault: Boolean =
-        false // Default is, presently, only ever a non-custodial account.
-
-    override fun createSendProcessor(address: ReceiveAddress): Single<SendProcessor> =
-        Single.just(
-            CustodialTransferProcessor(
-                sendingAccount = this,
-                address = address as CryptoAddress,
-                walletManager = custodialWalletManager
+    private fun custodialItemToSummary(item: TradeTransactionItem): TradeActivitySummaryItem {
+        val sendingAccount = this
+        return with(item) {
+            TradeActivitySummaryItem(
+                exchangeRates = exchangeRates,
+                txId = normaliseTxId(txId),
+                timeStampMs = timeStampMs,
+                sendingValue = sendingValue,
+                sendingAccount = sendingAccount,
+                sendingAddress = sendingAddress,
+                receivingAddress = receivingAddress,
+                state = state,
+                direction = direction,
+                receivingValue = receivingValue,
+                depositNetworkFee = Single.just(item.currencyPair.toSourceMoney(0.toBigInteger())),
+                withdrawalNetworkFee = withdrawalNetworkFee,
+                currencyPair = item.currencyPair,
+                fiatValue = fiatValue,
+                fiatCurrency = fiatCurrency
             )
-        )
-
-    override val sendState: Single<SendState>
-        get() = balance.map { balance ->
-                if (balance <= CryptoValue.zero(asset))
-                    SendState.NO_FUNDS
-                else
-                    SendState.CAN_SEND
-            }
-
-    override val actions: AvailableActions
-        get() = availableActions
-
-    private val availableActions = setOf(
-        AssetAction.ViewActivity,
-        AssetAction.Send
-    )
-
-    private fun buyOrderToSummary(buyOrder: BuyOrder): ActivitySummaryItem =
-        CustodialActivitySummaryItem(
-            exchangeRates = exchangeRates,
-            cryptoCurrency = buyOrder.crypto.currency,
-            value = buyOrder.crypto,
-            fundedFiat = buyOrder.fiat,
-            txId = buyOrder.id,
-            timeStampMs = buyOrder.created.time,
-            status = buyOrder.state,
-            fee = buyOrder.fee ?: FiatValue.zero(buyOrder.fiat.currencyCode),
-            account = this,
-            paymentMethodId = buyOrder.paymentMethodId
-        )
-
-    // Stop gap filter, until we finalise which item we wish to display to the user.
-    // TODO: This can be done via the API when it's settled
-    private fun Single<ActivitySummaryList>.filterActivityStates(): Single<ActivitySummaryList> {
-        return flattenAsObservable { list ->
-            list.filter {
-                it is CustodialActivitySummaryItem && displayedStates.contains(it.status)
-            }
-        }.toList()
+        }
     }
 
-    companion object {
-        private val displayedStates = setOf(
-            OrderState.FINISHED,
-            OrderState.AWAITING_FUNDS,
-            OrderState.PENDING_EXECUTION
-        )
-    }
-}
+    private fun normaliseTxId(txId: String): String =
+        txId.replace("-", "")
 
-internal class CryptoInterestAccount(
-    cryptoCurrency: CryptoCurrency,
-    override val label: String,
-    val custodialWalletManager: CustodialWalletManager,
-    override val exchangeRates: ExchangeRateDataManager
-) : CryptoAccountBase(cryptoCurrency) {
+    protected fun appendTradeActivity(
+        custodialWalletManager: CustodialWalletManager,
+        asset: CryptoCurrency,
+        activityList: List<ActivitySummaryItem>
+    ) = custodialWalletManager.getCustodialActivityForAsset(asset, directions)
+        .map { swapItems ->
+            swapItems.map {
+                custodialItemToSummary(it)
+            }
+        }.map { custodialItemsActivity ->
+            reconcileSwaps(custodialItemsActivity, activityList)
+        }
 
-    private val isConfigured = AtomicBoolean(false)
-
-    override val receiveAddress: Single<ReceiveAddress>
-        get() = Single.error(NotImplementedError("Interest accounts don't support receive"))
-
-    override val balance: Single<Money>
-        get() = custodialWalletManager.getInterestAccountDetails(asset)
-            .doOnSuccess {
-                isConfigured.set(true)
-            }.doOnComplete {
-                isConfigured.set(false)
-            }.switchIfEmpty(
-                Single.just(CryptoValue.zero(asset))
-            )
-            .map { it as Money }
-
-    override val activity: Single<ActivitySummaryList>
-        get() = Single.just(emptyList())
-
-    override val isFunded: Boolean
-        get() = isConfigured.get()
-
-    override val isDefault: Boolean =
-        false // Default is, presently, only ever a non-custodial account.
-
-    override fun createSendProcessor(address: ReceiveAddress): Single<SendProcessor> =
-        Single.error<SendProcessor>(NotImplementedError("Cannot Send from Interest Wallet"))
-
-    override val sendState: Single<SendState>
-        get() = Single.just(SendState.NOT_SUPPORTED)
-
-    override val actions: AvailableActions
-        get() = availableActions
-
-    private val availableActions = emptySet<AssetAction>()
+    protected abstract fun reconcileSwaps(
+        tradeItems: List<TradeActivitySummaryItem>,
+        activity: List<ActivitySummaryItem>
+    ): List<ActivitySummaryItem>
 }
 
 // To handle Send to PIT
 internal class CryptoExchangeAccount(
-    cryptoCurrency: CryptoCurrency,
+    override val asset: CryptoCurrency,
     override val label: String,
     private val address: String,
-    override val exchangeRates: ExchangeRateDataManager
-) : CryptoAccountBase(cryptoCurrency) {
+    override val exchangeRates: ExchangeRateDataManager,
+    val environmentConfig: EnvironmentConfig
+) : CryptoAccountBase() {
 
-    override val balance: Single<Money>
+    override fun requireSecondPassword(): Single<Boolean> =
+        Single.just(false)
+
+    override fun matches(other: CryptoAccount): Boolean =
+        other is CryptoExchangeAccount && other.asset == asset
+
+    override val accountBalance: Single<Money>
         get() = Single.just(CryptoValue.zero(asset))
+
+    override val actionableBalance: Single<Money>
+        get() = accountBalance
 
     override val receiveAddress: Single<ReceiveAddress>
         get() = Single.just(
-            ExchangeAddress(
+            makeExternalAssetAddress(
                 asset = asset,
                 label = label,
-                address = address
+                address = address,
+                environmentConfig = environmentConfig,
+                postTransactions = onTxCompleted
             )
         )
+
+    override val directions: Set<TransferDirection>
+        get() = emptySet()
 
     override val isDefault: Boolean = false
     override val isFunded: Boolean = false
 
-    override fun createSendProcessor(address: ReceiveAddress): Single<SendProcessor> =
-        Single.error<SendProcessor>(NotImplementedError("Cannot Send from Exchange Wallet"))
-
     override val activity: Single<ActivitySummaryList>
         get() = Single.just(emptyList())
 
-    override val actions: AvailableActions = emptySet()
+    override val actions: Single<AvailableActions> = Single.just(emptySet())
+
+    // No activity on exchange accounts, so just return the activity list
+    // unmodified - they should both be empty anyway
+    override fun reconcileSwaps(
+        tradeItems: List<TradeActivitySummaryItem>,
+        activity: List<ActivitySummaryItem>
+    ): List<ActivitySummaryItem> = activity
 }
 
 abstract class CryptoNonCustodialAccount(
-    cryptoCurrency: CryptoCurrency
-) : CryptoAccountBase(cryptoCurrency) {
+    // TODO: Build an interface on PayloadDataManager/PayloadManager for 'global' crypto calls; second password etc?
+    protected val payloadDataManager: PayloadDataManager,
+    override val asset: CryptoCurrency
+) : CryptoAccountBase(), NonCustodialAccount {
 
     override val isFunded: Boolean = true
 
-    override val actions: AvailableActions
-        get() = availableActions
+    // The plan here is once we are caching the non custodial balances to remove this isFunded
+    override val actions: Single<AvailableActions>
+        get() = Single.just(mutableSetOf(
+            AssetAction.ViewActivity
+        ).apply {
+            if (!isArchived) {
+                add(AssetAction.Receive)
+                if (isFunded) {
+                    add(AssetAction.Send)
+                    add(AssetAction.Sell)
+                    add(AssetAction.Swap)
+                }
+            }
+        })
 
-    private val availableActions = setOf(
-        AssetAction.ViewActivity,
-        AssetAction.Send,
-        AssetAction.Receive,
-        AssetAction.Swap
-    )
+    override val directions: Set<TransferDirection> = setOf(TransferDirection.FROM_USERKEY, TransferDirection.ON_CHAIN)
 
-    override fun createSendProcessor(address: ReceiveAddress): Single<SendProcessor> {
-        TODO("Implement me")
+    override val sourceState: Single<TxSourceState>
+        get() = actionableBalance.map {
+            if (it.isZero) {
+                TxSourceState.NO_FUNDS
+            } else {
+                TxSourceState.CAN_TRANSACT
+            }
+        }
+
+    override fun requireSecondPassword(): Single<Boolean> =
+        Single.fromCallable { payloadDataManager.isDoubleEncrypted }
+
+    abstract fun createTxEngine(): TxEngine
+
+    override val isArchived: Boolean
+        get() = false
+
+    override fun reconcileSwaps(
+        tradeItems: List<TradeActivitySummaryItem>,
+        activity: List<ActivitySummaryItem>
+    ): List<ActivitySummaryItem> {
+        val activityList = activity.toMutableList()
+        tradeItems.forEach { custodialItem ->
+            val hit = activityList.find {
+                it.txId.contains(custodialItem.txId, true)
+            } as? NonCustodialActivitySummaryItem
+
+            if (hit?.transactionType == TransactionSummary.TransactionType.SENT) {
+                activityList.remove(hit)
+                val updatedSwap = custodialItem.copy(
+                    depositNetworkFee = hit.fee.first((CryptoValue(hit.cryptoCurrency, BigInteger.ZERO)))
+                        .map { it as Money }
+                )
+                activityList.add(updatedSwap)
+            }
+        }
+        return activityList.toList()
     }
+
+    // For editing etc
+    open fun updateLabel(newLabel: String): Completable =
+        Completable.error(UnsupportedOperationException("Cannot update account label for $asset accounts"))
+
+    open fun archive(): Completable =
+        Completable.error(UnsupportedOperationException("Cannot archive $asset accounts"))
+
+    open fun unarchive(): Completable =
+        Completable.error(UnsupportedOperationException("Cannot unarchive $asset accounts"))
+
+    open fun setAsDefault(): Completable =
+        Completable.error(UnsupportedOperationException("$asset doesn't support multiple accounts"))
+
+    open val xpubAddress: String
+        get() = throw UnsupportedOperationException("$asset doesn't support xpub")
+
+    override fun matches(other: CryptoAccount): Boolean =
+        other is CryptoNonCustodialAccount && other.asset == asset
 }
 
 // Currently only one custodial account is supported for each asset,
@@ -263,13 +260,16 @@ class CryptoAccountCustodialGroup(
         account = accounts[0] as CryptoAccountBase
     }
 
-    override val balance: Single<Money>
-        get() = account.balance
+    override val accountBalance: Single<Money>
+        get() = account.accountBalance
+
+    override val pendingBalance: Single<Money>
+        get() = account.pendingBalance
 
     override val activity: Single<ActivitySummaryList>
         get() = account.activity
 
-    override val actions: AvailableActions
+    override val actions: Single<AvailableActions>
         get() = account.actions
 
     override val isFunded: Boolean
@@ -282,7 +282,7 @@ class CryptoAccountCustodialGroup(
         fiatCurrency: String,
         exchangeRates: ExchangeRates
     ): Single<Money> =
-        balance.map { it.toFiat(exchangeRates, fiatCurrency) }
+        accountBalance.map { it.toFiat(exchangeRates, fiatCurrency) }
 
     override fun includes(account: BlockchainAccount): Boolean =
         accounts.contains(account)
@@ -294,17 +294,19 @@ class CryptoAccountNonCustodialGroup(
     override val accounts: SingleAccountList
 ) : AccountGroup {
     // Produce the sum of all balances of all accounts
-    override val balance: Single<Money>
+    override val accountBalance: Single<Money>
         get() = if (accounts.isEmpty()) {
             Single.just(CryptoValue.zero(asset))
         } else {
             Single.zip(
-                accounts.map { it.balance }
+                accounts.map { it.accountBalance }
             ) { t: Array<Any> ->
                 t.map { it as Money }
                     .total()
             }
         }
+    override val pendingBalance: Single<Money>
+        get() = Single.just(CryptoValue.zero(asset))
 
     // All the activities for all the accounts
     override val activity: Single<ActivitySummaryList>
@@ -319,11 +321,13 @@ class CryptoAccountNonCustodialGroup(
         }
 
     // The intersection of the actions for each account
-    override val actions: AvailableActions
+    override val actions: Single<AvailableActions>
         get() = if (accounts.isEmpty()) {
-            emptySet()
+            Single.just(emptySet())
         } else {
-            accounts.map { it.actions }.reduce { a, b -> a.intersect(b) }
+            Single.zip(accounts.map { it.actions }) { t: Array<Any> ->
+                t.filterIsInstance<AvailableActions>().flatten().toSet()
+            }
         }
 
     // if _any_ of the accounts have transactions
@@ -340,7 +344,7 @@ class CryptoAccountNonCustodialGroup(
         if (accounts.isEmpty()) {
             Single.just(FiatValue.zero(fiatCurrency))
         } else {
-            balance.map { it.toFiat(exchangeRates, fiatCurrency) }
+            accountBalance.map { it.toFiat(exchangeRates, fiatCurrency) }
         }
 
     override fun includes(account: BlockchainAccount): Boolean =

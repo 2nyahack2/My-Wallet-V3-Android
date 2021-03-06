@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.textfield.TextInputLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/confirm_details_note_holder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/standard_margin"
+    android:layout_marginEnd="@dimen/standard_margin"
+    android:layout_marginBottom="@dimen/very_small_margin">
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/confirm_details_note_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/send_confirmation_add_note_hint"
+        android:imeOptions="actionDone"
+        app:backgroundTint="@color/blue_600" />
+</com.google.android.material.textfield.TextInputLayout>

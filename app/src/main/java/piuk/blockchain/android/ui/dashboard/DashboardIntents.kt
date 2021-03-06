@@ -4,10 +4,14 @@ import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
 import info.blockchain.balance.ExchangeRate
 import info.blockchain.balance.Money
+import piuk.blockchain.android.coincore.AssetAction
 import piuk.blockchain.android.coincore.FiatAccount
+import piuk.blockchain.android.coincore.SingleAccount
 import piuk.blockchain.android.ui.base.mvi.MviIntent
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementCard
-import piuk.blockchain.androidcore.data.charts.PriceSeries
+import piuk.blockchain.android.ui.dashboard.sheets.BackupDetails
+import piuk.blockchain.android.ui.transactionflow.DialogFlow
+import piuk.blockchain.androidcore.data.exchangerate.PriceSeries
 import java.math.BigInteger
 
 sealed class DashboardIntent : MviIntent<DashboardState>
@@ -22,9 +26,32 @@ class FiatBalanceUpdate(
     }
 }
 
+class UpdateDashboardCurrencies(
+    private val assetList: List<CryptoCurrency>
+) : DashboardIntent() {
+    override fun reduce(oldState: DashboardState): DashboardState {
+        return oldState.copy(
+            assets = AssetMap(
+                assetList.associateBy(
+                    keySelector = { it },
+                    valueTransform = { CryptoAssetState(it) }
+                )
+            )
+        )
+    }
+}
+
+object GetAvailableAssets : DashboardIntent() {
+    override fun reduce(oldState: DashboardState): DashboardState {
+        return oldState.copy(
+            assets = AssetMap(mapOf())
+        )
+    }
+}
+
 object RefreshAllIntent : DashboardIntent() {
     override fun reduce(oldState: DashboardState): DashboardState {
-        return oldState.copy(assets = oldState.assets.reset())
+        return oldState.copy(assets = oldState.assets.reset(), fiatAssets = FiatAssetState())
     }
 }
 
@@ -34,7 +61,9 @@ class BalanceUpdate(
 ) : DashboardIntent() {
     override fun reduce(oldState: DashboardState): DashboardState {
         val balance = newBalance as CryptoValue
-        require(cryptoCurrency == balance.currency) { throw IllegalStateException("CryptoCurrency mismatch") }
+        require(cryptoCurrency == balance.currency) {
+            throw IllegalStateException("CryptoCurrency mismatch")
+        }
 
         val oldAsset = oldState[cryptoCurrency]
         val newAsset = oldAsset.copy(balance = newBalance, hasBalanceError = false)
@@ -149,36 +178,11 @@ object ClearAnnouncement : DashboardIntent() {
     }
 }
 
-class ShowCryptoAssetDetails(
-    private val cryptoCurrency: CryptoCurrency
-) : DashboardIntent() {
-    override fun reduce(oldState: DashboardState): DashboardState =
-        when {
-            oldState.showAssetSheetFor != null -> oldState
-            oldState.shouldShowCustodialIntro(cryptoCurrency) ->
-                oldState.copy(
-                    showDashboardSheet = DashboardSheet.CUSTODY_INTRO,
-                    pendingAssetSheetFor = cryptoCurrency,
-                    showAssetSheetFor = null,
-                    custodyIntroSeen = true,
-                    selectedFiatAccount = null
-                )
-            else -> oldState.copy(
-                showAssetSheetFor = cryptoCurrency,
-                pendingAssetSheetFor = null,
-                showDashboardSheet = null,
-                selectedFiatAccount = null
-            )
-        }
-}
-
 class ShowFiatAssetDetails(
     private val fiatAccount: FiatAccount
 ) : DashboardIntent() {
     override fun reduce(oldState: DashboardState): DashboardState =
         oldState.copy(
-            showAssetSheetFor = null,
-            pendingAssetSheetFor = null,
             showDashboardSheet = DashboardSheet.FIAT_FUNDS_DETAILS,
             selectedFiatAccount = fiatAccount
         )
@@ -189,8 +193,6 @@ class ShowBankLinkingSheet(
 ) : DashboardIntent() {
     override fun reduce(oldState: DashboardState): DashboardState =
         oldState.copy(
-            showAssetSheetFor = null,
-            pendingAssetSheetFor = null,
             showDashboardSheet = DashboardSheet.LINK_OR_DEPOSIT,
             selectedFiatAccount = fiatAccount
         )
@@ -199,14 +201,11 @@ class ShowBankLinkingSheet(
 class ShowDashboardSheet(
     private val dashboardSheet: DashboardSheet
 ) : DashboardIntent() {
-    override fun isValidFor(oldState: DashboardState): Boolean =
-        dashboardSheet != DashboardSheet.CUSTODY_INTRO
-
     override fun reduce(oldState: DashboardState): DashboardState =
         // Custody sheet isn't displayed via this intent, so filter it out
         oldState.copy(
             showDashboardSheet = dashboardSheet,
-            showAssetSheetFor = null,
+            activeFlow = null,
             selectedFiatAccount = null
         )
 }
@@ -221,51 +220,83 @@ object ClearBottomSheet : DashboardIntent() {
     override fun reduce(oldState: DashboardState): DashboardState =
         oldState.copy(
             showDashboardSheet = null,
-            showAssetSheetFor = oldState.pendingAssetSheetFor,
-            pendingAssetSheetFor = null
+            activeFlow = null,
+            selectedAsset = null
         )
 }
 
-class StartCustodialTransfer(
-    private val cryptoCurrency: CryptoCurrency
+class CheckBackupStatus(
+    val account: SingleAccount,
+    val action: AssetAction
+) : DashboardIntent() {
+    override fun reduce(oldState: DashboardState): DashboardState = oldState
+}
+
+class ShowBackupSheet(
+    private val account: SingleAccount,
+    private val action: AssetAction
+) : DashboardIntent() {
+    override fun reduce(oldState: DashboardState): DashboardState =
+        oldState.copy(
+            showDashboardSheet = DashboardSheet.BACKUP_BEFORE_SEND,
+            backupSheetDetails = BackupDetails(account, action)
+        )
+}
+
+class UpdateSelectedCryptoAccount(
+    private val singleAccount: SingleAccount,
+    private val asset: CryptoCurrency
+) : DashboardIntent() {
+    override fun reduce(oldState: DashboardState): DashboardState =
+        oldState.copy(
+            selectedCryptoAccount = singleAccount,
+            selectedAsset = asset
+        )
+}
+
+class LaunchSendFlow(
+    val fromAccount: SingleAccount,
+    val action: AssetAction
 ) : DashboardIntent() {
     override fun reduce(oldState: DashboardState): DashboardState =
         oldState.copy(
             showDashboardSheet = null,
-            showAssetSheetFor = null,
-            pendingAssetSheetFor = null,
-            transferFundsCurrency = cryptoCurrency
+            activeFlow = null,
+            backupSheetDetails = null
         )
 }
 
-object AbortFundsTransfer : DashboardIntent() {
+class LaunchDepositFlow(
+    val toAccount: SingleAccount,
+    val fromAccount: SingleAccount,
+    val action: AssetAction
+) : DashboardIntent() {
     override fun reduce(oldState: DashboardState): DashboardState =
         oldState.copy(
             showDashboardSheet = null,
-            transferFundsCurrency = null
-            )
-        }
-
-object CheckBackupStatus : DashboardIntent() {
-    override fun reduce(oldState: DashboardState): DashboardState =
-        oldState
+            activeFlow = null,
+            backupSheetDetails = null
+        )
 }
 
-class BackupStatusUpdate(
-    private val isBackedUp: Boolean
+class LaunchAssetDetailsFlow(
+    val cryptoCurrency: CryptoCurrency
 ) : DashboardIntent() {
     override fun reduce(oldState: DashboardState): DashboardState =
-        if (isBackedUp) {
-            oldState.copy(showDashboardSheet = DashboardSheet.BASIC_WALLET_TRANSFER)
-        } else {
-            oldState.copy(showDashboardSheet = DashboardSheet.BACKUP_BEFORE_SEND)
-        }
+        oldState.copy(
+            showDashboardSheet = null,
+            activeFlow = null,
+            backupSheetDetails = null
+        )
 }
 
-object TransferFunds : DashboardIntent() {
-    override fun isValidFor(oldState: DashboardState): Boolean =
-        oldState.transferFundsCurrency != null
-
+class UpdateLaunchDialogFlow(
+    private val flow: DialogFlow
+) : DashboardIntent() {
     override fun reduce(oldState: DashboardState): DashboardState =
-        oldState.copy(showDashboardSheet = DashboardSheet.BASIC_WALLET_TRANSFER)
-    }
+        oldState.copy(
+            showDashboardSheet = null,
+            activeFlow = flow,
+            backupSheetDetails = null
+        )
+}

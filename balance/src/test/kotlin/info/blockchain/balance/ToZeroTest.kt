@@ -1,6 +1,5 @@
 package info.blockchain.balance
 
-import org.amshove.kluent.`should be`
 import org.amshove.kluent.`should equal`
 import org.junit.Test
 
@@ -9,19 +8,19 @@ class ToZeroTest {
     @Test
     fun `bitcoin to zero`() {
         val zero: CryptoValue = 1.bitcoin().toZero()
-        zero `should be` CryptoValue.ZeroBtc
+        zero `should equal` CryptoValue.zero(CryptoCurrency.BTC)
     }
 
     @Test
     fun `ether to zero`() {
-        9.1.ether().toZero() `should be` CryptoValue.ZeroEth
+        9.1.ether().toZero() `should equal` CryptoValue.zero(CryptoCurrency.ETHER)
     }
 
     @Test
     fun `bitcoin to zero via money`() {
         val bitcoin: Money = 1.bitcoin()
         val zero: Money = bitcoin.toZero()
-        zero `should be` CryptoValue.ZeroBtc
+        zero `should equal` CryptoValue.zero(CryptoCurrency.BTC)
     }
 
     @Test

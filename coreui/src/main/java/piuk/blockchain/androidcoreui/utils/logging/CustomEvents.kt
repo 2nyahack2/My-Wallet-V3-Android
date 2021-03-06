@@ -1,8 +1,5 @@
 package piuk.blockchain.androidcoreui.utils.logging
 
-fun recoverWalletEvent(successful: Boolean) =
-    LoggingEvent("Recover Wallet", mapOf("Success" to successful))
-
 fun pairingEvent(pairingMethod: PairingMethod) =
     LoggingEvent("Wallet Pairing", mapOf("Pairing method" to pairingMethod.name))
 
@@ -13,17 +10,10 @@ enum class PairingMethod(name: String) {
     REVERSE("Reverse")
 }
 
-fun importEvent(addressType: AddressType) =
-    LoggingEvent("Address Imported", mapOf("Address Type" to addressType.name))
-
 @Suppress("UNUSED_PARAMETER")
 enum class AddressType(name: String) {
-    PRIVATE_KEY("Private key"),
-    WATCH_ONLY("Watch Only")
+    PRIVATE_KEY("Private key")
 }
-
-fun createAccountEvent(number: Int) =
-    LoggingEvent("Account Created", mapOf("Number of Accounts" to number))
 
 fun appLaunchEvent(playServicesFound: Boolean) =
     LoggingEvent("App Launched",

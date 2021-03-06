@@ -5,18 +5,17 @@ import java.util.HashMap;
 
 public class TransactionSummary {
 
-    public enum Direction {
-        TRANSFERRED, RECEIVED, SENT, BUY, SELL, SWAP
+    public enum TransactionType {
+        TRANSFERRED, RECEIVED, SENT, BUY, SELL, SWAP, DEPOSIT, WITHDRAW, INTEREST_EARNED, UNKNOWN
     }
 
     private String hash;
     private BigInteger total;//Total actually sent, including fee
     private BigInteger fee;//Total fee used
 
-    private Direction direction;
+    private TransactionType transactionType;
     private long time;
     private int confirmations;
-    private boolean isWatchOnly;
     private boolean isDoubleSpend;
     private boolean isPending;//Sent to server but not confirmed
 
@@ -36,12 +35,12 @@ public class TransactionSummary {
         this.hash = hash;
     }
 
-    public Direction getDirection() {
-        return direction;
+    public TransactionType getTransactionType() {
+        return transactionType;
     }
 
-    public void setDirection(Direction direction) {
-        this.direction = direction;
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
     }
 
     public long getTime() {
@@ -74,14 +73,6 @@ public class TransactionSummary {
 
     public void setFee(BigInteger fee) {
         this.fee = fee;
-    }
-
-    public boolean isWatchOnly() {
-        return isWatchOnly;
-    }
-
-    public void setWatchOnly(boolean watchOnly) {
-        isWatchOnly = watchOnly;
     }
 
     public HashMap<String, BigInteger> getInputsMap() {

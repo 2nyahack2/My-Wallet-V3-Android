@@ -7,8 +7,7 @@ import android.widget.TextView
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import piuk.blockchain.android.R
-import piuk.blockchain.androidcoreui.utils.helperfunctions.CustomFont
-import piuk.blockchain.androidcoreui.utils.helperfunctions.loadFont
+import piuk.blockchain.android.util.loadInterMedium
 
 abstract class BaseStatusPreference<T : Any> constructor(
     context: Context,
@@ -18,16 +17,12 @@ abstract class BaseStatusPreference<T : Any> constructor(
 ) : Preference(context, attrs, defStyleAttr, defStyleRes) {
 
     private lateinit var textView: TextView
-    private lateinit var typeface: Typeface
+    private val typeface: Typeface = context.loadInterMedium()
     private lateinit var theValue: T
 
     init {
         widgetLayoutResource = R.layout.preference_status_label
-
-        loadFont(context, CustomFont.MONTSERRAT_REGULAR) {
-            typeface = it
-            this.title = title // Forces setting fonts when Title is set via XML
-        }
+        this.title = title // Forces setting fonts when Title is set via XML
     }
 
     override fun setTitle(titleResId: Int) {

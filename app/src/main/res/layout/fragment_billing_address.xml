@@ -12,10 +12,10 @@
         android:orientation="vertical">
 
         <LinearLayout
-            android:id="@+id/header"
+            android:id="@+id/billing_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/blue_800">
+            android:background="@color/grey_800">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/country_selector"
@@ -65,7 +65,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/full_name_input"
-            style="@style/CardDataInputLayoutAppearance"
+            style="@style/CommonDataInputAppearance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/standard_margin"
@@ -82,13 +82,13 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/address_line_1_input"
-            style="@style/CardDataInputLayoutAppearance"
+            style="@style/CommonDataInputAppearance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/standard_margin"
             android:layout_marginTop="@dimen/small_margin"
             android:layout_marginEnd="@dimen/standard_margin"
-            android:hint="@string/billing_address_line_1">
+            android:hint="@string/address_line_1">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/address_line_1"
@@ -99,13 +99,13 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/address_line_2_input"
-            style="@style/CardDataInputLayoutAppearance"
+            style="@style/CommonDataInputAppearance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/standard_margin"
             android:layout_marginTop="@dimen/small_margin"
             android:layout_marginEnd="@dimen/standard_margin"
-            android:hint="@string/billing_address_line_2"
+            android:hint="@string/address_line_2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/address_line_1_input">
@@ -119,13 +119,13 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/city_input"
-            style="@style/CardDataInputLayoutAppearance"
+            style="@style/CommonDataInputAppearance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/standard_margin"
             android:layout_marginTop="@dimen/small_margin"
             android:layout_marginEnd="@dimen/standard_margin"
-            android:hint="@string/billing_address_city"
+            android:hint="@string/address_city"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/address_line_1_input">
@@ -145,13 +145,13 @@
             android:layout_marginStart="@dimen/standard_margin"
             android:layout_marginTop="@dimen/small_margin"
             android:layout_marginEnd="@dimen/standard_margin"
-            android:visibility="gone"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/state_input"
-                style="@style/CardDataInputLayoutAppearance"
+                style="@style/CommonDataInputAppearance"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="12dp"
@@ -169,12 +169,12 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/zip_usa_input"
-                style="@style/CardDataInputLayoutAppearance"
+                style="@style/CommonDataInputAppearance"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_weight="0.5"
-                android:hint="@string/billing_address_zip">
+                android:hint="@string/address_zip">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/zip_usa"
@@ -188,13 +188,13 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/postcode_input"
-            style="@style/CardDataInputLayoutAppearance"
+            style="@style/CommonDataInputAppearance"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/standard_margin"
             android:layout_marginTop="@dimen/small_margin"
             android:layout_marginEnd="@dimen/standard_margin"
-            android:hint="@string/billing_address_postcode"
+            android:hint="@string/address_postcode"
             android:visibility="gone">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -213,6 +213,6 @@
             android:layout_marginTop="@dimen/standard_margin"
             android:layout_marginBottom="@dimen/standard_margin"
             android:enabled="false"
-            android:text="@string/save_my_card" />
+            android:text="@string/next" />
     </LinearLayout>
 </ScrollView>

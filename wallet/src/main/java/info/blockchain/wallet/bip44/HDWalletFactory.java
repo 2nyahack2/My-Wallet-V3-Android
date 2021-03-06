@@ -85,9 +85,13 @@ public class HDWalletFactory {
      * @param nbAccounts create this number of accounts
      * @return HDWallet
      */
-    public static HDWallet restoreWallet(NetworkParameters networkParameters, Language language, String data, String passphrase,
-                                         int nbAccounts)
-            throws AddressFormatException, IOException, DecoderException, MnemonicException.MnemonicLengthException, MnemonicException.MnemonicWordException, MnemonicException.MnemonicChecksumException {
+    public static HDWallet restoreWallet(
+            NetworkParameters networkParameters,
+            Language language,
+            String data,
+            String passphrase,
+            int nbAccounts
+    ) throws AddressFormatException, IOException, DecoderException, MnemonicException.MnemonicLengthException, MnemonicException.MnemonicWordException, MnemonicException.MnemonicChecksumException {
 
         Locale locale = getLocale(language);
 

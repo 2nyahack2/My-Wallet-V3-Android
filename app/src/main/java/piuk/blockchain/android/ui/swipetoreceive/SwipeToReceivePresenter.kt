@@ -1,140 +1,79 @@
 package piuk.blockchain.android.ui.swipetoreceive
 
-import com.blockchain.sunriver.tryFromStellarUri
+import android.graphics.Bitmap
+import androidx.annotation.VisibleForTesting
 import info.blockchain.balance.CryptoCurrency
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.plusAssign
-import io.reactivex.schedulers.Schedulers
-import piuk.blockchain.android.data.datamanagers.QrCodeDataManager
+import io.reactivex.rxkotlin.subscribeBy
+import piuk.blockchain.android.coincore.impl.OfflineBalanceCall
+import piuk.blockchain.android.scan.QrCodeDataManager
 import piuk.blockchain.androidcoreui.ui.base.BasePresenter
 import piuk.blockchain.androidcoreui.ui.base.UiState
-import kotlin.properties.Delegates
+import piuk.blockchain.androidcoreui.ui.base.View
+
+interface SwipeToReceiveView : View {
+    fun initPager(assetList: List<CryptoCurrency>)
+    fun displayQrCode(bitmap: Bitmap)
+    fun displayReceiveAddress(address: String)
+    fun displayReceiveAccount(accountName: String)
+    fun displayAsset(cryptoCurrency: CryptoCurrency)
+    fun setUiState(@UiState.UiStateDef uiState: Int)
+}
 
 class SwipeToReceivePresenter(
     private val qrGenerator: QrCodeDataManager,
-    private val swipeToReceiveHelper: SwipeToReceiveHelper
+    private val addressCache: LocalOfflineAccountCache,
+    private val offlineBalance: OfflineBalanceCall
 ) : BasePresenter<SwipeToReceiveView>() {
 
-    internal var currencyPosition by Delegates.observable(0) { _, _, new ->
-        check(new in 0 until currencyList.size) { "Invalid currency position" }
-        onCurrencySelected(currencyList[new])
-    }
-
-    private val currencyList = CryptoCurrency.values()
-
-    private val bitcoinAddress: Single<String>
-        get() = swipeToReceiveHelper.getNextAvailableBitcoinAddressSingle()
-            .subscribeOn(Schedulers.computation())
-
-    private val ethereumAddress: Single<String>
-        get() = swipeToReceiveHelper.getEthReceiveAddressSingle()
-            .subscribeOn(Schedulers.computation())
-
-    private val bitcoinCashAddress: Single<String>
-        get() = swipeToReceiveHelper.getNextAvailableBitcoinCashAddressSingle()
-            .subscribeOn(Schedulers.computation())
-
-    private val xlmAddress: Single<String>
-        get() = swipeToReceiveHelper.getXlmReceiveAddressSingle()
-            .subscribeOn(Schedulers.computation())
-
-    // Pax (and other erc20 tokens) use the same address as ETH, so:
-    private val paxAddress: Single<String>
-        get() = swipeToReceiveHelper.getEthReceiveAddressSingle()
-            .subscribeOn(Schedulers.computation())
+    private lateinit var selectedAsset: CryptoCurrency
 
     override fun onViewReady() {
-        currencyPosition = 0
+        compositeDisposable += addressCache.availableAssets()
+            .map { list ->
+                list.mapNotNull { CryptoCurrency.fromNetworkTicker(it) }
+            }.observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy {
+                view.initPager(it)
+            }
     }
 
-    private class AccountDetails(
-        val accountName: String,
-        val nextAddress: Single<String>,
-        val hasAddresses: Boolean
-    )
-
-    private fun onCurrencySelected(cryptoCurrency: CryptoCurrency) {
-        view.displayCoinType(cryptoCurrency)
+    fun onCurrencySelected(asset: CryptoCurrency) {
+        selectedAsset = asset
+        view.displayAsset(asset)
         view.setUiState(UiState.LOADING)
 
-        val accountDetails = getAccountDetailsFor(cryptoCurrency)
+        addressCache.getCacheForAsset(asset.networkTicker)?.let { assetInfo ->
+            view.displayReceiveAccount(assetInfo.accountLabel)
 
-        view.displayReceiveAccount(accountDetails.accountName)
-
-        // Check we actually have addresses stored
-        if (!accountDetails.hasAddresses) {
-            view.setUiState(UiState.EMPTY)
-        } else {
-            compositeDisposable += accountDetails
-                .nextAddress
+            compositeDisposable += assetInfo.nextAddress(offlineBalance)
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSuccess { address ->
-                    require(address.isNotEmpty()) { "Returned address is empty, no more addresses available" }
-
-                    view.displayReceiveAddress(
-                        address.replace("bitcoincash:", "")
-                            .replace("bitcoin:", "")
-                            .stripXlmUri()
-                    )
-                }
-                .flatMapObservable {
-                    qrGenerator.generateQrCode(it, DIMENSION_QR_CODE)
-                }
-                .subscribe(
-                    {
+                    view.displayReceiveAddress(address.address)
+                }.toSingle()
+                .flatMap { address ->
+                    qrGenerator.generateQrCode(address.addressUri, DIMENSION_QR_CODE)
+                }.subscribeBy(
+                    onSuccess = {
                         view.displayQrCode(it)
                         view.setUiState(UiState.CONTENT)
                     },
-                    {
-                        view.setUiState(UiState.FAILURE)
+                    onError = {
+                        view.setUiState(UiState.EMPTY)
                     }
                 )
-        }
+        } ?: view.setUiState(UiState.EMPTY)
     }
 
-    private fun getAccountDetailsFor(cryptoCurrency: CryptoCurrency): AccountDetails =
-        when (cryptoCurrency) {
-            CryptoCurrency.BTC -> {
-                AccountDetails(
-                    accountName = swipeToReceiveHelper.getBitcoinAccountName(),
-                    nextAddress = bitcoinAddress.map { "bitcoin:$it" },
-                    hasAddresses = swipeToReceiveHelper.getBitcoinReceiveAddresses().isNotEmpty()
-                )
-            }
-            CryptoCurrency.ETHER -> {
-                AccountDetails(
-                    accountName = swipeToReceiveHelper.getEthAccountName(),
-                    nextAddress = ethereumAddress,
-                    hasAddresses = swipeToReceiveHelper.getEthReceiveAddress().isNotEmpty()
-                )
-            }
-            CryptoCurrency.BCH -> {
-                AccountDetails(
-                    accountName = swipeToReceiveHelper.getBitcoinCashAccountName(),
-                    nextAddress = bitcoinCashAddress,
-                    hasAddresses = swipeToReceiveHelper.getBitcoinCashReceiveAddresses().isNotEmpty()
-                )
-            }
-            CryptoCurrency.XLM -> AccountDetails(
-                accountName = swipeToReceiveHelper.getXlmAccountName(),
-                nextAddress = xlmAddress,
-                hasAddresses = swipeToReceiveHelper.getXlmReceiveAddress().isNotEmpty()
-            )
-            CryptoCurrency.PAX -> AccountDetails(
-                accountName = swipeToReceiveHelper.getPaxAccountName(),
-                nextAddress = paxAddress,
-                hasAddresses = swipeToReceiveHelper.getPaxReceiveAddress().isNotEmpty()
-            )
-            CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
-            CryptoCurrency.ALGO -> TODO("STUB: ALGO NOT IMPLEMENTED")
-            CryptoCurrency.USDT -> TODO("STUB: USDT NOT IMPLEMENTED")
+    fun refresh() {
+        if (::selectedAsset.isInitialized) {
+            onCurrencySelected(selectedAsset)
         }
+    }
 
     companion object {
-
-        private const val DIMENSION_QR_CODE = 600
+        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+        const val DIMENSION_QR_CODE = 600
     }
 }
-
-private fun String.stripXlmUri() = tryFromStellarUri()?.public?.accountId ?: this

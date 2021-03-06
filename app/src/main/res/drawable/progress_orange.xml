@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item android:id="@android:id/secondaryProgress">
         <clip>
             <shape>
-                <solid android:color="#f58233" />
+                <solid android:color="@color/product_orange_medium" />
+                <corners android:radius="@dimen/small_margin"/>
             </shape>
         </clip>
 
-        <color android:color="#f58233" />
+        <color android:color="@color/product_orange_medium" />
     </item>
     <item android:id="@android:id/progress">
         <clip>
             <shape>
-                <solid android:color="#f58233" />
+                <solid android:color="@color/product_orange_medium" />
+                <corners android:radius="@dimen/small_margin"/>
             </shape>
         </clip>
 
-        <color android:color="#f58233" />
+        <color android:color="@color/product_orange_medium" />
     </item>
 
 </layer-list>

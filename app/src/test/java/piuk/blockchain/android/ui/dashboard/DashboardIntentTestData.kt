@@ -57,6 +57,5 @@ val initialState = DashboardState(
             CryptoCurrency.ETHER to initialEthState,
             CryptoCurrency.XLM to initialXlmState
         ),
-    showAssetSheetFor = null,
     announcement = null
 )

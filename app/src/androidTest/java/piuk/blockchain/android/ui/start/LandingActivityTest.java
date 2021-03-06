@@ -63,7 +63,7 @@ public class LandingActivityTest extends BaseEspressoTest {
         BUTTON_RECOVER.perform(click());
         sleep(500);
         // Verify warning dialog showing
-        onView(withText(R.string.recover_funds_warning_message))
+        onView(withText(R.string.recover_funds_warning_message_1))
                 .inRoot(isDialog())
                 .check(matches(isDisplayed()));
         // Click "Continue"

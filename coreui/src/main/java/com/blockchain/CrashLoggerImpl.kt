@@ -54,6 +54,11 @@ internal class CrashLoggerImpl(override val isDebugBuild: Boolean) : CrashLogger
         Timber.e(throwable, logMsg)
     }
 
+    override fun logAndRethrowException(throwable: Throwable, logMsg: String) {
+        logException(throwable, logMsg)
+        throw throwable
+    }
+
     companion object {
         const val KEY_ONLINE_STATE = "online status"
         const val KEY_LOCALE_LANGUAGE = "user language"

@@ -17,8 +17,8 @@ import org.koin.core.KoinComponent
 import piuk.blockchain.android.R
 import piuk.blockchain.android.coincore.AccountGroup
 import piuk.blockchain.android.coincore.impl.AllWalletsAccount
-import piuk.blockchain.androidcoreui.utils.extensions.invisible
-import piuk.blockchain.androidcoreui.utils.extensions.visible
+import piuk.blockchain.android.util.invisible
+import piuk.blockchain.android.util.visible
 import timber.log.Timber
 
 class AccountInfoGroup @JvmOverloads constructor(
@@ -35,15 +35,14 @@ class AccountInfoGroup @JvmOverloads constructor(
             .inflate(R.layout.view_account_group_overview, this, true)
     }
 
-    var account: AccountGroup? = null
-        private set
+    private val disposables = CompositeDisposable()
 
-    fun updateAccount(account: AccountGroup, disposables: CompositeDisposable) {
-        this.account = account
-        updateView(account, disposables)
+    fun updateAccount(account: AccountGroup) {
+        disposables.clear()
+        updateView(account)
     }
 
-    private fun updateView(account: AccountGroup, disposables: CompositeDisposable) {
+    private fun updateView(account: AccountGroup) {
         // Only supports AllWallets at this time
         require(account is AllWalletsAccount)
 
@@ -54,7 +53,7 @@ class AccountInfoGroup @JvmOverloads constructor(
 
         wallet_name.text = account.label
 
-        asset_name.text = context.getString(R.string.activity_wallet_total_balance)
+        asset_subtitle.text = context.getString(R.string.activity_wallet_total_balance)
 
         wallet_balance_fiat.invisible()
         wallet_currency.text = currency
@@ -62,7 +61,7 @@ class AccountInfoGroup @JvmOverloads constructor(
         disposables += account.fiatBalance(currency, exchangeRates)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
-                    onSuccess = {
+                onSuccess = {
                     wallet_balance_fiat.text = it.toStringWithSymbol()
                     wallet_balance_fiat.visible()
                 },
@@ -70,5 +69,9 @@ class AccountInfoGroup @JvmOverloads constructor(
                     Timber.e("Cannot get balance for ${account.label}")
                 }
             )
+    }
+
+    fun dispose() {
+        disposables.clear()
     }
 }

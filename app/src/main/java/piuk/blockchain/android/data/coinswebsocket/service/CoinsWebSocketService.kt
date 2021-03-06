@@ -2,16 +2,15 @@ package piuk.blockchain.android.data.coinswebsocket.service
 
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
+import android.content.Context
 import android.content.Intent
-import android.os.Binder
-import android.os.IBinder
 import com.blockchain.koin.scopedInject
 import com.blockchain.notifications.NotificationsUtil
 import com.blockchain.notifications.analytics.Analytics
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
-import org.koin.android.ext.android.inject
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import piuk.blockchain.android.R
 import piuk.blockchain.android.data.coinswebsocket.strategy.CoinsWebSocketStrategy
 import piuk.blockchain.android.ui.home.MainActivity
@@ -21,9 +20,8 @@ import piuk.blockchain.androidcore.data.events.ActionEvent
 import piuk.blockchain.androidcore.data.rxjava.RxBus
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
 
-class CoinsWebSocketService : Service(), MessagesSocketHandler {
+class CoinsWebSocketService(private val applicationContext: Context) : MessagesSocketHandler, KoinComponent {
 
-    private val binder = LocalBinder()
     private val compositeDisposable = CompositeDisposable()
     private val notificationManager: NotificationManager by inject()
     private val coinsWebSocketStrategy: CoinsWebSocketStrategy by scopedInject()
@@ -31,8 +29,9 @@ class CoinsWebSocketService : Service(), MessagesSocketHandler {
     private val rxBus: RxBus by inject()
     private val analytics: Analytics by inject()
 
-    override fun onCreate() {
-        super.onCreate()
+    fun start() {
+        compositeDisposable.clear()
+        coinsWebSocketStrategy.close()
         coinsWebSocketStrategy.setMessagesHandler(this)
         coinsWebSocketStrategy.open()
         compositeDisposable += lifecycleInterestedComponent.appStateUpdated.subscribe {
@@ -46,20 +45,18 @@ class CoinsWebSocketService : Service(), MessagesSocketHandler {
 
     override fun showToast(message: Int) {
         ToastCustom.makeText(
-            this,
-            getString(message),
+            applicationContext,
+            applicationContext.getString(message),
             ToastCustom.LENGTH_SHORT,
             ToastCustom.TYPE_GENERAL)
     }
-
-    override fun onBind(intent: Intent?): IBinder? = binder
 
     override fun triggerNotification(title: String, marquee: String, text: String) {
         val notifyIntent = Intent(applicationContext, MainActivity::class.java)
         notifyIntent.putExtra(NotificationsUtil.INTENT_FROM_NOTIFICATION, true)
 
         val pendingIntent = PendingIntent.getActivity(
-            this,
+            applicationContext,
             0,
             notifyIntent,
             PendingIntent.FLAG_UPDATE_CURRENT)
@@ -68,7 +65,7 @@ class CoinsWebSocketService : Service(), MessagesSocketHandler {
             title,
             marquee,
             text,
-            R.drawable.ic_launcher_round,
+            R.mipmap.ic_launcher,
             pendingIntent,
             1000)
     }
@@ -77,16 +74,8 @@ class CoinsWebSocketService : Service(), MessagesSocketHandler {
         rxBus.emitEvent(ActionEvent::class.java, event)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    fun release() {
         coinsWebSocketStrategy.close()
         compositeDisposable.clear()
-    }
-
-    private inner class LocalBinder internal constructor() // Empty constructor
-        : Binder() {
-        // Necessary for implementing bound Android Service
-        val service: CoinsWebSocketService
-            get() = this@CoinsWebSocketService
     }
 }

@@ -33,7 +33,7 @@ class LandingPresenterTest {
     @Test
     fun `onViewReady show debug`() {
         // Arrange
-        whenever(environmentSettings.shouldShowDebugMenu()).thenReturn(true)
+        whenever(environmentSettings.isRunningInDebugMode()).thenReturn(true)
         val environment = Environment.fromString("env_prod")
         whenever(environmentSettings.environment).thenReturn(environment)
         // Act
@@ -46,7 +46,7 @@ class LandingPresenterTest {
     @Test
     fun `onViewReady no debug`() {
         // Arrange
-        whenever(environmentSettings.shouldShowDebugMenu()).thenReturn(false)
+        whenever(environmentSettings.isRunningInDebugMode()).thenReturn(false)
         // Act
         subject.attachView(view)
         // Assert

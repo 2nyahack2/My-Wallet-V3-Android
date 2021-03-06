@@ -8,13 +8,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.annotation.UiThread
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.blockchain.annotations.CommonCode
 import com.blockchain.koin.scopedInject
 import com.blockchain.notifications.analytics.ActivityAnalytics
-import com.blockchain.notifications.analytics.SimpleBuyAnalytics
 import com.blockchain.preferences.CurrencyPrefs
 import info.blockchain.balance.CryptoCurrency
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -30,40 +28,38 @@ import piuk.blockchain.android.coincore.BlockchainAccount
 import piuk.blockchain.android.coincore.CryptoAccount
 import piuk.blockchain.android.coincore.FiatAccount
 import piuk.blockchain.android.coincore.isCustodial
-import piuk.blockchain.android.simplebuy.SimpleBuyCancelOrderBottomSheet
-import piuk.blockchain.android.ui.customviews.account.AccountSelectSheet
 import piuk.blockchain.android.ui.activity.adapter.ActivitiesDelegateAdapter
 import piuk.blockchain.android.ui.activity.detail.CryptoActivityDetailsBottomSheet
 import piuk.blockchain.android.ui.activity.detail.FiatActivityDetailsBottomSheet
-import piuk.blockchain.android.ui.dashboard.sheets.BankDetailsBottomSheet
+import piuk.blockchain.android.ui.customviews.BlockchainListDividerDecor
+import piuk.blockchain.android.ui.customviews.account.AccountSelectSheet
 import piuk.blockchain.android.ui.home.HomeScreenMviFragment
+import piuk.blockchain.android.util.getAccount
+import piuk.blockchain.android.util.putAccount
 import piuk.blockchain.android.util.setCoinIcon
 import piuk.blockchain.androidcore.data.events.ActionEvent
 import piuk.blockchain.androidcore.data.exchangerate.ExchangeRateDataManager
 import piuk.blockchain.androidcore.data.rxjava.RxBus
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.goneIf
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.visible
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.goneIf
+import piuk.blockchain.android.util.inflate
+import piuk.blockchain.android.util.visible
 import timber.log.Timber
 
 class ActivitiesFragment : HomeScreenMviFragment<ActivitiesModel, ActivitiesIntent, ActivitiesState>(),
-    AccountSelectSheet.Host,
-    CryptoActivityDetailsBottomSheet.Host,
-    BankDetailsBottomSheet.Host,
-    SimpleBuyCancelOrderBottomSheet.Host {
+    AccountSelectSheet.SelectionHost {
 
     override val model: ActivitiesModel by scopedInject()
 
     private val theAdapter: ActivitiesDelegateAdapter by lazy {
         ActivitiesDelegateAdapter(
-            disposables = disposables,
             prefs = get(),
-            onCryptoItemClicked = { cc, tx, isCustodial -> onCryptoActivityClicked(cc, tx, isCustodial) },
-            onFiatItemClicked = { cc, tx -> onFiatActivityClicked(cc, tx) },
-            analytics = get()
+            onCryptoItemClicked = { cc, tx, type ->
+                onCryptoActivityClicked(cc, tx, type)
+            },
+            onFiatItemClicked = { cc, tx -> onFiatActivityClicked(cc, tx) }
         )
     }
 
@@ -104,13 +100,13 @@ class ActivitiesFragment : HomeScreenMviFragment<ActivitiesModel, ActivitiesInte
             when (newState.bottomSheet) {
                 ActivitiesSheet.ACCOUNT_SELECTOR -> {
                     analytics.logEvent(ActivityAnalytics.WALLET_PICKER_SHOWN)
-                    showBottomSheet(AccountSelectSheet.newInstance())
+                    showBottomSheet(AccountSelectSheet.newInstance(this))
                 }
                 ActivitiesSheet.CRYPTO_ACTIVITY_DETAILS -> {
                     newState.selectedCryptoCurrency?.let {
                         showBottomSheet(
                             CryptoActivityDetailsBottomSheet.newInstance(it, newState.selectedTxId,
-                                newState.isCustodial))
+                                newState.activityType))
                     }
                 }
                 ActivitiesSheet.FIAT_ACTIVITY_DETAILS -> {
@@ -118,12 +114,6 @@ class ActivitiesFragment : HomeScreenMviFragment<ActivitiesModel, ActivitiesInte
                         showBottomSheet(
                             FiatActivityDetailsBottomSheet.newInstance(it, newState.selectedTxId))
                     }
-                }
-                ActivitiesSheet.BANK_TRANSFER_DETAILS -> {
-                    showBottomSheet(BankDetailsBottomSheet.newInstance())
-                }
-                ActivitiesSheet.BANK_ORDER_CANCEL -> {
-                    showBottomSheet(SimpleBuyCancelOrderBottomSheet.newInstance(false))
                 }
             }
         }
@@ -212,6 +202,9 @@ class ActivitiesFragment : HomeScreenMviFragment<ActivitiesModel, ActivitiesInte
 
     override fun onBackPressed(): Boolean = false
 
+    private val preselectedAccount: BlockchainAccount?
+        get() = arguments?.getAccount(PARAM_ACCOUNT)
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -220,6 +213,9 @@ class ActivitiesFragment : HomeScreenMviFragment<ActivitiesModel, ActivitiesInte
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        preselectedAccount?.let {
+            onAccountSelected(it)
+        } ?: onShowAllActivity()
 
         setupSwipeRefresh()
         setupRecycler()
@@ -232,8 +228,7 @@ class ActivitiesFragment : HomeScreenMviFragment<ActivitiesModel, ActivitiesInte
         content_list.apply {
             layoutManager = theLayoutManager
             adapter = theAdapter
-            addItemDecoration(
-                DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
+            addItemDecoration(BlockchainListDividerDecor(requireContext()))
         }
         theAdapter.items = displayList
     }
@@ -280,9 +275,9 @@ class ActivitiesFragment : HomeScreenMviFragment<ActivitiesModel, ActivitiesInte
     private fun onCryptoActivityClicked(
         cryptoCurrency: CryptoCurrency,
         txHash: String,
-        isCustodial: Boolean
+        type: CryptoActivityType
     ) {
-        model.process(ShowActivityDetailsIntent(cryptoCurrency, txHash, isCustodial))
+        model.process(ShowActivityDetailsIntent(cryptoCurrency, txHash, type))
     }
 
     private fun onFiatActivityClicked(
@@ -300,46 +295,29 @@ class ActivitiesFragment : HomeScreenMviFragment<ActivitiesModel, ActivitiesInte
         model.process(AccountSelectedIntent(account, false))
     }
 
-    override fun onShowBankDetailsSelected() {
-        model.process(ShowBankTransferDetailsIntent)
-    }
-
-    override fun onShowBankCancelOrder() {
-        model.process(ShowCancelOrderIntent)
-    }
-
-    override fun startWarnCancelSimpleBuyOrder() {
-        model.process(ShowCancelOrderIntent)
-    }
-
-    override fun cancelOrderConfirmAction(cancelOrder: Boolean, orderId: String?) {
-        if (cancelOrder && orderId != null) {
-            analytics.logEvent(SimpleBuyAnalytics.BANK_DETAILS_CANCEL_CONFIRMED)
-            model.process(CancelSimpleBuyOrderIntent(orderId))
-        } else {
-            analytics.logEvent(SimpleBuyAnalytics.BANK_DETAILS_CANCEL_GO_BACK)
-            model.process(ShowCancelOrderIntent)
-        }
-    }
-
     // SlidingModalBottomDialog.Host
     override fun onSheetClosed() {
         model.process(ClearBottomSheetIntent)
     }
 
     companion object {
+        private const val PARAM_ACCOUNT = "PARAM_ACCOUNT"
+
         fun newInstance(account: BlockchainAccount?): ActivitiesFragment {
             return ActivitiesFragment().apply {
-                account?.let { onAccountSelected(it) } ?: onShowAllActivity()
+                arguments = Bundle().apply {
+                    if (account != null)
+                        putAccount(PARAM_ACCOUNT, account)
+                }
             }
         }
     }
 }
 
 private fun FiatAccount.icon(): Int = when (fiatCurrency) {
-    "EUR" -> R.drawable.ic_euro_funds
+    "EUR" -> R.drawable.ic_funds_euro
     "GBP" -> R.drawable.ic_funds_gbp
-    else -> R.drawable.ic_vector_dollar
+    else -> R.drawable.ic_funds_usd
 }
 
 /**

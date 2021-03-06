@@ -331,7 +331,7 @@ public class FormatsUtil {
      * @param address The String you wish to test
      * @return Is this a valid BECH32 format BCH address
      */
-    public static Boolean isValidBitcoinCashAddress(NetworkParameters networkParameters, String address) {
+    public static Boolean isValidBCHAddress(NetworkParameters networkParameters, String address) {
         /*
          * Check basic address requirements, i.e. is not empty
          */
@@ -346,7 +346,7 @@ public class FormatsUtil {
                 if (address.startsWith(networkParameters.getBech32AddressPrefix())) {
                     return false;
                 } else {
-                    return isValidBitcoinCashAddress(networkParameters,
+                    return isValidBCHAddress(networkParameters,
                             networkParameters.getBech32AddressPrefix() +
                                     (char) (networkParameters.getBech32AddressSeparator()) +
                                     address);
@@ -391,7 +391,7 @@ public class FormatsUtil {
             address = Address.fromBase58(networkParameters, address).toCashAddress();
         }
 
-        if (isValidBitcoinCashAddress(networkParameters, address)) {
+        if (isValidBCHAddress(networkParameters, address)) {
             result = address.replace(
                     networkParameters.getBech32AddressPrefix() + (char) networkParameters
                             .getBech32AddressSeparator(), "");

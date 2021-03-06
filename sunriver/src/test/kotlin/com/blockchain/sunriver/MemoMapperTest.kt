@@ -64,7 +64,7 @@ class MemoMapperTest {
     fun `with unknown specified type should throw`() {
         {
             MemoMapper().mapMemo(
-                com.blockchain.transactions.Memo(
+                com.blockchain.sunriver.Memo(
                     value = "Hello, test memo",
                     type = "unknown"
                 )
@@ -75,21 +75,21 @@ class MemoMapperTest {
 
     @Test
     fun `Map none`() {
-        MemoMapper().mapMemo(com.blockchain.transactions.Memo.None) `should equal` Memo.none()
+        MemoMapper().mapMemo(com.blockchain.sunriver.Memo.None) `should equal` Memo.none()
     }
 
     @Test
     fun `Map blank text`() {
-        MemoMapper().mapMemo(com.blockchain.transactions.Memo(value = "   ", type = "text")) `should equal` Memo.none()
+        MemoMapper().mapMemo(com.blockchain.sunriver.Memo(value = "   ", type = "text")) `should equal` Memo.none()
     }
 
     @Test
     fun `Map blank id`() {
-        MemoMapper().mapMemo(com.blockchain.transactions.Memo(value = "   ", type = "id")) `should equal` Memo.none()
+        MemoMapper().mapMemo(com.blockchain.sunriver.Memo(value = "   ", type = "id")) `should equal` Memo.none()
     }
 
     private fun createMemo(value: String, type: String? = null) = MemoMapper().mapMemo(
-        com.blockchain.transactions.Memo(
+        com.blockchain.sunriver.Memo(
             value = value,
             type = type
         )

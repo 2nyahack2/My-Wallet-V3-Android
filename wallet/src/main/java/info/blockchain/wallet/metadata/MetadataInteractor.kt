@@ -40,30 +40,32 @@ class MetadataInteractor(private val metadataService: MetadataService) {
             payloadJson.toByteArray(charset("utf-8"))
         }
 
-        return fetchMagic(metadata.address).onErrorReturn { ByteArray(0) }.flatMapCompletable { m ->
-            val magic = if (m.isEmpty()) null else m
-            val message = MetadataUtil.message(encryptedPayloadBytes, magic)
-            val sig = metadata.node.signMessage(String(Base64.encode(message)))
-            val body = MetadataBody().apply {
-                version = METADATA_VERSION
-                payload = String(Base64.encode(encryptedPayloadBytes))
-                signature = sig
-                prevMagicHash = magic?.let {
-                    Hex.toHexString(it)
-                }
-                typeId = metadata.type
-            }
-            metadataService.putMetadata(metadata.address, body)
-        }.retryWhen { errors ->
-            errors.zipWith(Flowable.range(0, FETCH_MAGIC_HASH_ATTEMPT_LIMIT))
-                .flatMap { (error, attempt) ->
-                    if (error is HttpException && error.code() == 404 && attempt < FETCH_MAGIC_HASH_ATTEMPT_LIMIT) {
-                        Flowable.timer(1, TimeUnit.SECONDS)
-                    } else {
-                        Flowable.error(error)
+        return fetchMagic(metadata.address)
+            .onErrorReturn { ByteArray(0) }
+            .flatMapCompletable { m ->
+                val magic = if (m.isEmpty()) null else m
+                val message = MetadataUtil.message(encryptedPayloadBytes, magic)
+                val sig = metadata.node.signMessage(String(Base64.encode(message)))
+                val body = MetadataBody().apply {
+                    version = METADATA_VERSION
+                    payload = String(Base64.encode(encryptedPayloadBytes))
+                    signature = sig
+                    prevMagicHash = magic?.let {
+                        Hex.toHexString(it)
                     }
+                    typeId = metadata.type
                 }
-        }
+                metadataService.putMetadata(metadata.address, body)
+            }.retryWhen { errors ->
+                errors.zipWith(Flowable.range(0, FETCH_MAGIC_HASH_ATTEMPT_LIMIT))
+                    .flatMap { (error, attempt) ->
+                        if (error is HttpException && error.code() == 404 && attempt < FETCH_MAGIC_HASH_ATTEMPT_LIMIT) {
+                            Flowable.timer(1, TimeUnit.SECONDS)
+                        } else {
+                            Flowable.error(error)
+                        }
+                    }
+            }
     }
 
     fun loadRemoteMetadata(metadata: Metadata): Maybe<String> {

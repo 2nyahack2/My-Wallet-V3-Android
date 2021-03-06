@@ -26,5 +26,5 @@ internal class SettingsPhoneNumberUpdater(
 }
 
 private fun Observable<Settings>.toJustNumber() =
-    map { it.smsNumber ?: "" }
+    map { it.smsNumber }
         .single("")

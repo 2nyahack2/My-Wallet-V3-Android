@@ -1,7 +1,7 @@
 package piuk.blockchain.android.ui.kyc.countryselection.util
 
 import android.os.Parcelable
-import com.blockchain.swap.nabu.models.nabu.NabuRegion
+import com.blockchain.nabu.models.responses.nabu.NabuRegion
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
 
@@ -36,9 +36,15 @@ data class CountryDisplayModel(
     val regionCode: String
         get() = if (isState) state!! else countryCode
 
+    val shortName: String
+        get() = state?.toUiUSState() ?: countryCode
+
     @IgnoredOnParcel
     val searchCode = "${name.acronym()};$regionCode;$name"
 }
+
+internal fun String.toUiUSState() =
+    this.removePrefix("US-")
 
 internal fun String.acronym(): String = String(
     toCharArray()

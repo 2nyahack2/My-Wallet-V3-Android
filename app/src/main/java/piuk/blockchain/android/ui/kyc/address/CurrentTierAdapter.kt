@@ -1,7 +1,7 @@
 package piuk.blockchain.android.ui.kyc.address
-import com.blockchain.swap.nabu.CurrentTier
-import com.blockchain.swap.nabu.NabuToken
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.CurrentTier
+import com.blockchain.nabu.NabuToken
+import com.blockchain.nabu.datamanagers.NabuDataManager
 import io.reactivex.Single
 
 internal class CurrentTierAdapter(

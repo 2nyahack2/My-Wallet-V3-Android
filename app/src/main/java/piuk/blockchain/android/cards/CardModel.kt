@@ -2,8 +2,8 @@ package piuk.blockchain.android.cards
 
 import com.blockchain.preferences.CurrencyPrefs
 import com.blockchain.preferences.SimpleBuyPrefs
-import com.blockchain.swap.nabu.datamanagers.Partner
-import com.blockchain.swap.nabu.datamanagers.custodialwalletimpl.CardStatus
+import com.blockchain.nabu.datamanagers.Partner
+import com.blockchain.nabu.datamanagers.custodialwalletimpl.CardStatus
 import com.google.gson.Gson
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
@@ -38,7 +38,7 @@ class CardModel(
                 }
                 process(CardIntent.UpdateCardId(it.cardId))
             }, onError = {
-                process(CardIntent.UpdateRequestState(CardRequestStatus.Error))
+                process(CardIntent.UpdateRequestState(CardRequestStatus.Error(CardError.CREATION_FAILED)))
             })
             is CardIntent.ActivateEveryPayCard -> cardActivators.first { it.partner == Partner.EVERYPAY }.activateCard(
                 intent.card,
@@ -46,7 +46,7 @@ class CardModel(
             ).doOnSubscribe {
                 process(CardIntent.UpdateRequestState(CardRequestStatus.Loading))
             }.subscribeBy(onError = {
-                process(CardIntent.UpdateRequestState(CardRequestStatus.Error))
+                process(CardIntent.UpdateRequestState(CardRequestStatus.Error(CardError.ACTIVATION_FAIL)))
             }, onSuccess = {
                 if (it is CompleteCardActivation.EverypayCompleteCardActivationDetails)
                     process(CardIntent.AuthoriseEverypayCard(it.paymentLink, it.exitLink))
@@ -57,7 +57,7 @@ class CardModel(
                     process(CardIntent.UpdateRequestState(CardRequestStatus.Loading))
                 }
                 .subscribeBy(onError = {
-                    process(CardIntent.UpdateRequestState(CardRequestStatus.Error))
+                    process(CardIntent.UpdateRequestState(CardRequestStatus.Error(CardError.PENDING_AFTER_POLL)))
                 }, onSuccess = {
                     process(it)
                     if (it.cardDetails.status == CardStatus.ACTIVE)
@@ -65,16 +65,12 @@ class CardModel(
                             it.cardDetails
                         )))
                     else
-                        process(CardIntent.UpdateRequestState(CardRequestStatus.Error))
+                        process(CardIntent.UpdateRequestState(CardRequestStatus.Error(
+                            if (it.cardDetails.status == CardStatus.PENDING) CardError.PENDING_AFTER_POLL
+                            else CardError.LINK_FAILED)
+                        ))
                 })
-            is CardIntent.AuthoriseEverypayCard -> null
-            is CardIntent.UpdateBillingAddress -> null
-            is CardIntent.ReadyToAddNewCard -> null
-            is CardIntent.CardAddRequested -> null
-            is CardIntent.UpdateCardId -> null
-            is CardIntent.UpdateRequestState -> null
-            is CardIntent.CardUpdated -> null
-            is CardIntent.ResetEveryPayAuth -> null
+            else -> null
         }
 
     override fun onStateUpdate(s: CardState) {

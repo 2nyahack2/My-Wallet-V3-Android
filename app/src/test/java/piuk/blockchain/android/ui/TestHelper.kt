@@ -1,14 +1,14 @@
 package piuk.blockchain.android.ui
 
-import com.blockchain.swap.nabu.models.nabu.KycState
-import com.blockchain.swap.nabu.models.nabu.KycTierState
-import com.blockchain.swap.nabu.models.nabu.LimitsJson
-import com.blockchain.swap.nabu.models.nabu.NabuUser
-import com.blockchain.swap.nabu.models.nabu.TierResponse
-import com.blockchain.swap.nabu.models.nabu.KycTiers
-import com.blockchain.swap.nabu.models.nabu.UserState
-import com.blockchain.swap.nabu.metadata.NabuCredentialsMetadata
-import com.blockchain.swap.nabu.models.tokenresponse.NabuOfflineTokenResponse
+import com.blockchain.nabu.models.responses.nabu.KycState
+import com.blockchain.nabu.models.responses.nabu.KycTierState
+import com.blockchain.nabu.models.responses.nabu.LimitsJson
+import com.blockchain.nabu.models.responses.nabu.NabuUser
+import com.blockchain.nabu.models.responses.nabu.TierResponse
+import com.blockchain.nabu.models.responses.nabu.KycTiers
+import com.blockchain.nabu.models.responses.nabu.UserState
+import com.blockchain.nabu.metadata.NabuCredentialsMetadata
+import com.blockchain.nabu.models.responses.tokenresponse.NabuOfflineTokenResponse
 
 fun getBlankNabuUser(kycState: KycState = KycState.None): NabuUser = NabuUser(
     firstName = "",

@@ -7,5 +7,6 @@ import kotlinx.android.parcel.Parcelize
 data class ProfileModel(
     val firstName: String,
     val lastName: String,
-    val countryCode: String
+    val countryCode: String,
+    val state: String?
 ) : Parcelable

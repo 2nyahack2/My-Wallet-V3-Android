@@ -9,15 +9,18 @@ import androidx.appcompat.widget.AppCompatEditText
 import info.blockchain.wallet.util.FormatsUtil
 import piuk.blockchain.android.R
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.ViewUtils
+import piuk.blockchain.android.util.ViewUtils
 
-internal fun showUpdateEmailDialog(activity: Context, settingsPresenter: SettingsPresenter) {
-    val originalEmail = settingsPresenter.email
-
+internal fun showUpdateEmailDialog(
+    activity: Context,
+    settingsPresenter: SettingsPresenter,
+    currentEmail: String,
+    isEmailVerified: Boolean
+) {
     val editText = AppCompatEditText(activity)
         .apply {
             inputType = InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-            setText(originalEmail)
+            setText(currentEmail)
             setSelection(text?.length ?: 0)
         }
 
@@ -40,10 +43,10 @@ internal fun showUpdateEmailDialog(activity: Context, settingsPresenter: Setting
             }
         }
         .also {
-            if (!settingsPresenter.isEmailVerified) {
+            if (!isEmailVerified) {
                 it.setNeutralButton(R.string.resend) { _, _ ->
                     // Resend verification code
-                    settingsPresenter.updateEmail(originalEmail)
+                    settingsPresenter.updateEmail(currentEmail)
                 }
             }
         }
@@ -59,7 +62,7 @@ internal fun showUpdateEmailDialog(activity: Context, settingsPresenter: Setting
         override fun afterTextChanged(s: Editable) {
             val email = s.toString()
             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled =
-                email != originalEmail && FormatsUtil.isValidEmailAddress(email)
+                email != currentEmail && FormatsUtil.isValidEmailAddress(email)
         }
 
         override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}

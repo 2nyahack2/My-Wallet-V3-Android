@@ -1,10 +1,10 @@
 package piuk.blockchain.android.ui.kyc.status
 
 import com.blockchain.android.testutils.rxInit
-import com.blockchain.swap.nabu.models.nabu.KycState
-import com.blockchain.swap.nabu.NabuToken
+import com.blockchain.nabu.models.responses.nabu.KycState
+import com.blockchain.nabu.NabuToken
 import com.blockchain.notifications.NotificationTokenManager
-import com.blockchain.swap.nabu.models.nabu.KycTierState
+import com.blockchain.nabu.models.responses.nabu.KycTierState
 import piuk.blockchain.android.ui.validOfflineToken
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.verify

@@ -1,6 +1,7 @@
 package com.blockchain.sunriver.models
 
 import com.blockchain.sunriver.HorizonKeyPair
+import com.blockchain.sunriver.Memo
 import com.blockchain.testutils.lumens
 import com.blockchain.testutils.stroops
 import info.blockchain.balance.CryptoValue
@@ -30,6 +31,7 @@ class XlmTransactionTest {
             value = value,
             fee = fee,
             hash = "",
+            memo = Memo.None,
             to = HorizonKeyPair.Public("GA"),
             from = HorizonKeyPair.Public("GB")
         )

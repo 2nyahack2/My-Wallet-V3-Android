@@ -2,7 +2,7 @@ package piuk.blockchain.android.ui.kyc.splash
 
 import piuk.blockchain.android.ui.kyc.BaseKycPresenter
 import piuk.blockchain.android.ui.kyc.reentry.KycNavigator
-import com.blockchain.swap.nabu.NabuToken
+import com.blockchain.nabu.NabuToken
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 import timber.log.Timber

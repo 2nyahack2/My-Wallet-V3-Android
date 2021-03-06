@@ -17,11 +17,10 @@ import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementList
 import piuk.blockchain.android.ui.dashboard.announcements.DismissRecorder
-import piuk.blockchain.android.util.AppRate
 import piuk.blockchain.android.util.AppUtil
 import piuk.blockchain.androidcore.data.access.AccessState
 import piuk.blockchain.androidcore.utils.PersistentPrefs
-import piuk.blockchain.androidcoreui.utils.extensions.toast
+import piuk.blockchain.androidcoreui.ui.customviews.toast
 
 class DebugOptionsBottomDialog : BottomSheetDialogFragment() {
 
@@ -50,6 +49,12 @@ class DebugOptionsBottomDialog : BottomSheetDialogFragment() {
         btn_store_linkId.setOnClickListener { prefs.pitToWalletLinkId = "11111111-2222-3333-4444-55556666677" }
         device_currency.text = "Select a new currency. Current one is ${currencyPrefs.selectedFiatCurrency}"
         firebase_token.text = prefs.firebaseToken
+
+        swap_switch.setOnCheckedChangeListener { _, isChecked ->
+            prefs.newSwapEnabled = isChecked
+        }
+
+        swap_switch.isChecked = prefs.newSwapEnabled
 
         radio_eur.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
@@ -106,8 +111,6 @@ class DebugOptionsBottomDialog : BottomSheetDialogFragment() {
 
     private fun onResetPrefs() {
         prefs.clear()
-
-        AppRate.reset(context)
 
         crashLogger.logEvent("debug clear prefs. Pin reset")
         loginState.clearPin()

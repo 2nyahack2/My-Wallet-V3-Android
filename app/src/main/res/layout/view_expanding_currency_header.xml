@@ -9,13 +9,13 @@
         android:id="@+id/textview_selected_currency"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:background="?attr/selectableItemBackground"
         android:drawablePadding="8dp"
-        android:gravity="left|center_vertical"
+        android:gravity="start|center_vertical"
         android:minHeight="@dimen/action_bar_height"
         android:padding="8dp"
         android:textColor="@color/white"
@@ -42,32 +42,14 @@
                 android:id="@+id/textview_bitcoin"
                 style="@style/CryptoCurrencySelectorTextView"
                 android:text="@string/bitcoin"
-                tools:drawableLeft="@drawable/vector_bitcoin_white"
-                tools:drawableRight="@drawable/vector_expand_more" />
-
-            <TextView
-                android:id="@+id/textview_ethereum"
-                style="@style/CryptoCurrencySelectorTextView"
-                android:text="@string/ether"
-                tools:drawableLeft="@drawable/vector_eth_white" />
+                android:drawableStart="@drawable/vector_bitcoin_white"/>
 
             <TextView
                 android:id="@+id/textview_bitcoin_cash"
                 style="@style/CryptoCurrencySelectorTextView"
                 android:text="@string/bitcoin_cash"
-                tools:drawableLeft="@drawable/vector_bitcoin_cash_white" />
+                android:drawableStart="@drawable/vector_bitcoin_cash_white" />
 
-            <TextView
-                android:id="@+id/textview_lumens"
-                style="@style/CryptoCurrencySelectorTextView"
-                android:text="@string/lumens"
-                tools:drawableLeft="@drawable/vector_xlm_white" />
-
-            <TextView
-                android:id="@+id/textview_pax"
-                style="@style/CryptoCurrencySelectorTextView"
-                android:text="@string/usd_pax_1"
-                tools:drawableLeft="@drawable/vector_pax" />
         </LinearLayout>
     </FrameLayout>
 </RelativeLayout>

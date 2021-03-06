@@ -13,11 +13,11 @@ import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.activity.detail.ActivityDetailsType
 import piuk.blockchain.android.ui.activity.detail.Description
 import piuk.blockchain.android.ui.adapters.AdapterDelegate
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
+import piuk.blockchain.android.util.inflate
 
-private const val MAX_NOTE_LENGTH = 255
+const val MAX_NOTE_LENGTH = 255
 
-private const val INPUT_FIELD_FLAGS: Int = (
+const val INPUT_FIELD_FLAGS: Int = (
     InputType.TYPE_TEXT_FLAG_CAP_SENTENCES or
         InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE or
         InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE

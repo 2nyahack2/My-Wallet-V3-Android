@@ -1,12 +1,13 @@
 package piuk.blockchain.android.ui.start
 
+import com.blockchain.logging.CrashLogger
 import com.blockchain.notifications.analytics.Analytics
 import com.blockchain.notifications.analytics.AnalyticsEvents
 import piuk.blockchain.android.R
+import piuk.blockchain.android.util.AppUtil
 import piuk.blockchain.androidcore.data.auth.AuthDataManager
 import piuk.blockchain.androidcore.data.payload.PayloadDataManager
 import piuk.blockchain.androidcore.utils.PersistentPrefs
-import piuk.blockchain.android.util.AppUtil
 
 interface ManualPairingView : PasswordAuthView
 
@@ -15,7 +16,8 @@ class ManualPairingPresenter(
     override val authDataManager: AuthDataManager,
     override val payloadDataManager: PayloadDataManager,
     override val prefs: PersistentPrefs,
-    private val analytics: Analytics
+    private val analytics: Analytics,
+    override val crashLogger: CrashLogger
 ) : PasswordAuthPresenter<ManualPairingView>() {
 
     internal fun onContinueClicked(guid: String, password: String) {

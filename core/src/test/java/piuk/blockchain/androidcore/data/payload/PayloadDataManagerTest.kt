@@ -30,6 +30,7 @@ import org.mockito.Mockito.RETURNS_DEEP_STUBS
 import com.blockchain.android.testutils.rxInit
 import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
+import org.amshove.kluent.itReturns
 import piuk.blockchain.androidcore.data.api.EnvironmentConfig
 import piuk.blockchain.androidcore.data.rxjava.RxBus
 import java.math.BigInteger
@@ -47,7 +48,6 @@ class PayloadDataManagerTest {
     private val mainNetParams = BitcoinMainNetParams.get()
     private val testScheduler = TestScheduler()
 
-    @Suppress("unused")
     @get:Rule
     val initSchedulers = rxInit {
         mainTrampoline()
@@ -400,51 +400,51 @@ class PayloadDataManagerTest {
         assertEquals(mockAccount, observer.values()[0])
     }
 
-    @Test
-    fun setPrivateKeySuccessNoDoubleEncryption() {
-        // Arrange
-        val mockECKey: ECKey = mock()
-        val mockLegacyAddress: LegacyAddress = mock()
-        whenever(payloadService.setKeyForLegacyAddress(eq(mockECKey), isNull()))
-            .thenReturn(Observable.just(mockLegacyAddress))
-        // Act
-        val observer = subject.setKeyForLegacyAddress(mockECKey, null).test()
-        // Assert
-        verify(payloadService).setKeyForLegacyAddress(eq(mockECKey), isNull())
-        observer.assertNoErrors()
-        observer.assertComplete()
-        assertEquals(mockLegacyAddress, observer.values()[0])
-    }
+//    @Test
+//    fun setPrivateKeySuccessNoDoubleEncryption() {
+//        // Arrange
+//        val mockECKey: ECKey = mock()
+//        val mockLegacyAddress: LegacyAddress = mock()
+//        whenever(payloadService.setKeyForLegacyAddress(eq(mockECKey), isNull()))
+//            .thenReturn(Observable.just(mockLegacyAddress))
+//        // Act
+//        val observer = subject.setKeyForLegacyAddress(mockECKey, null).test()
+//        // Assert
+//        verify(payloadService).setKeyForLegacyAddress(eq(mockECKey), isNull())
+//        observer.assertNoErrors()
+//        observer.assertComplete()
+//        assertEquals(mockLegacyAddress, observer.values()[0])
+//    }
 
-    @Test
-    fun setKeyForLegacyAddress() {
-        // Arrange
-        val mockECKey: ECKey = mock()
-        val password = "PASSWORD"
-        val mockLegacyAddress: LegacyAddress = mock()
-        whenever(payloadService.setKeyForLegacyAddress(mockECKey, password))
-            .thenReturn(Observable.just(mockLegacyAddress))
-        // Act
-        val observer = subject.setKeyForLegacyAddress(mockECKey, password).test()
-        // Assert
-        verify(payloadService).setKeyForLegacyAddress(mockECKey, password)
-        observer.assertNoErrors()
-        observer.assertComplete()
-        assertEquals(mockLegacyAddress, observer.values()[0])
-    }
+//    @Test
+//    fun setKeyForLegacyAddress() {
+//        // Arrange
+//        val mockECKey: ECKey = mock()
+//        val password = "PASSWORD"
+//        val mockLegacyAddress: LegacyAddress = mock()
+//        whenever(payloadService.setKeyForLegacyAddress(mockECKey, password))
+//            .thenReturn(Observable.just(mockLegacyAddress))
+//        // Act
+//        val observer = subject.setKeyForLegacyAddress(mockECKey, password).test()
+//        // Assert
+//        verify(payloadService).setKeyForLegacyAddress(mockECKey, password)
+//        observer.assertNoErrors()
+//        observer.assertComplete()
+//        assertEquals(mockLegacyAddress, observer.values()[0])
+//    }
 
-    @Test
-    fun addLegacyAddress() {
-        // Arrange
-        val mockLegacyAddress: LegacyAddress = mock()
-        whenever(payloadService.addLegacyAddress(mockLegacyAddress)).thenReturn(Completable.complete())
-        // Act
-        val observer = subject.addLegacyAddress(mockLegacyAddress).test()
-        // Assert
-        verify(payloadService).addLegacyAddress(mockLegacyAddress)
-        observer.assertNoErrors()
-        observer.assertComplete()
-    }
+//    @Test
+//    fun addLegacyAddress() {
+//        // Arrange
+//        val mockLegacyAddress: LegacyAddress = mock()
+//        whenever(payloadService.addLegacyAddress(mockLegacyAddress)).thenReturn(Completable.complete())
+//        // Act
+//        val observer = subject.addLegacyAddress(mockLegacyAddress).test()
+//        // Assert
+//        verify(payloadService).addLegacyAddress(mockLegacyAddress)
+//        observer.assertNoErrors()
+//        observer.assertComplete()
+//    }
 
     @Test
     fun updateLegacyAddress() {
@@ -501,7 +501,9 @@ class PayloadDataManagerTest {
     @Test
     fun `getLegacyAddresses returns list of legacy addresses`() {
         // Arrange
-        val mockLegacyAddress: LegacyAddress = mock()
+        val mockLegacyAddress: LegacyAddress = mock {
+            on { privateKey } itReturns("SomeRandomKeyString")
+        }
         val addresses = listOf(mockLegacyAddress)
         whenever(payloadManager.payload?.legacyAddressList).thenReturn(addresses)
         // Act
@@ -509,6 +511,25 @@ class PayloadDataManagerTest {
         // Assert
         verify(payloadManager, atLeastOnce()).payload
         result shouldEqual addresses
+    }
+
+    @Test
+    fun `getLegacyAddresses returns list of legacy addresses with filters out watch only`() {
+        // Arrange
+        val mockLegacyAddress1: LegacyAddress = mock {
+            on { privateKey } itReturns(null)
+        }
+        val mockLegacyAddress2: LegacyAddress = mock {
+            on { privateKey } itReturns("SomeRandomKeyString")
+        }
+        val addresses = listOf(mockLegacyAddress1, mockLegacyAddress2)
+        whenever(payloadManager.payload?.legacyAddressList).thenReturn(addresses)
+        // Act
+        val result = subject.legacyAddresses
+        // Assert
+        verify(payloadManager, atLeastOnce()).payload
+        result.count() shouldEqual 1
+        result[0] shouldEqual mockLegacyAddress2
     }
 
     @Test
@@ -805,37 +826,5 @@ class PayloadDataManagerTest {
         val result = subject.isDoubleEncrypted
         // Assert
         result shouldEqual true
-    }
-
-    @Test
-    fun getPositionOfAccountFromActiveList() {
-        // Arrange
-        val index = 1
-        val account0 = Account().apply { isArchived = true }
-        val account1 = Account()
-        val account2 = Account().apply { isArchived = true }
-        val account3 = Account()
-        whenever(payloadManager.payload?.hdWallets?.first()?.accounts)
-            .thenReturn(listOf(account0, account1, account2, account3))
-        // Act
-        val result = subject.getPositionOfAccountFromActiveList(index)
-        // Assert
-        result shouldEqual 3
-    }
-
-    @Test
-    fun getPositionOfAccountInActiveList() {
-        // Arrange
-        val index = 3
-        val account0 = Account().apply { isArchived = true }
-        val account1 = Account()
-        val account2 = Account().apply { isArchived = true }
-        val account3 = Account()
-        whenever(payloadManager.payload?.hdWallets?.first()?.accounts)
-            .thenReturn(listOf(account0, account1, account2, account3))
-        // Act
-        val result = subject.getPositionOfAccountInActiveList(index)
-        // Assert
-        result shouldEqual 1
     }
 }

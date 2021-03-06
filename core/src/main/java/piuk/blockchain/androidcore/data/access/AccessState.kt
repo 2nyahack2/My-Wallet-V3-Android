@@ -6,9 +6,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
 import com.blockchain.logging.CrashLogger
+import com.blockchain.logging.DigitalTrust
 
 import piuk.blockchain.androidcore.data.rxjava.RxBus
 import piuk.blockchain.androidcore.utils.PersistentPrefs
+import piuk.blockchain.androidcore.utils.extensions.isValidPin
 
 interface AccessState {
 
@@ -41,16 +43,14 @@ interface AccessState {
 
     companion object {
         const val LOGOUT_ACTION = "info.blockchain.wallet.LOGOUT"
-        const val PIN_LENGTH = 4
     }
 }
-
-fun String.isValidPin(): Boolean = (this != "0000" && this.length == AccessState.PIN_LENGTH)
 
 internal class AccessStateImpl(
     val context: Context,
     val prefs: PersistentPrefs,
     val rxBus: RxBus,
+    private val trust: DigitalTrust,
     private val crashLogger: CrashLogger
 ) : AccessState {
 
@@ -136,10 +136,13 @@ internal class AccessStateImpl(
     override fun logout() {
         crashLogger.logEvent("logout. resetting pin")
         clearPin()
-        val intent = Intent(context, logoutActivity!!)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        intent.action = AccessState.LOGOUT_ACTION
-        context.startActivity(intent)
+        trust.clearUserId()
+        context.startActivity(
+            Intent(context, logoutActivity!!).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                action = AccessState.LOGOUT_ACTION
+            }
+        )
     }
 
     override fun logIn() = prefs.logIn()

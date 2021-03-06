@@ -91,25 +91,25 @@ public final class FormatsUtilTest {
 
     @Test
     public void isValidBitcoinCashAddress() {
-        assertFalse(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashMainNetParams.get(), null));
-        assertFalse(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashMainNetParams.get(), ""));
-        assertFalse(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashMainNetParams.get(), "test string"));
-        assertFalse(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashTestNet3Params.get(), "https://www.google.co.uk"));
+        assertFalse(FormatsUtil.isValidBCHAddress(BitcoinCashMainNetParams.get(), null));
+        assertFalse(FormatsUtil.isValidBCHAddress(BitcoinCashMainNetParams.get(), ""));
+        assertFalse(FormatsUtil.isValidBCHAddress(BitcoinCashMainNetParams.get(), "test string"));
+        assertFalse(FormatsUtil.isValidBCHAddress(BitcoinCashTestNet3Params.get(), "https://www.google.co.uk"));
         // Standard BTC address
-        assertFalse(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashMainNetParams.get(), "19dPodLBKT4Fpym4PJ3UfkoMBDiTGkHw2V"));
+        assertFalse(FormatsUtil.isValidBCHAddress(BitcoinCashMainNetParams.get(), "19dPodLBKT4Fpym4PJ3UfkoMBDiTGkHw2V"));
         // BECH32 Segwit BTC address
-        assertFalse(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashMainNetParams.get(), "3MG8XBSphrQg8HLkz51Y6vJVgtXV1R8qS6"));
+        assertFalse(FormatsUtil.isValidBCHAddress(BitcoinCashMainNetParams.get(), "3MG8XBSphrQg8HLkz51Y6vJVgtXV1R8qS6"));
         // Valid BECH32 BCH address
-        assertTrue(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashMainNetParams.get(), "bitcoincash:qp02xpzz9qq0u7mtefw028mtlkszshxxdv0xsgv8pc"));
+        assertTrue(FormatsUtil.isValidBCHAddress(BitcoinCashMainNetParams.get(), "bitcoincash:qp02xpzz9qq0u7mtefw028mtlkszshxxdv0xsgv8pc"));
         // Valid BECH32 BCH address but with single digit changed
-        assertFalse(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashMainNetParams.get(), "bitcoincash:qp02xpzz9qq0u7mtefw028mtlkszshxxdv0xsgv8pd"));
+        assertFalse(FormatsUtil.isValidBCHAddress(BitcoinCashMainNetParams.get(), "bitcoincash:qp02xpzz9qq0u7mtefw028mtlkszshxxdv0xsgv8pd"));
         // Valid BECH32 BCH address but with single digit missing
-        assertFalse(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashMainNetParams.get(), "bitcoincash:qp02xpzz9qq0u7mtefw028mtlkszshxxdv0xsgv8p"));
+        assertFalse(FormatsUtil.isValidBCHAddress(BitcoinCashMainNetParams.get(), "bitcoincash:qp02xpzz9qq0u7mtefw028mtlkszshxxdv0xsgv8p"));
         // Valid BECH32 BCH address - no prefix
-        assertTrue(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashMainNetParams.get(), "qp02xpzz9qq0u7mtefw028mtlkszshxxdv0xsgv8pc"));
+        assertTrue(FormatsUtil.isValidBCHAddress(BitcoinCashMainNetParams.get(), "qp02xpzz9qq0u7mtefw028mtlkszshxxdv0xsgv8pc"));
 
         // Valid Testnet cash address
-        assertTrue(FormatsUtil.isValidBitcoinCashAddress(BitcoinCashTestNet3Params.get(), "bchtest:ppm2qsznhks23z7629mms6s4cwef74vcwvhanqgjxu"));
+        assertTrue(FormatsUtil.isValidBCHAddress(BitcoinCashTestNet3Params.get(), "bchtest:ppm2qsznhks23z7629mms6s4cwef74vcwvhanqgjxu"));
     }
 
     @Test

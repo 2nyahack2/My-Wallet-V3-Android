@@ -109,7 +109,7 @@ class WalletOptionsDataManager(
             val latestApiVersion = SemanticVersion(it.androidUpdate.latestStoreVersion)
             val currentVersion = SemanticVersion(versionName)
             if (latestApiVersion > currentVersion) {
-                return@map it.androidUpdate.updateType
+                return@map it.androidUpdate.updateType.toUpdateType()
             } else return@map UpdateType.NONE
         }
     }
@@ -145,3 +145,10 @@ class WalletOptionsDataManager(
 
     fun isXlmAddressExchange(it: String): Boolean = xlmExchangeAddresses().contains(it.toUpperCase())
 }
+
+private fun String.toUpdateType(): UpdateType =
+    when {
+        equals("RECOMMENDED", true) -> UpdateType.RECOMMENDED
+        equals("FORCE", true) -> UpdateType.FORCE
+        else -> UpdateType.RECOMMENDED
+    }

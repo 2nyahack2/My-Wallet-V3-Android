@@ -32,12 +32,12 @@ import piuk.blockchain.android.R
 import piuk.blockchain.androidcore.data.settings.PhoneNumber
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
 import piuk.blockchain.androidcoreui.ui.base.BaseMvpFragment
-import com.blockchain.ui.dialog.MaterialProgressDialog
 import kotlinx.android.synthetic.main.fragment_kyc_mobile_validation.*
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
 import piuk.blockchain.android.util.StringUtils
-import piuk.blockchain.androidcoreui.utils.ParentActivityDelegate
-import piuk.blockchain.androidcoreui.utils.ViewUtils
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
+import piuk.blockchain.android.ui.kyc.ParentActivityDelegate
+import piuk.blockchain.android.util.ViewUtils
+import piuk.blockchain.android.util.inflate
 import java.util.concurrent.TimeUnit
 import kotlinx.android.synthetic.main.fragment_kyc_mobile_validation.button_kyc_mobile_validation_next as buttonNext
 import kotlinx.android.synthetic.main.fragment_kyc_mobile_validation.edit_text_kyc_mobile_validation_code as editTextVerificationCode
@@ -50,7 +50,9 @@ class KycMobileValidationFragment :
     private val presenter: KycMobileValidationPresenter by scopedInject()
     private val analytics: Analytics by inject()
     private val stringUtils: StringUtils by inject()
-    private val progressListener: KycProgressListener by ParentActivityDelegate(this)
+    private val progressListener: KycProgressListener by ParentActivityDelegate(
+        this
+    )
     private val compositeDisposable = CompositeDisposable()
     private var progressDialog: MaterialProgressDialog? = null
     private val args by unsafeLazy {
@@ -99,7 +101,6 @@ class KycMobileValidationFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         progressListener.setHostTitle(R.string.kyc_phone_number_title)
-        progressListener.incrementProgress(KycStep.MobileVerifiedPage)
         textViewPhoneNumber.text = displayModel.formattedString
 
         val linksMap = mapOf<String, Uri?>(
@@ -107,7 +108,7 @@ class KycMobileValidationFragment :
         )
 
         text_view_resend_prompt.text =
-            stringUtils.getStringWithMappedLinks(
+            stringUtils.getStringWithMappedAnnotations(
                 R.string.kyc_phone_send_again,
                 linksMap,
                 requireActivity()
@@ -173,19 +174,10 @@ class KycMobileValidationFragment :
             .map { mapToCompleted(it) }
             .distinctUntilChanged()
             .doOnNext {
-                updateProgress(it, kycStep)
                 buttonNext.isEnabled = it
             }
 
     private fun mapToCompleted(text: String): Boolean = VerificationCode(text).isValid
-
-    private fun updateProgress(stepCompleted: Boolean, kycStep: KycStep) {
-        if (stepCompleted) {
-            progressListener.incrementProgress(kycStep)
-        } else {
-            progressListener.decrementProgress(kycStep)
-        }
-    }
 
     override fun createPresenter(): KycMobileValidationPresenter = presenter
 

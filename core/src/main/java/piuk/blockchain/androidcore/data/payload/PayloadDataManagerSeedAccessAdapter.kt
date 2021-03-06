@@ -9,7 +9,7 @@ internal class PayloadDataManagerSeedAccessAdapter(
     private val payloadDataManager: PayloadDataManager
 ) : SeedAccessWithoutPrompt {
 
-    override fun seed(validatedSecondPassword: String): Maybe<Seed> {
+    override fun seed(validatedSecondPassword: String?): Maybe<Seed> {
         return Maybe.concat(
             seed,
             Maybe.defer { getSeedGivenPassword(validatedSecondPassword) }

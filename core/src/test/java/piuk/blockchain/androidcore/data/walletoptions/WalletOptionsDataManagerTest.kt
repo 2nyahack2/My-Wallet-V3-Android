@@ -77,7 +77,7 @@ class WalletOptionsDataManagerTest {
         // Arrange
         val walletOptions: WalletOptions = mock()
         whenever(walletOptions.androidUpdate).thenReturn(
-            AndroidUpgrade("361.0.1", UpdateType.RECOMMENDED)
+            AndroidUpgrade("361.0.1", "recommended")
         )
         val versionName = "360.0.1"
         whenever(authService.getWalletOptions()).thenReturn(Observable.just(walletOptions))
@@ -94,7 +94,7 @@ class WalletOptionsDataManagerTest {
         // Arrange
         val walletOptions: WalletOptions = mock()
         whenever(walletOptions.androidUpdate).thenReturn(
-            AndroidUpgrade("361.0.1", UpdateType.FORCE)
+            AndroidUpgrade("361.0.1", "force")
         )
         val versionName = "360.0.1"
         whenever(authService.getWalletOptions()).thenReturn(Observable.just(walletOptions))

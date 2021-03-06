@@ -5,8 +5,7 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import androidx.preference.SwitchPreferenceCompat
 import piuk.blockchain.android.R
-import piuk.blockchain.androidcoreui.utils.helperfunctions.CustomFont
-import piuk.blockchain.androidcoreui.utils.helperfunctions.loadFont
+import piuk.blockchain.android.util.loadInterMedium
 
 @Suppress("unused")
 class CustomSwitchPreference @JvmOverloads constructor(
@@ -16,22 +15,12 @@ class CustomSwitchPreference @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : SwitchPreferenceCompat(context, attrs, defStyleAttr, defStyleRes) {
 
+    private val typeface: Typeface = context.loadInterMedium()
+
     init {
-        init()
-    }
-
-    private var typeface: Typeface? = null
-
-    private fun init() {
-        loadFont(
-            context,
-            CustomFont.MONTSERRAT_REGULAR
-        ) {
-            typeface = it
-            // Forces setting fonts when Summary or Title are set via XMl
-            this.title = title
-            this.summary = summary
-        }
+        // Forces setting fonts when Summary or Title are set via XMl
+        this.title = title
+        this.summary = summary
     }
 
     override fun setTitle(titleResId: Int) {

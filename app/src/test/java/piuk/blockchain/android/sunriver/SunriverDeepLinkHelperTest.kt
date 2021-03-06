@@ -1,7 +1,7 @@
 package piuk.blockchain.android.sunriver
 
 import android.net.Uri
-import com.blockchain.swap.nabu.models.nabu.CampaignData
+import com.blockchain.nabu.models.responses.nabu.CampaignData
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Maybe
 import org.amshove.kluent.`it returns`

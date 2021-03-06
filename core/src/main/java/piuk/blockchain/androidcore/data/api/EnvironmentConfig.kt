@@ -11,5 +11,5 @@ interface EnvironmentConfig : EnvironmentUrls {
 
     val bitpayUrl: String
 
-    fun shouldShowDebugMenu(): Boolean
+    fun isRunningInDebugMode(): Boolean
 }

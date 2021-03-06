@@ -5,6 +5,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/container"
         android:paddingTop="@dimen/small_margin"
         android:paddingBottom="@dimen/small_margin">
 
@@ -30,7 +31,7 @@
         tools:text="BTC Wallet" />
 
     <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/asset_name"
+        android:id="@+id/asset_subtitle"
         style="@style/Text.Semibold.Light.14"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -56,19 +57,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/standard_margin"
-        app:layout_constraintBottom_toBottomOf="@id/asset_name"
+        app:layout_constraintBottom_toBottomOf="@id/asset_subtitle"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/asset_name"
+        app:layout_constraintTop_toTopOf="@id/asset_subtitle"
         tools:text="1.638192 BTC" />
-
-    <ImageView
-        android:id="@+id/asset_spend_locked"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:layout_marginStart="23dp"
-        android:layout_marginTop="21dp"
-        app:layout_constraintStart_toStartOf="@id/icon"
-        app:layout_constraintTop_toTopOf="@id/icon"
-        app:srcCompat="@drawable/ic_asset_non_custodial_spend" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

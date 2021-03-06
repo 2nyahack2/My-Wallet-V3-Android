@@ -83,8 +83,7 @@ def allDirsMatching(regex) {
     }
     files(names.findAll {
         it.path =~ regex &&
-                !(it.path =~ /.*\/buildSrc\/.*/) &&
-                !(it.path =~ /.*\/stellar-sdk-wrapper\/.*/)
+                !(it.path =~ /.*\/buildSrc\/.*/)
     })
 }
 

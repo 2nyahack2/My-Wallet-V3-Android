@@ -1,29 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        package="piuk.blockchain.android"
-        android:installLocation="auto">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="piuk.blockchain.android"
+    android:installLocation="auto">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- force the removal of these two permissions, which may be added by 3rd party libs -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
 
     <uses-feature android:name="android.hardware.location.gps" />
 
     <application
-            android:name=".BlockchainApplication"
-            android:allowBackup="false"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_round"
-            android:theme="@style/AppTheme"
-            tools:replace="android:allowBackup">
+        android:name=".BlockchainApplication"
+        android:allowBackup="true"
+        android:backupAgent="piuk.blockchain.androidcore.utils.CloudBackupAgent"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:resizeableActivity="false"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/AppTheme"
+        tools:replace="android:allowBackup">
 
         <activity
-                android:name=".ui.launcher.LauncherActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:launchMode="singleTop">
+            android:name=".ui.launcher.LauncherActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -41,9 +48,9 @@
                 <action android:name="android.intent.action.VIEW" />
 
                 <data
-                        android:host="blockchain.info"
-                        android:pathPrefix="/invite"
-                        android:scheme="https" />
+                    android:host="blockchain.info"
+                    android:pathPrefix="/invite"
+                    android:scheme="https" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -55,151 +62,165 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                        android:host="${DYNAMIC_LINK_HOST}"
-                        android:scheme="https" />
+                    android:host="${DYNAMIC_LINK_HOST}"
+                    android:scheme="https" />
                 <data
-                        android:host="${DYNAMIC_LINK_HOST_2}"
-                        android:scheme="https" />
+                    android:host="${DYNAMIC_LINK_HOST_2}"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
         <activity
-                android:name=".ui.home.MainActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:theme="@style/AppTheme.MainActivity"
-                android:windowSoftInputMode="adjustPan" />
+            android:name=".ui.transfer.receive.activity.ReceiveActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
         <activity
-                android:name=".ui.settings.SettingsActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
+            android:name=".ui.home.MainActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:theme="@style/AppTheme.MainActivity"
+            android:windowSoftInputMode="adjustPan" />
         <activity
-                android:name=".ui.auth.PinEntryActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.start.LandingActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.start.LoginActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:windowSoftInputMode="adjustResize" />
-        <activity
-                android:name=".ui.createwallet.CreateWalletActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:windowSoftInputMode="adjustResize" />
-        <activity
-                android:name=".ui.account.AccountActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.account.AccountEditActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.airdrops.AirdropCentreActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.backup.BackupWalletActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.upgrade.UpgradeWalletActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.start.ManualPairingActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.auth.LogoutActivity"
-                android:excludeFromRecents="true"
-                android:noHistory="true"
-                android:theme="@style/NoDisplay" />
-        <activity
-                android:name=".ui.start.PasswordRequiredActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.recover.RecoverFundsActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.receive.ReceiveQrActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:theme="@style/AppTheme.ReceiveQrWindow" />
-        <activity
-                android:name=".ui.onboarding.OnboardingActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.pairingcode.PairingCodeActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.ssl.SSLVerifyActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.swap.detail.TradeDetailActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.swap.homebrew.exchange.history.TradeHistoryActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.swap.homebrew.exchange.detail.HomebrewTradeDetailActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.swap.homebrew.exchange.host.HomebrewNavHostActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:launchMode="singleTask" />
-        <activity
-                android:name=".ui.thepit.PitPermissionsActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.thepit.PitVerifyEmailActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".ui.kyc.navhost.KycNavHostActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:launchMode="singleTask" />
-        <activity
-                android:name=".ui.kyc.status.KycStatusActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity
-                android:name=".simplebuy.SimpleBuyActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:windowSoftInputMode="adjustResize" />
-        <activity
-                android:name=".cards.CardDetailsActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:windowSoftInputMode="adjustResize" />
-        <activity
-                android:name=".cards.CardAuthoriseWebViewActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:windowSoftInputMode="adjustResize" />
+            android:name="piuk.blockchain.android.ui.scan.QrScanActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
 
-        <service
-                android:name=".data.coinswebsocket.service.CoinsWebSocketService"
-                android:stopWithTask="true" />
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.auth.PinEntryActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.start.LandingActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.start.LoginActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.createwallet.CreateWalletActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.addresses.AccountActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.airdrops.AirdropCentreActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.backup.BackupWalletActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.upgrade.UpgradeWalletActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.start.ManualPairingActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.auth.LogoutActivity"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@style/NoDisplay" />
+        <activity
+            android:name=".ui.start.PasswordRequiredActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.recover.RecoverFundsActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.shortcuts.receive.ReceiveQrActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:theme="@style/AppTheme.ReceiveQrWindow" />
+        <activity
+            android:name=".ui.onboarding.OnboardingActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.pairingcode.PairingCodeActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.ssl.SSLVerifyActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.lockbox.LockboxLandingActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"/>
+        <activity
+            android:name=".ui.thepit.PitPermissionsActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.thepit.PitVerifyEmailActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.kyc.navhost.KycNavHostActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.kyc.status.KycStatusActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".simplebuy.SimpleBuyActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".withdraw.WithdrawActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".cards.CardDetailsActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".cards.CardAuthoriseWebViewActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.interest.InterestDashboardActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".ui.linkbank.LinkBankActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
 
         <meta-data
-                android:name="com.google.firebase.messaging.default_notification_icon"
-                android:resource="@mipmap/ic_notification" />
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" />
         <meta-data
-                android:name="com.google.firebase.messaging.default_notification_color"
-                android:resource="@color/notification_tint" />
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_tint" />
         <!--
              Set color used with incoming notification messages. This is used when no color is set for the incoming
              notification message.
         -->
+
         <meta-data
-                android:name="preloaded_fonts"
-                android:resource="@array/preloaded_fonts" />
+            android:name="com.sec.android.support.multiwindow"
+            android:value="false" />
+        <meta-data
+            android:name="com.samsung.android.sdk.multiwindow.multiinstance.enable"
+            android:value="false" />
+        <meta-data
+            android:name="com.samsung.android.sdk.multiwindow.penwindow.enable"
+            android:value="false" />
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
+        <meta-data
+            android:name="com.google.android.backup.api_key"
+            android:value="${BACKUP_API_KEY}" />
 
         <provider
-                android:name="androidx.core.content.FileProvider"
-                android:authorities="${applicationId}.fileProvider"
-                android:exported="false"
-                android:grantUriPermissions="true">
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
             <meta-data
-                    android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/provider_paths" />
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
         </provider>
         <!--
             FirebaseMessagingService performs security checks at runtime,
              no need for explicit permissions despite exported="true"
         -->
         <service
-                android:name=".data.notifications.FcmCallbackService"
-                android:enabled="true"
-                tools:ignore="ExportedService">
+            android:name=".data.notifications.FcmCallbackService"
+            android:enabled="true"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>

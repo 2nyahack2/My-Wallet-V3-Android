@@ -1,7 +1,9 @@
 package com.blockchain.sunriver
 
-import com.blockchain.account.BalanceAndMin
 import com.blockchain.fees.FeeType
+import com.blockchain.logging.CustomEventBuilder
+import com.blockchain.logging.EventLogger
+import com.blockchain.logging.LastTxUpdater
 import com.blockchain.sunriver.datamanager.XlmAccount
 import com.blockchain.sunriver.datamanager.XlmMetaData
 import com.blockchain.sunriver.datamanager.XlmMetaDataInitializer
@@ -9,20 +11,19 @@ import com.blockchain.sunriver.models.XlmTransaction
 import com.blockchain.testutils.lumens
 import com.blockchain.testutils.rxInit
 import com.blockchain.testutils.stroops
-import com.blockchain.transactions.Memo
-import com.blockchain.transactions.SendConfirmationDetails
-import com.blockchain.transactions.SendDetails
-import com.blockchain.transactions.SendFundsResult
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.anyOrNull
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
+import com.nhaarman.mockito_kotlin.spy
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import info.blockchain.balance.AccountReference
 import info.blockchain.balance.CryptoValue
+import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
@@ -415,7 +416,8 @@ class XlmDataManagerTransactionListTest {
     @Test
     fun `get transaction list from default account`() {
         givenXlmDataManager(
-            givenTransactions(1, "GC24LNYWXIYYB6OGCMAZZ5RX6WPI2F74ZV7HNBV4ADALLXJRT7ZTLHP2" to getResponseList()),
+            givenTransactions(1,
+                "GC24LNYWXIYYB6OGCMAZZ5RX6WPI2F74ZV7HNBV4ADALLXJRT7ZTLHP2" to getResponseList()),
             givenMetaDataPrompt(
                 XlmMetaData(
                     defaultAccountIndex = 0,
@@ -437,33 +439,12 @@ class XlmDataManagerTransactionListTest {
     @Test
     fun `get transactions`() {
         givenXlmDataManager(
-            givenTransactions(1, "GC24LNYWXIYYB6OGCMAZZ5RX6WPI2F74ZV7HNBV4ADALLXJRT7ZTLHP2" to getResponseList())
+            givenTransactions(1,
+                "GC24LNYWXIYYB6OGCMAZZ5RX6WPI2F74ZV7HNBV4ADALLXJRT7ZTLHP2" to getResponseList())
         )
-            .getTransactionList(AccountReference.Xlm("", "GC24LNYWXIYYB6OGCMAZZ5RX6WPI2F74ZV7HNBV4ADALLXJRT7ZTLHP2"))
+            .getTransactionList(
+                AccountReference.Xlm("", "GC24LNYWXIYYB6OGCMAZZ5RX6WPI2F74ZV7HNBV4ADALLXJRT7ZTLHP2"))
             .testSingle() `should equal` getXlmList()
-    }
-
-    @Test
-    fun `get transaction fee`() {
-        givenXlmDataManager(
-            givenTransaction("HASH" to mock {
-                on { feeCharged } `it returns` 99L
-            })
-        ).getTransactionFee("HASH")
-            .testSingle() `should equal` 99.stroops()
-    }
-
-    @Test
-    fun `get operation fee`() {
-        givenXlmDataManager(
-            givenTransaction("HASH_X" to
-                    mock {
-                        on { feeCharged } `it returns` 4 * 125
-                        on { operationCount } `it returns` 4
-                    }
-            )
-        ).getOperationFee("HASH_X")
-            .testSingle() `should equal` 125.stroops()
     }
 
     private fun getXlmList(): List<XlmTransaction> = listOf(
@@ -472,6 +453,7 @@ class XlmDataManagerTransactionListTest {
             value = 10000.lumens(),
             fee = 1.stroops(),
             hash = "transactionHash",
+            memo = Memo.None,
             to = HorizonKeyPair.Public("GCO724H2FOHPBFF4OQ6IB5GB3CVE4W3UGDY4RIHHG6UPQ2YZSSCINMAI"),
             from = HorizonKeyPair.Public("GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR")
         ),
@@ -480,6 +462,7 @@ class XlmDataManagerTransactionListTest {
             value = (-100).lumens(),
             fee = 1.stroops(),
             hash = "transactionHash",
+            memo = Memo.None,
             to = HorizonKeyPair.Public("GBAHSNSG37BOGBS4GXUPMHZWJQ22WIOJQYORRBHTABMMU6SGSKDEAOPT"),
             from = HorizonKeyPair.Public("GC24LNYWXIYYB6OGCMAZZ5RX6WPI2F74ZV7HNBV4ADALLXJRT7ZTLHP2")
         )
@@ -492,18 +475,18 @@ class XlmDataManagerTransactionListTest {
             on { startingBalance } `it returns` "10000"
             on { transactionHash } `it returns` "transactionHash"
             on { account } `it returns`
-                    "GCO724H2FOHPBFF4OQ6IB5GB3CVE4W3UGDY4RIHHG6UPQ2YZSSCINMAI"
+                "GCO724H2FOHPBFF4OQ6IB5GB3CVE4W3UGDY4RIHHG6UPQ2YZSSCINMAI"
             on { funder } `it returns`
-                    "GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR"
+                "GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR"
         }
         val mockPayment: PaymentOperationResponse = mock {
             on { createdAt } `it returns` "createdAt"
             on { amount } `it returns` "100"
             on { transactionHash } `it returns` "transactionHash"
             on { to } `it returns`
-                    "GBAHSNSG37BOGBS4GXUPMHZWJQ22WIOJQYORRBHTABMMU6SGSKDEAOPT"
+                "GBAHSNSG37BOGBS4GXUPMHZWJQ22WIOJQYORRBHTABMMU6SGSKDEAOPT"
             on { from } `it returns`
-                    "GC24LNYWXIYYB6OGCMAZZ5RX6WPI2F74ZV7HNBV4ADALLXJRT7ZTLHP2"
+                "GC24LNYWXIYYB6OGCMAZZ5RX6WPI2F74ZV7HNBV4ADALLXJRT7ZTLHP2"
             on { type } `it returns` "payment"
         }
 
@@ -548,6 +531,8 @@ class XlmDataManagerSendTransactionTest {
 
     @Test
     fun `can send`() {
+        val eventLogger: EventLogger = mock()
+        val lastTxUpdater: LastTxUpdater = givenLastTxUpdater()
         val transaction = mock<Transaction> {
             on { hash() } `it returns` byteArrayOf(127, 128.toByte(), 255.toByte())
         }
@@ -559,7 +544,8 @@ class XlmDataManagerSendTransactionTest {
                             "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
                         )
                     ),
-                    destinationAccountId = eq("GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3"),
+                    destinationAccountId = eq(
+                        "GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3"),
                     amount = eq(199.456.lumens()),
                     memo = eq(org.stellar.sdk.Memo.none()),
                     timeout = any(),
@@ -587,9 +573,11 @@ class XlmDataManagerSendTransactionTest {
             ),
             givenPrivateForPublic(
                 "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
-                        "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
             ),
-            feesFetcher = givenXlmFees(256.stroops())
+            feesFetcher = givenXlmFees(256.stroops()),
+            eventLogger = eventLogger,
+            lastTxUpdater = lastTxUpdater
         ).sendFunds(
             SendDetails(
                 AccountReference.Xlm("", "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR"),
@@ -602,13 +590,21 @@ class XlmDataManagerSendTransactionTest {
             .assertNoErrors()
             .assertComplete()
             .values().single().hash `should equal` "7F80FF"
+
         horizonProxy.verifyJustTheOneSendAttemptAndUpdate()
+        verify(eventLogger).logEvent(any())
+        verify(lastTxUpdater).updateLastTxTime()
     }
 
     @Test
     fun `any failure bubbles up`() {
+        val eventLogger: EventLogger = mock()
+        val lastTxUpdater: LastTxUpdater = mock()
+
         val horizonProxy: HorizonProxy = mock {
-            on { sendTransaction(any(), any(), any(), any(), any(), any()) } `it returns` HorizonProxy.SendResult(
+            on {
+                sendTransaction(any(), any(), any(), any(), any(), any())
+            } `it returns` HorizonProxy.SendResult(
                 success = false,
                 transaction = mock()
             )
@@ -636,26 +632,168 @@ class XlmDataManagerSendTransactionTest {
             ),
             givenPrivateForPublic(
                 "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
-                        "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
-            )
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+            ),
+            eventLogger = eventLogger,
+            lastTxUpdater = lastTxUpdater
         ).sendFunds(
             sendDetails
         ).test()
             .assertComplete()
             .values().single() `should equal`
-                SendFundsResult(
-                    sendDetails = sendDetails,
-                    errorCode = 1,
-                    confirmationDetails = null,
-                    hash = null
-                )
+            SendFundsResult(
+                sendDetails = sendDetails,
+                errorCode = 1,
+                confirmationDetails = null,
+                hash = null
+            )
         horizonProxy.verifyJustTheOneSendAttemptAndUpdate()
+        verify(eventLogger, never()).logEvent(any())
+        verify(lastTxUpdater, never()).updateLastTxTime()
+    }
+
+    @Test
+    fun `can send with empty memo`() {
+        val eventLogger: EventLogger = mock()
+        val lastTxUpdater: LastTxUpdater = givenLastTxUpdater()
+        val transaction = mock<Transaction> {
+            on { hash() } `it returns` byteArrayOf(127, 128.toByte(), 255.toByte())
+        }
+        val horizonProxy: HorizonProxy = mock {
+            on {
+                sendTransaction(
+                    source = keyPairEq(
+                        KeyPair.fromSecretSeed(
+                            "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+                        )
+                    ),
+                    destinationAccountId = eq(
+                        "GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3"),
+                    amount = eq(199.456.lumens()),
+                    memo = eq(org.stellar.sdk.Memo.none()),
+                    timeout = any(),
+                    perOperationFee = eq(256.stroops())
+                )
+            } `it returns` HorizonProxy.SendResult(
+                success = true,
+                transaction = transaction
+            )
+        }
+        givenXlmDataManager(
+            horizonProxy,
+            givenMetaDataPrompt(
+                XlmMetaData(
+                    defaultAccountIndex = 0,
+                    accounts = listOf(
+                        XlmAccount(
+                            publicKey = "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR",
+                            label = "",
+                            archived = false
+                        )
+                    ),
+                    transactionNotes = emptyMap()
+                )
+            ),
+            givenPrivateForPublic(
+                "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+            ),
+            feesFetcher = givenXlmFees(256.stroops()),
+            eventLogger = eventLogger,
+            lastTxUpdater = lastTxUpdater
+        ).sendFunds(
+            SendDetails(
+                AccountReference.Xlm("", "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR"),
+                199.456.lumens(),
+                "GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3",
+                256.stroops(),
+                Memo.None
+            )
+        )
+            .test()
+            .assertNoErrors()
+            .assertComplete()
+            .values().single().hash `should equal` "7F80FF"
+
+        horizonProxy.verifyJustTheOneSendAttemptAndUpdate()
+        verify(eventLogger).logEvent(any())
+        verify(lastTxUpdater).updateLastTxTime()
+    }
+
+    @Test
+    fun `completes with failed update of last tx`() {
+        val lastTxUpdater: LastTxUpdater = mock {
+            on { updateLastTxTime() } `it returns` Completable.error(Exception())
+        }
+
+        val transaction = mock<Transaction> {
+            on { hash() } `it returns` byteArrayOf(127, 128.toByte(), 255.toByte())
+        }
+        val horizonProxy: HorizonProxy = mock {
+            on {
+                sendTransaction(
+                    source = keyPairEq(
+                        KeyPair.fromSecretSeed(
+                            "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+                        )
+                    ),
+                    destinationAccountId = eq(
+                        "GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3"),
+                    amount = eq(199.456.lumens()),
+                    memo = eq(org.stellar.sdk.Memo.none()),
+                    timeout = any(),
+                    perOperationFee = eq(256.stroops())
+                )
+            } `it returns` HorizonProxy.SendResult(
+                success = true,
+                transaction = transaction
+            )
+        }
+        givenXlmDataManager(
+            horizonProxy,
+            givenMetaDataPrompt(
+                XlmMetaData(
+                    defaultAccountIndex = 0,
+                    accounts = listOf(
+                        XlmAccount(
+                            publicKey = "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR",
+                            label = "",
+                            archived = false
+                        )
+                    ),
+                    transactionNotes = emptyMap()
+                )
+            ),
+            givenPrivateForPublic(
+                "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+            ),
+            feesFetcher = givenXlmFees(256.stroops()),
+            lastTxUpdater = lastTxUpdater
+        ).sendFunds(
+            SendDetails(
+                AccountReference.Xlm("", "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR"),
+                199.456.lumens(),
+                "GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3",
+                256.stroops(),
+                Memo.None
+            )
+        )
+            .test()
+            .assertNoErrors()
+            .assertComplete()
+            .values().single().hash `should equal` "7F80FF"
+
+        horizonProxy.verifyJustTheOneSendAttemptAndUpdate()
+        verify(lastTxUpdater).updateLastTxTime()
     }
 
     @Test
     fun `any failure bubbles up - dry run`() {
         val horizonProxy: HorizonProxy = mock {
-            on { dryRunTransaction(any(), any(), any(), any(), any(), any()) } `it returns` HorizonProxy.SendResult(
+            on {
+                dryRunTransaction(any(), any(), any(), any(), any(), any())
+            } `it returns` HorizonProxy.SendResult(
                 success = false,
                 transaction = mock()
             )
@@ -683,26 +821,28 @@ class XlmDataManagerSendTransactionTest {
             ),
             givenPrivateForPublic(
                 "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
-                        "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
             )
         ).dryRunSendFunds(
             sendDetails
         ).test()
             .assertComplete()
             .values().single() `should equal`
-                SendFundsResult(
-                    sendDetails = sendDetails,
-                    errorCode = 1,
-                    confirmationDetails = null,
-                    hash = null
-                )
+            SendFundsResult(
+                sendDetails = sendDetails,
+                errorCode = 1,
+                confirmationDetails = null,
+                hash = null
+            )
         horizonProxy.verifyJustTheOneDryRunNoSendsAndUpdate()
     }
 
     @Test
     fun `bad destination address - dry run`() {
         val horizonProxy: HorizonProxy = mock {
-            on { dryRunTransaction(any(), any(), any(), any(), any(), any()) } `it returns` HorizonProxy.SendResult(
+            on {
+                dryRunTransaction(any(), any(), any(), any(), any(), any())
+            } `it returns` HorizonProxy.SendResult(
                 success = false,
                 transaction = mock(),
                 failureReason = HorizonProxy.FailureReason.BadDestinationAccountId
@@ -731,19 +871,19 @@ class XlmDataManagerSendTransactionTest {
             ),
             givenPrivateForPublic(
                 "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
-                        "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
             )
         ).dryRunSendFunds(
             sendDetails
         ).test()
             .assertComplete()
             .values().single() `should equal`
-                SendFundsResult(
-                    sendDetails = sendDetails,
-                    errorCode = 5,
-                    confirmationDetails = null,
-                    hash = null
-                )
+            SendFundsResult(
+                sendDetails = sendDetails,
+                errorCode = 5,
+                confirmationDetails = null,
+                hash = null
+            )
         horizonProxy.verifyJustTheOneDryRunNoSendsAndUpdate()
     }
 
@@ -761,7 +901,8 @@ class XlmDataManagerSendTransactionTest {
                             "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
                         )
                     ),
-                    destinationAccountId = eq("GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3"),
+                    destinationAccountId = eq(
+                        "GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3"),
                     amount = eq(1.23.lumens()),
                     memo = any(),
                     timeout = any(),
@@ -800,9 +941,9 @@ class XlmDataManagerSendTransactionTest {
             ),
             givenPrivateForPublic(
                 "GBVO27UV2OXJFLFNXHMXOR5WRPKETM64XAQHUEKQ67W5LQDPZCDSTUTF" to
-                        "SBGS72YDKMO7K6YBDGXSD2U7BGFK3LRDCR36KNNXVL7N7L2OSEQSWO25",
+                    "SBGS72YDKMO7K6YBDGXSD2U7BGFK3LRDCR36KNNXVL7N7L2OSEQSWO25",
                 "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
-                        "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
             ),
             feesFetcher = givenXlmFees(256.stroops())
         ).sendFunds(
@@ -811,15 +952,15 @@ class XlmDataManagerSendTransactionTest {
             .assertNoErrors()
             .assertComplete()
             .values().single() `should equal`
-                SendFundsResult(
+            SendFundsResult(
+                sendDetails = sendDetails,
+                errorCode = 0,
+                hash = "00010203FF",
+                confirmationDetails = SendConfirmationDetails(
                     sendDetails = sendDetails,
-                    errorCode = 0,
-                    hash = "00010203FF",
-                    confirmationDetails = SendConfirmationDetails(
-                        sendDetails = sendDetails,
-                        fees = 101.stroops()
-                    )
+                    fees = 101.stroops()
                 )
+            )
         horizonProxy.verifyJustTheOneSendAttemptAndUpdate()
     }
 
@@ -837,7 +978,8 @@ class XlmDataManagerSendTransactionTest {
                             "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR"
                         )
                     ),
-                    destinationAccountId = eq("GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3"),
+                    destinationAccountId = eq(
+                        "GDKDDBJNREDV4ITL65Z3PNKAGWYJQL7FZJSV4P2UWGLRXI6AWT36UED3"),
                     amount = eq(1.23.lumens()),
                     memo = any(),
                     perOperationFee = eq(500.stroops()),
@@ -881,15 +1023,15 @@ class XlmDataManagerSendTransactionTest {
             .assertNoErrors()
             .assertComplete()
             .values().single() `should equal`
-                SendFundsResult(
+            SendFundsResult(
+                sendDetails = sendDetails,
+                errorCode = 0,
+                hash = "00010203FF",
+                confirmationDetails = SendConfirmationDetails(
                     sendDetails = sendDetails,
-                    errorCode = 0,
-                    hash = "00010203FF",
-                    confirmationDetails = SendConfirmationDetails(
-                        sendDetails = sendDetails,
-                        fees = 1000.stroops()
-                    )
+                    fees = 1000.stroops()
                 )
+            )
         horizonProxy.verifyJustTheOneDryRunNoSendsAndUpdate()
     }
 
@@ -908,7 +1050,7 @@ class XlmDataManagerSendTransactionTest {
             mock(),
             givenPrivateForPublic(
                 "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
-                        "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
             )
         ).sendFunds(
             SendDetails(
@@ -941,7 +1083,8 @@ class XlmDataManagerSendTransactionTest {
             )
         )
             .test()
-            .assertFailureAndMessage(XlmSendException::class.java, "Source account reference is not an Xlm reference")
+            .assertFailureAndMessage(XlmSendException::class.java,
+                "Source account reference is not an Xlm reference")
             .assertNotComplete()
         verifyZeroInteractions(horizonProxy)
     }
@@ -970,19 +1113,23 @@ class XlmDataManagerSendWithMemoTest {
                 transaction = transaction
             )
         }
-        val memo = Memo("Hi, this is the memo to add")
+        val memo = Memo("")
+
         val memoMapper = mock<MemoMapper> {
             on { mapMemo(memo) } `it returns` memoText
         }
-        givenXlmDataManager(
+        val dataManager = spy(givenXlmDataManager(
             horizonProxy,
             mock(),
             givenPrivateForPublic(
                 "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
-                        "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
             ),
             memoMapper
-        ).sendFunds(
+        ))
+        whenever(dataManager.memoToEvent(memo)) `it returns` object : CustomEventBuilder("event") {}
+
+        dataManager.sendFunds(
             SendDetails(
                 AccountReference.Xlm("", "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR"),
                 1.23.lumens(),
@@ -1026,7 +1173,7 @@ class XlmDataManagerSendWithMemoTest {
             mock(),
             givenPrivateForPublic(
                 "GB5INYM5XFJHAIQYXUQMGMQEM5KWBM4OYVLTWQI5JSQBRQKFYH3M3XWR" to
-                        "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
+                    "SCIB3NRLJR6BPQRF3WCSPBICSZIXNLGHKWDZZ32OA6TFOJJKWGNHOHIA"
             ),
             memoMapper
         ).dryRunSendFunds(
@@ -1153,22 +1300,32 @@ private fun givenXlmDataManager(
     secretAccess: XlmSecretAccess = givenNoExpectedSecretAccess(),
     memoMapper: MemoMapper = givenAllMemosMapToNone(),
     feesFetcher: XlmFeesFetcher = givenXlmFees(999.stroops()),
-    timeoutFetcher: XlmTransactionTimeoutFetcher = givenTimeoutFetcher(10)
-): XlmDataManager =
+    timeoutFetcher: XlmTransactionTimeoutFetcher = givenTimeoutFetcher(10),
+    lastTxUpdater: LastTxUpdater = givenLastTxUpdater(),
+    eventLogger: EventLogger = mock()
+): XlmDataManager {
 
-    XlmDataManager(
+    return XlmDataManager(
         horizonProxy,
         metaDataInitializer,
         secretAccess,
         memoMapper,
         feesFetcher,
         timeoutFetcher,
+        lastTxUpdater,
+        eventLogger,
         urlFetcher(),
         "")
+}
 
 fun urlFetcher(): XlmHorizonUrlFetcher =
     mock {
         on { xlmHorizonUrl(any()) } `it returns` Single.just("")
+    }
+
+private fun givenLastTxUpdater(): LastTxUpdater =
+    mock {
+        on { this.updateLastTxTime() } `it returns` Completable.complete()
     }
 
 private fun givenTimeoutFetcher(timeout: Long): XlmTransactionTimeoutFetcher =
@@ -1188,14 +1345,14 @@ private fun givenAllMemosMapToNone(): MemoMapper =
 
 private fun givenNoExpectedSecretAccess(): XlmSecretAccess =
     mock {
-        on { getPrivate(any()) } `it throws` RuntimeException("Not expected")
+        on { getPrivate(any(), any()) } `it throws` RuntimeException("Not expected")
     }
 
 private fun givenPrivateForPublic(vararg pairs: Pair<String, String>): XlmSecretAccess {
     val mock: XlmSecretAccess = mock()
     for (pair in pairs) {
-        whenever(mock.getPrivate(HorizonKeyPair.Public(pair.first))).thenReturn(
-            Maybe.just(
+        whenever(mock.getPrivate(HorizonKeyPair.Public(pair.first), null)).thenReturn(
+            Single.just(
                 HorizonKeyPair.Private(
                     pair.first,
                     pair.second.toCharArray()

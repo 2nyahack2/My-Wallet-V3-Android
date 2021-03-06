@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/view_empty_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    android:padding="@dimen/standard_margin"
+    android:paddingBottom="@dimen/standard_margin">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/view_empty_title"
+        style="@style/Text.Semibold.Centered.20"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="@string/transfer_wallets_empty_title" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/view_empty_desc"
+        style="@style/Text.Standard.Centered.14"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/tiny_margin"
+        tools:text="@string/transfer_wallets_empty_details" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/view_empty_icon"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        app:srcCompat="@drawable/ic_wallet_intro_image" />
+
+    <Button
+        android:id="@+id/view_empty_cta"
+        style="@style/CtaButton.Blue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        tools:text="@string/common_empty_cta" />
+
+    <Button
+        android:id="@+id/view_empty_support_cta"
+        style="@style/CtaButton.White"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        android:text="@string/contact_support"
+        tools:visibility="visible" />
+</LinearLayout>

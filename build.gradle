@@ -12,6 +12,7 @@ buildscript {
         classpath Libraries.coveralls
         classpath Libraries.googleServicesPlugin
         classpath Libraries.kotlinGradlePlugin
+        classpath Libraries.kotlinSerializationPlugin
         classpath Libraries.jacoco
         classpath Libraries.navigationControllerSafeArgsPlugin
         classpath Libraries.firebaseCrashlyticsPlugin

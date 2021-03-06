@@ -12,6 +12,8 @@ import com.blockchain.koin.nabu
 import com.blockchain.network.EnvironmentUrls
 import com.blockchain.serialization.BigDecimalAdaptor
 import com.blockchain.serialization.BigIntegerAdapter
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.squareup.moshi.Moshi
 import io.reactivex.schedulers.Schedulers
 import okhttp3.CertificatePinner
@@ -34,7 +36,7 @@ val apiModule = module {
         builder.add(BigIntegerAdapter())
     }
 
-    single { JacksonConverterFactory.create() }
+    single { JacksonConverterFactory.create(ObjectMapper().registerKotlinModule()) }
 
     single { RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()) }
 

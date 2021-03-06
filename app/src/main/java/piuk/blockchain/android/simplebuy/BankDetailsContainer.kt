@@ -3,7 +3,7 @@ package piuk.blockchain.android.simplebuy
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.LinearLayout
-import piuk.blockchain.android.util.CopyableTextFormItem
+import piuk.blockchain.android.ui.customviews.CopyableTextFormItem
 
 class BankDetailsContainer @JvmOverloads constructor(
     context: Context,

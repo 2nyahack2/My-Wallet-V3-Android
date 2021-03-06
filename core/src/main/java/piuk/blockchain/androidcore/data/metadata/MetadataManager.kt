@@ -43,10 +43,12 @@ class MetadataManager(
     private val metadataNodeFactory: MetadataNodeFactory
         get() = _metadataNodeFactory?.let {
             it
-        } ?: MetadataNodeFactory(credentials.guid,
+        } ?: MetadataNodeFactory(
+            credentials.guid,
             credentials.sharedKey,
             credentials.password,
-            metadataDerivation).also {
+            metadataDerivation
+        ).also {
             _metadataNodeFactory = it
         }
 
@@ -59,11 +61,6 @@ class MetadataManager(
         return generateNodes()
             .then { initMetadataNodes() }
     }
-
-    fun buildMetadata(metadataType: Int): Metadata =
-        metadataNodeFactory.metadataNode?.let {
-            Metadata.newInstance(metaDataHDNode = it, type = metadataType, metadataDerivation = metadataDerivation)
-        } ?: throw IllegalStateException("Metadata node is null")
 
     fun fetchMetadata(metadataType: Int): Maybe<String> =
         metadataNodeFactory.metadataNode?.let {
@@ -167,6 +164,7 @@ private class MetadataBadPaddingTracker(metadataType: Int, throwable: Throwable)
                 9 -> "lockbox"
                 10 -> "userCredentials"
                 11 -> "bsv" // No longer used
+                12 -> "walletCredentials" // No longer used
                 else -> "unknown"
             }
     }

@@ -10,7 +10,7 @@ interface KycEmailEntryView : View {
 
     fun preFillEmail(email: String)
 
-    fun showErrorToast(@StringRes message: Int)
+    fun showError(@StringRes message: Int)
 
     fun dismissProgressDialog()
 

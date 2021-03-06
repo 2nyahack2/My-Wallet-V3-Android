@@ -2,9 +2,6 @@ package com.blockchain.sunriver
 
 import com.blockchain.testutils.lumens
 import com.blockchain.testutils.stroops
-import com.blockchain.transactions.SendConfirmationDetails
-import com.blockchain.transactions.SendDetails
-import com.blockchain.transactions.SendFundsResult
 import com.nhaarman.mockito_kotlin.mock
 import info.blockchain.balance.AccountReference
 import org.amshove.kluent.`it returns`

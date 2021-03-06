@@ -8,32 +8,31 @@ import androidx.navigation.fragment.NavHostFragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blockchain.koin.scopedInject
 import com.blockchain.notifications.analytics.Analytics
-import piuk.blockchain.android.ui.kyc.countryselection.adapter.CountryCodeAdapter
-import piuk.blockchain.android.ui.kyc.countryselection.models.CountrySelectionState
-import piuk.blockchain.android.ui.kyc.countryselection.util.CountryDisplayModel
-import com.blockchain.notifications.analytics.logEvent
-import piuk.blockchain.android.ui.kyc.navhost.KycProgressListener
-import piuk.blockchain.android.ui.kyc.navhost.models.KycStep
-import piuk.blockchain.android.ui.kyc.navigate
-import piuk.blockchain.android.ui.kyc.search.filterCountries
 import com.blockchain.notifications.analytics.AnalyticsEvents
 import com.blockchain.notifications.analytics.KYCAnalyticsEvents
+import com.blockchain.notifications.analytics.logEvent
 import com.jakewharton.rxbinding2.support.v7.widget.queryTextChanges
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.subjects.ReplaySubject
+import kotlinx.android.synthetic.main.fragment_kyc_country_selection.*
 import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
+import piuk.blockchain.android.ui.kyc.countryselection.adapter.CountryCodeAdapter
+import piuk.blockchain.android.ui.kyc.countryselection.models.CountrySelectionState
+import piuk.blockchain.android.ui.kyc.countryselection.util.CountryDisplayModel
+import piuk.blockchain.android.ui.kyc.navhost.KycProgressListener
+import piuk.blockchain.android.ui.kyc.navigate
+import piuk.blockchain.android.ui.kyc.search.filterCountries
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
 import piuk.blockchain.androidcoreui.ui.base.BaseFragment
-import com.blockchain.ui.dialog.MaterialProgressDialog
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.ParentActivityDelegate
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.toast
+import piuk.blockchain.androidcoreui.ui.customviews.toast
+import piuk.blockchain.android.ui.kyc.ParentActivityDelegate
+import piuk.blockchain.android.util.inflate
 import java.util.concurrent.TimeUnit
-import kotlinx.android.synthetic.main.fragment_kyc_country_selection.*
 
 internal class KycCountrySelectionFragment :
     BaseFragment<KycCountrySelectionView, KycCountrySelectionPresenter>(), KycCountrySelectionView {
@@ -44,7 +43,9 @@ internal class KycCountrySelectionFragment :
 
     private val presenter: KycCountrySelectionPresenter by scopedInject()
     private val analytics: Analytics by inject()
-    private val progressListener: KycProgressListener by ParentActivityDelegate(this)
+    private val progressListener: KycProgressListener by ParentActivityDelegate(
+        this
+    )
     private val countryCodeAdapter = CountryCodeAdapter {
         presenter.onRegionSelected(it)
     }
@@ -70,20 +71,13 @@ internal class KycCountrySelectionFragment :
         when (regionType) {
             RegionType.Country -> {
                 logEvent(AnalyticsEvents.KycCountry)
-                progressListener.setHostTitle(R.string.kyc_country_selection_title)
-                message.setText(R.string.kyc_country_selection_message)
-                search_view.queryHint = getString(R.string.kyc_country_selection_search_hint)
+                progressListener.setHostTitle(R.string.kyc_country_selection_title_1)
             }
             RegionType.State -> {
                 logEvent(AnalyticsEvents.KycStates)
                 progressListener.setHostTitle(R.string.kyc_country_selection_state_title)
-                message.setText(R.string.kyc_country_selection_message_state)
-                search_view.queryHint = getString(R.string.kyc_state_selection_search_hint)
             }
         }
-
-        progressListener.incrementProgress(KycStep.CountrySelection)
-
         onViewReady()
     }
 
@@ -92,8 +86,7 @@ internal class KycCountrySelectionFragment :
 
         compositeDisposable += countryList
             .filterCountries(
-                search_view.queryTextChanges().skipInitialValue()
-                    .debounce(100, TimeUnit.MILLISECONDS)
+                search_view.queryTextChanges().debounce(100, TimeUnit.MILLISECONDS)
             )
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
@@ -107,11 +100,12 @@ internal class KycCountrySelectionFragment :
         compositeDisposable.clear()
     }
 
-    override fun continueFlow(countryCode: String) {
+    override fun continueFlow(countryCode: String, stateCode: String?) {
         analytics.logEvent(KYCAnalyticsEvents.CountrySelected)
         navigate(
             KycCountrySelectionFragmentDirections.actionKycCountrySelectionFragmentToKycProfileFragment(
-                countryCode
+                countryCode,
+                stateCode ?: ""
             )
         )
     }

@@ -20,7 +20,7 @@
         android:layout_marginBottom="@dimen/small_margin"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@drawable/ic_euro_funds" />
+        tools:srcCompat="@drawable/ic_funds_euro" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/payment_method_title"

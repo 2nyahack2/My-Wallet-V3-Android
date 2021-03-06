@@ -14,7 +14,6 @@ import io.reactivex.exceptions.Exceptions
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.NetworkParameters
 import piuk.blockchain.androidcore.utils.annotations.WebRequest
-import piuk.blockchain.androidcore.utils.rxjava.IgnorableDefaultObserver
 import java.util.LinkedHashMap
 
 class PayloadService(private val payloadManager: PayloadManager) {
@@ -172,7 +171,6 @@ class PayloadService(private val payloadManager: PayloadManager) {
      * effects.
      *
      * @return A [Completable] object
-     * @see IgnorableDefaultObserver
      */
     @WebRequest
     internal fun updateAllTransactions(): Completable = Completable.fromCallable {
@@ -184,7 +182,6 @@ class PayloadService(private val payloadManager: PayloadManager) {
      * returns no value, and is used to call functions that return void but have side effects.
      *
      * @return A [Completable] object
-     * @see IgnorableDefaultObserver
      */
     @WebRequest
     internal fun updateAllBalances(): Completable = Completable.fromCallable {

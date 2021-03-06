@@ -1,5 +1,6 @@
 package piuk.blockchain.android.ui.base.mvi
 
+import androidx.annotation.CallSuper
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.subscribeBy
 import piuk.blockchain.android.ui.base.SlidingModalBottomDialog
@@ -9,11 +10,11 @@ abstract class MviBottomSheet<M : MviModel<S, I>, I : MviIntent<S>, S : MviState
 
     protected abstract val model: M
 
-    var subscription: Disposable? = null
+    private var subscription: Disposable? = null
 
     override fun onResume() {
         super.onResume()
-        subscription?.dispose()
+        dispose()
         subscription = model.state.subscribeBy(
                 onNext = { render(it) },
                 onError = { Timber.e(it) },
@@ -22,10 +23,14 @@ abstract class MviBottomSheet<M : MviModel<S, I>, I : MviIntent<S>, S : MviState
     }
 
     override fun onPause() {
-        subscription?.dispose()
-        subscription = null
+        dispose()
         super.onPause()
     }
 
     protected abstract fun render(newState: S)
+
+    @CallSuper
+    protected open fun dispose() {
+        subscription?.dispose()
+    }
 }

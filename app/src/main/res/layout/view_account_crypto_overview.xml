@@ -3,10 +3,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="@dimen/small_margin"
-    android:paddingBottom="@dimen/small_margin">
+    android:paddingTop="@dimen/small_margin">
 
     <ImageView
         android:id="@+id/icon"
@@ -14,28 +14,34 @@
         android:layout_height="32dp"
         android:layout_marginStart="@dimen/standard_margin"
         android:importantForAccessibility="no"
-        tools:srcCompat="@drawable/vector_bitcoin_colored"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@drawable/vector_bitcoin_colored" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/wallet_name"
         style="@style/Text.Semibold.16"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        tools:text="BTC Wallet"
-        android:ellipsize="middle"
+        android:layout_marginStart="@dimen/small_margin"
+        android:layout_marginEnd="@dimen/tiny_margin"
+        android:ellipsize="end"
         android:singleLine="true"
+        app:layout_constraintEnd_toStartOf="@id/wallet_balance_fiat"
         app:layout_constraintStart_toEndOf="@id/icon"
-        app:layout_constraintEnd_toStartOf="@id/wallet_balance_crypto"
-        app:layout_constraintTop_toTopOf="@id/icon" />
+        app:layout_constraintTop_toTopOf="@id/icon"
+        tools:text="BTC Wallet" />
 
     <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/asset_name"
+        android:id="@+id/asset_subtitle"
         style="@style/Text.Semibold.Light.14"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/tiny_margin"
+        android:layout_marginBottom="@dimen/small_margin"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/wallet_balance_crypto"
+        app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toStartOf="@+id/wallet_name"
         app:layout_constraintTop_toBottomOf="@+id/wallet_name"
         tools:text="Bitcoin" />
@@ -46,8 +52,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/standard_margin"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="@id/wallet_name"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:text="$15,879.90" />
 
     <androidx.appcompat.widget.AppCompatTextView
@@ -56,19 +62,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/standard_margin"
+        app:layout_constraintBottom_toBottomOf="@id/asset_subtitle"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/asset_name"
-        app:layout_constraintBottom_toBottomOf="@id/asset_name"
+        app:layout_constraintTop_toTopOf="@id/asset_subtitle"
         tools:text="1.638192 BTC" />
 
-    <ImageView
-        android:id="@+id/asset_spend_locked"
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/asset_account_icon"
         android:layout_width="16dp"
         android:layout_height="16dp"
         android:layout_marginStart="23dp"
         android:layout_marginTop="21dp"
         app:layout_constraintStart_toStartOf="@id/icon"
         app:layout_constraintTop_toTopOf="@id/icon"
-        app:srcCompat="@drawable/ic_asset_non_custodial_spend"/>
+        app:srcCompat="@drawable/ic_account_badge_custodial" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,24 +1,18 @@
 package piuk.blockchain.android.ui.start
 
-import android.Manifest
-import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
 import android.os.Bundle
 import com.blockchain.koin.scopedInject
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.listener.single.CompositePermissionListener
-import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.toolbar_general.*
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.auth.PinEntryActivity
-import piuk.blockchain.android.ui.zxing.CaptureActivity
+import piuk.blockchain.android.ui.scan.QrScanActivity
 import piuk.blockchain.androidcore.utils.helperfunctions.consume
 import piuk.blockchain.android.ui.base.MvpActivity
-import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.CameraPermissionListener
-import piuk.blockchain.androidcoreui.utils.extensions.toast
-import timber.log.Timber
+import piuk.blockchain.android.ui.scan.QrExpected
+import piuk.blockchain.android.ui.scan.QrScanActivity.Companion.getRawScanData
+import piuk.blockchain.androidcoreui.ui.customviews.toast
 
 class LoginActivity : MvpActivity<LoginView, LoginPresenter>(), LoginView {
 
@@ -34,16 +28,16 @@ class LoginActivity : MvpActivity<LoginView, LoginPresenter>(), LoginView {
         step_one.text = getString(R.string.pair_wallet_step_1, WEB_WALLET_URL_PROD)
 
         btn_manual_pair.setOnClickListener { onClickManualPair() }
-        btn_scan_qr.setOnClickListener { requestCameraPermissionIfNeeded() }
+        btn_scan_qr.setOnClickListener { startScanActivity() }
     }
 
     override fun showToast(message: Int, toastType: String) = toast(message, toastType)
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == AppCompatActivity.RESULT_OK && requestCode == PAIRING_QR) {
-            if (data?.getStringExtra(CaptureActivity.SCAN_RESULT) != null) {
-                presenter.pairWithQR(data.getStringExtra(CaptureActivity.SCAN_RESULT))
+        if (resultCode == RESULT_OK && requestCode == QrScanActivity.SCAN_URI_RESULT) {
+            if (data.getRawScanData() != null) {
+                presenter.pairWithQR(data.getRawScanData())
             }
         }
     }
@@ -56,42 +50,15 @@ class LoginActivity : MvpActivity<LoginView, LoginPresenter>(), LoginView {
 
     override fun onSupportNavigateUp() = consume { onBackPressed() }
 
-    private fun requestCameraPermissionIfNeeded() {
-        val deniedPermissionListener = SnackbarOnDeniedPermissionListener.Builder
-            .with(main_layout, R.string.request_camera_permission)
-            .withButton(android.R.string.ok) { requestCameraPermissionIfNeeded() }
-            .build()
-
-        val grantedPermissionListener = CameraPermissionListener(analytics, {
-            startScanActivity()
-        })
-
-        val compositePermissionListener =
-            CompositePermissionListener(deniedPermissionListener, grantedPermissionListener)
-
-        Dexter.withActivity(this)
-            .withPermission(Manifest.permission.CAMERA)
-            .withListener(compositePermissionListener)
-            .withErrorListener { error -> Timber.wtf("Dexter permissions error $error") }
-            .check()
-    }
-
     private fun onClickManualPair() {
         startActivity(Intent(this, ManualPairingActivity::class.java))
     }
 
     private fun startScanActivity() {
-        if (!appUtil.isCameraOpen) {
-            val intent = Intent(this, CaptureActivity::class.java)
-            intent.putExtra("SCAN_FORMATS", "QR_CODE")
-            startActivityForResult(intent, PAIRING_QR)
-        } else {
-            showToast(R.string.camera_unavailable, ToastCustom.TYPE_ERROR)
-        }
+        QrScanActivity.start(this, QrExpected.LEGACY_PAIRING_QR)
     }
 
     companion object {
         private const val WEB_WALLET_URL_PROD = "https://login.blockchain.com/"
-        const val PAIRING_QR = 2005
     }
 }

@@ -5,172 +5,177 @@ import com.blockchain.android.testutils.rxInit
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import info.blockchain.balance.CryptoCurrency
-import io.reactivex.Observable
+import io.reactivex.Maybe
 import io.reactivex.Single
+import org.amshove.kluent.itReturns
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.anyInt
-import org.mockito.Mockito.anyString
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
-import piuk.blockchain.android.data.datamanagers.QrCodeDataManager
+import piuk.blockchain.android.coincore.CachedAddress
+import piuk.blockchain.android.coincore.OfflineCachedAccount
+import piuk.blockchain.android.coincore.impl.OfflineBalanceCall
+import piuk.blockchain.android.scan.QrCodeDataManager
+import piuk.blockchain.android.ui.swipetoreceive.SwipeToReceivePresenter.Companion.DIMENSION_QR_CODE
 import piuk.blockchain.androidcoreui.ui.base.UiState
 
 class SwipeToReceivePresenterTest {
 
-    private lateinit var subject: SwipeToReceivePresenter
-    private val activity: SwipeToReceiveView = mock()
-    private val swipeToReceiveHelper: SwipeToReceiveHelper = mock()
-    private val qrCodeDataManager: QrCodeDataManager = mock()
-
     @get:Rule
     val initSchedulers = rxInit {
-        computationTrampoline()
         mainTrampoline()
+        ioTrampoline()
+        computationTrampoline()
     }
+
+    private val view: SwipeToReceiveView = mock()
+    private val qrGenerator: QrCodeDataManager = mock()
+    private val offlineCache: LocalOfflineAccountCache = mock()
+    private val offlineBalance: OfflineBalanceCall = mock()
+    private val subject = SwipeToReceivePresenter(qrGenerator, offlineCache, offlineBalance)
 
     @Before
     fun setUp() {
-        subject = SwipeToReceivePresenter(qrCodeDataManager, swipeToReceiveHelper)
-        subject.initView(activity)
+        subject.initView(view)
     }
 
     @Test
-    fun `onViewReady no addresses`() {
+    fun `onViewReady - nothing in cache`() {
         // Arrange
-        whenever(swipeToReceiveHelper.getBitcoinReceiveAddresses()).thenReturn(emptyList())
-        whenever(swipeToReceiveHelper.getNextAvailableBitcoinAddressSingle())
-            .thenReturn(Single.just(""))
-        whenever(swipeToReceiveHelper.getBitcoinAccountName()).thenReturn("Bitcoin account")
+        whenever(offlineCache.availableAssets()).thenReturn(Single.just(emptyList()))
 
         // Act
         subject.onViewReady()
+
         // Assert
-        verify(activity).displayCoinType(CryptoCurrency.BTC)
-        verify(activity).displayReceiveAccount("Bitcoin account")
-        verify(activity).setUiState(UiState.LOADING)
-        verify(activity).setUiState(UiState.EMPTY)
+        verify(view).initPager(emptyList())
+        verifyNoMoreInteractions(view)
     }
 
     @Test
-    fun `onViewReady address returned is empty`() {
+    fun `onViewReady - cache loaded`() {
         // Arrange
-        val addresses = listOf("adrr0", "addr1", "addr2", "addr3", "addr4")
-        whenever(swipeToReceiveHelper.getBitcoinReceiveAddresses()).thenReturn(addresses)
-        whenever(swipeToReceiveHelper.getBitcoinAccountName()).thenReturn("Account")
-        whenever(swipeToReceiveHelper.getNextAvailableBitcoinAddressSingle())
-            .thenReturn(Single.just(""))
+        val availableAssets = listOf(CryptoCurrency.BTC, CryptoCurrency.PAX)
+        val availableTicker = availableAssets.map { it.networkTicker }
+        whenever(offlineCache.availableAssets())
+            .thenReturn(
+                Single.just(availableTicker)
+            )
 
         // Act
         subject.onViewReady()
+
         // Assert
-        verify(activity).setUiState(UiState.LOADING)
-        verify(activity).displayCoinType(CryptoCurrency.BTC)
-        verify(activity).displayReceiveAccount("Account")
-        verify(activity).setUiState(UiState.FAILURE)
+        verify(view).initPager(availableAssets)
+        verifyNoMoreInteractions(view)
     }
 
     @Test
-    fun `onView ready address returned BTC`() {
+    fun `onCurrencySelected - asset in cache`() {
         // Arrange
-        val bitmap: Bitmap = mock()
-        val addresses = listOf("adrr0", "addr1", "addr2", "addr3", "addr4")
-        whenever(swipeToReceiveHelper.getBitcoinReceiveAddresses()).thenReturn(addresses)
-        whenever(swipeToReceiveHelper.getBitcoinAccountName()).thenReturn("Account")
-        whenever(swipeToReceiveHelper.getNextAvailableBitcoinAddressSingle())
-            .thenReturn(Single.just("addr0"))
-        whenever(qrCodeDataManager.generateQrCode(anyString(), anyInt())).thenReturn(Observable.just(bitmap))
+        val cachedAddress: CachedAddress = mock {
+            on { address } itReturns (TEST_ADDRESS)
+            on { addressUri } itReturns (TEST_ADDRESS_URI)
+        }
+
+        val cacheItem: OfflineCachedAccount = mock {
+            on { networkTicker } itReturns (TEST_ASSET_TICKER)
+            on { accountLabel } itReturns (TEST_ACCOUNT_LABEL)
+            on { nextAddress(offlineBalance) } itReturns (Maybe.just(cachedAddress))
+        }
+
+        val mockBitmap: Bitmap = mock()
+
+        whenever(offlineCache.getCacheForAsset(TEST_ASSET_TICKER))
+            .thenReturn(cacheItem)
+
+        whenever(qrGenerator.generateQrCode(TEST_ADDRESS_URI, DIMENSION_QR_CODE))
+            .thenReturn(Single.just(mockBitmap))
 
         // Act
-        subject.onViewReady()
+        subject.onCurrencySelected(CryptoCurrency.PAX)
+
         // Assert
-        verify(qrCodeDataManager).generateQrCode(anyString(), anyInt())
-        verifyNoMoreInteractions(qrCodeDataManager)
-        verify(activity).setUiState(UiState.LOADING)
-        verify(activity).displayCoinType(CryptoCurrency.BTC)
-        verify(activity).displayReceiveAccount("Account")
-        verify(activity).displayQrCode(bitmap)
-        verify(activity).setUiState(UiState.CONTENT)
-        verify(activity).displayReceiveAddress("addr0")
-        verifyNoMoreInteractions(activity)
+        verify(view).displayAsset(TEST_ASSET)
+        verify(view).setUiState(UiState.LOADING)
+        verify(view).displayReceiveAccount(TEST_ACCOUNT_LABEL)
+        verify(view).displayReceiveAddress(TEST_ADDRESS)
+        verify(view).displayQrCode(mockBitmap)
+        verify(view).setUiState(UiState.CONTENT)
+
+        verify(offlineCache).getCacheForAsset(TEST_ASSET_TICKER)
+        verify(qrGenerator).generateQrCode(TEST_ADDRESS_URI, DIMENSION_QR_CODE)
+
+        verifyNoMoreInteractions(view)
+        verifyNoMoreInteractions(qrGenerator)
+        verifyNoMoreInteractions(offlineCache)
     }
 
     @Test
-    fun `address returned ETH`() {
+    fun `onCurrencySelected - asset NOT in cache`() {
         // Arrange
-        val address = "addr0"
-        val bitmap: Bitmap = mock()
-
-        whenever(swipeToReceiveHelper.getEthReceiveAddress()).thenReturn(address)
-        whenever(swipeToReceiveHelper.getEthAccountName()).thenReturn("Account")
-        whenever(swipeToReceiveHelper.getEthReceiveAddressSingle()).thenReturn(Single.just(address))
-        whenever(qrCodeDataManager.generateQrCode(anyString(), anyInt())).thenReturn(Observable.just(bitmap))
+        whenever(offlineCache.getCacheForAsset(TEST_ASSET_TICKER))
+            .thenReturn(null)
 
         // Act
-        subject.currencyPosition = 1
+        subject.onCurrencySelected(CryptoCurrency.PAX)
 
         // Assert
-        verify(qrCodeDataManager).generateQrCode(anyString(), anyInt())
-        verifyNoMoreInteractions(qrCodeDataManager)
-        verify(activity).setUiState(UiState.LOADING)
-        verify(activity).displayCoinType(CryptoCurrency.ETHER)
-        verify(activity).displayReceiveAccount("Account")
-        verify(activity).displayQrCode(bitmap)
-        verify(activity).setUiState(UiState.CONTENT)
-        verify(activity).displayReceiveAddress("addr0")
-        verifyNoMoreInteractions(activity)
+        verify(view).displayAsset(TEST_ASSET)
+        verify(view).setUiState(UiState.LOADING)
+        verify(view).setUiState(UiState.EMPTY)
+
+        verify(offlineCache).getCacheForAsset(TEST_ASSET_TICKER)
+
+        verifyNoMoreInteractions(view)
+        verifyNoMoreInteractions(qrGenerator)
+        verifyNoMoreInteractions(offlineCache)
     }
 
     @Test
-    fun `onView ready address returned BCH`() {
+    fun `onCurrencySelected - QR Generation failed`() {
         // Arrange
-        val bitmap: Bitmap = mock()
-        val addresses = listOf("adrr0", "addr1", "addr2", "addr3", "addr4")
+        val cachedAddress: CachedAddress = mock {
+            on { address } itReturns (TEST_ADDRESS)
+            on { addressUri } itReturns (TEST_ADDRESS_URI)
+        }
 
-        whenever(swipeToReceiveHelper.getBitcoinCashReceiveAddresses()).thenReturn(addresses)
-        whenever(swipeToReceiveHelper.getBitcoinCashAccountName()).thenReturn("Account")
-        whenever(swipeToReceiveHelper.getNextAvailableBitcoinCashAddressSingle()).thenReturn(Single.just("addr0"))
-        whenever(qrCodeDataManager.generateQrCode(anyString(), anyInt())).thenReturn(Observable.just(bitmap))
+        val cacheItem: OfflineCachedAccount = mock {
+            on { networkTicker } itReturns (TEST_ASSET_TICKER)
+            on { accountLabel } itReturns (TEST_ACCOUNT_LABEL)
+            on { nextAddress(offlineBalance) } itReturns (Maybe.just(cachedAddress))
+        }
+
+        whenever(offlineCache.getCacheForAsset(TEST_ASSET_TICKER))
+            .thenReturn(cacheItem)
+
+        whenever(qrGenerator.generateQrCode(TEST_ADDRESS_URI, DIMENSION_QR_CODE))
+            .thenReturn(Single.error<Bitmap>(Throwable()))
 
         // Act
-        subject.currencyPosition = 2
+        subject.onCurrencySelected(CryptoCurrency.PAX)
 
         // Assert
-        verify(qrCodeDataManager).generateQrCode(anyString(), anyInt())
-        verifyNoMoreInteractions(qrCodeDataManager)
-        verify(activity).setUiState(UiState.LOADING)
-        verify(activity).displayCoinType(CryptoCurrency.BCH)
-        verify(activity).displayReceiveAccount("Account")
-        verify(activity).displayQrCode(bitmap)
-        verify(activity).setUiState(UiState.CONTENT)
-        verify(activity).displayReceiveAddress("addr0")
-        verifyNoMoreInteractions(activity)
+        verify(view).displayAsset(TEST_ASSET)
+        verify(view).setUiState(UiState.LOADING)
+        verify(view).displayReceiveAccount(TEST_ACCOUNT_LABEL)
+        verify(view).displayReceiveAddress(TEST_ADDRESS)
+        verify(view).setUiState(UiState.EMPTY)
+
+        verify(offlineCache).getCacheForAsset(TEST_ASSET_TICKER)
+        verify(qrGenerator).generateQrCode(TEST_ADDRESS_URI, DIMENSION_QR_CODE)
+
+        verifyNoMoreInteractions(view)
+        verifyNoMoreInteractions(qrGenerator)
+        verifyNoMoreInteractions(offlineCache)
     }
 
-    @Test
-    fun `address returned XLM`() {
-        // Arrange
-        val uri = "web+stellar:pay?destination=GCALNQQBXAPZ2WIRSDDBMSTAKCUH5SG6U76YBFLQLIXJTF7FE5AX7AOO"
-        val bitmap: Bitmap = mock()
-        whenever(swipeToReceiveHelper.getXlmReceiveAddress()).thenReturn(uri)
-        whenever(swipeToReceiveHelper.getXlmAccountName()).thenReturn("Account")
-        whenever(swipeToReceiveHelper.getXlmReceiveAddressSingle()).thenReturn(Single.just(uri))
-        whenever(qrCodeDataManager.generateQrCode(anyString(), anyInt()))
-            .thenReturn(Observable.just(bitmap))
-
-        // Act
-        subject.currencyPosition = 3
-
-        // Assert
-        verify(qrCodeDataManager).generateQrCode(anyString(), anyInt())
-        verifyNoMoreInteractions(qrCodeDataManager)
-        verify(activity).setUiState(UiState.LOADING)
-        verify(activity).displayCoinType(CryptoCurrency.XLM)
-        verify(activity).displayReceiveAccount("Account")
-        verify(activity).displayQrCode(bitmap)
-        verify(activity).setUiState(UiState.CONTENT)
-        verify(activity).displayReceiveAddress("GCALNQQBXAPZ2WIRSDDBMSTAKCUH5SG6U76YBFLQLIXJTF7FE5AX7AOO")
-        verifyNoMoreInteractions(activity)
+    companion object {
+        private val TEST_ASSET = CryptoCurrency.PAX
+        private const val TEST_ASSET_TICKER = "PAX"
+        private const val TEST_ACCOUNT_LABEL = "A Pax Account"
+        private const val TEST_ADDRESS = "ThisIsAPaxAddress"
+        private const val TEST_ADDRESS_URI = "ThisIsAPaxAddressUri"
     }
 }

@@ -16,7 +16,6 @@ class DashboardStateTest {
                 CryptoCurrency.ETHER to initialEthState,
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = null,
             announcement = null
         )
 
@@ -31,7 +30,6 @@ class DashboardStateTest {
                 CryptoCurrency.ETHER to CryptoAssetState(CryptoCurrency.ETHER),
                 CryptoCurrency.XLM to CryptoAssetState(CryptoCurrency.XLM)
             ),
-            showAssetSheetFor = null,
             announcement = null
         )
 
@@ -46,7 +44,6 @@ class DashboardStateTest {
                 CryptoCurrency.ETHER to CryptoAssetState(CryptoCurrency.ETHER),
                 CryptoCurrency.XLM to CryptoAssetState(CryptoCurrency.XLM)
             ),
-            showAssetSheetFor = null,
             announcement = null
         )
 

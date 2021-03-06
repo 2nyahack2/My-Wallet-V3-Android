@@ -14,16 +14,16 @@ import com.blockchain.notifications.analytics.NotificationAppOpened
 import kotlinx.android.synthetic.main.activity_launcher.*
 import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
-import piuk.blockchain.android.simplebuy.SimpleBuyActivity
+import piuk.blockchain.android.simplebuy.SimpleBuyIntroFragment
 import piuk.blockchain.android.ui.auth.PinEntryActivity
 import piuk.blockchain.android.ui.home.MainActivity
 import piuk.blockchain.android.ui.start.LandingActivity
 import piuk.blockchain.android.ui.start.PasswordRequiredActivity
 import piuk.blockchain.android.ui.upgrade.UpgradeWalletActivity
 import piuk.blockchain.androidcoreui.ui.base.BaseMvpActivity
-import piuk.blockchain.androidcoreui.utils.ViewUtils
-import piuk.blockchain.androidcoreui.utils.extensions.toast
-import piuk.blockchain.androidcoreui.utils.extensions.visibleIf
+import piuk.blockchain.androidcoreui.ui.customviews.toast
+import piuk.blockchain.android.util.ViewUtils
+import piuk.blockchain.android.util.visibleIf
 import timber.log.Timber
 
 class LauncherActivity : BaseMvpActivity<LauncherView, LauncherPresenter>(), LauncherView {
@@ -74,15 +74,19 @@ class LauncherActivity : BaseMvpActivity<LauncherView, LauncherPresenter>(), Lau
         finish()
     }
 
-    override fun onStartMainActivity(uri: Uri?) {
-        startSingleActivity(MainActivity::class.java, null, uri)
-    }
-
-    override fun startSimpleBuy() {
-        val intent = Intent(this, SimpleBuyActivity::class.java).apply {
+    override fun onStartMainActivity(uri: Uri?, launchBuySellIntro: Boolean) {
+        val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+            data = uri
+            putExtra(MainActivity.START_BUY_SELL_INTRO_KEY, launchBuySellIntro)
         }
         startActivity(intent)
+    }
+
+    override fun launchBuySellIntro() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.content_frame, SimpleBuyIntroFragment(), SimpleBuyIntroFragment::class.simpleName)
+            .commitAllowingStateLoss()
     }
 
     override fun onReEnterPassword() {

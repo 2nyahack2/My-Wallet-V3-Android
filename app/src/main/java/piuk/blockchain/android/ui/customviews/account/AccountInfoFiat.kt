@@ -16,8 +16,8 @@ import kotlinx.android.synthetic.main.view_account_fiat_overview.view.*
 import org.koin.core.KoinComponent
 import piuk.blockchain.android.R
 import piuk.blockchain.android.coincore.FiatAccount
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.visible
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.visible
 
 class AccountInfoFiat @JvmOverloads constructor(
     ctx: Context,
@@ -27,29 +27,31 @@ class AccountInfoFiat @JvmOverloads constructor(
 
     private val exchangeRates: ExchangeRates by scopedInject()
     private val currencyPrefs: CurrencyPrefs by scopedInject()
+    private val compositeDisposable = CompositeDisposable()
 
     init {
         LayoutInflater.from(context)
             .inflate(R.layout.view_account_fiat_overview, this, true)
     }
 
-    var account: FiatAccount? = null
-        private set
-
-    fun updateAccount(account: FiatAccount, disposables: CompositeDisposable) {
-        this.account = account
-        updateView(account, disposables)
+    fun updateAccount(account: FiatAccount, cellDecorator: CellDecorator, onAccountClicked: (FiatAccount) -> Unit) {
+        compositeDisposable.clear()
+        updateView(account, cellDecorator, onAccountClicked)
     }
 
-    private fun updateView(account: FiatAccount, disposables: CompositeDisposable) {
+    private fun updateView(
+        account: FiatAccount,
+        cellDecorator: CellDecorator,
+        onAccountClicked: (FiatAccount) -> Unit
+    ) {
 
         val userFiat = currencyPrefs.selectedFiatCurrency
 
         wallet_name.text = account.label
         icon.setIcon(account.fiatCurrency)
-        asset_name.text = account.fiatCurrency
+        asset_subtitle.text = account.fiatCurrency
 
-        disposables += account.balance
+        compositeDisposable += account.accountBalance
             .flatMap { balanceInAccountCurrency ->
                 if (userFiat == account.fiatCurrency)
                     Single.just(balanceInAccountCurrency to balanceInAccountCurrency)
@@ -68,5 +70,22 @@ class AccountInfoFiat @JvmOverloads constructor(
                     wallet_balance_exchange_fiat.text = balanceInAccountCurrency.toStringWithSymbol()
                 }
             }
-        }
+
+        setOnClickListener { }
+        compositeDisposable += cellDecorator.isEnabled()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { isEnabled ->
+                if (isEnabled) {
+                    setOnClickListener { onAccountClicked(account) }
+                    container.alpha = 1f
+                } else {
+                    container.alpha = .6f
+                    setOnClickListener { }
+                }
+            }
+    }
+
+    fun dispose() {
+        compositeDisposable.clear()
+    }
 }

@@ -4,21 +4,20 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blockchain.koin.scopedInject
-import com.blockchain.swap.nabu.datamanagers.TransactionState
-import com.blockchain.swap.nabu.datamanagers.TransactionType
-import kotlinx.android.synthetic.main.dialog_activity_details_sheet.view.*
+import com.blockchain.nabu.datamanagers.TransactionState
+import com.blockchain.nabu.datamanagers.TransactionType
+import kotlinx.android.synthetic.main.dialog_sheet_activity_details.view.*
 import piuk.blockchain.android.R
 import piuk.blockchain.android.coincore.FiatActivitySummaryItem
 import piuk.blockchain.android.repositories.AssetActivityRepository
 import piuk.blockchain.android.ui.activity.detail.adapter.FiatDetailsSheetAdapter
 import piuk.blockchain.android.ui.base.SlidingModalBottomDialog
-import piuk.blockchain.android.util.extensions.toFormattedString
+import piuk.blockchain.android.ui.customviews.BlockchainListDividerDecor
+import piuk.blockchain.android.util.toFormattedString
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import java.lang.IllegalStateException
+import piuk.blockchain.android.util.gone
 import java.util.Date
 
 class FiatActivityDetailsBottomSheet :
@@ -34,7 +33,7 @@ class FiatActivityDetailsBottomSheet :
     }
 
     override val layoutResource: Int
-        get() = R.layout.dialog_activity_details_sheet
+        get() = R.layout.dialog_sheet_activity_details
 
     override fun initControls(view: View) {
         with(view) {
@@ -44,7 +43,7 @@ class FiatActivityDetailsBottomSheet :
 
             assetActivityRepository.findCachedItem(currency, txHash)?.let {
                 title.text =
-                    if (it.type == TransactionType.DEPOSIT) getString(R.string.fiat_funds_detail_deposit_title) else
+                    if (it.type == TransactionType.DEPOSIT) getString(R.string.common_deposit) else
                         getString(R.string.fiat_funds_detail_withdraw_title)
                 amount.text =
                     if (it.type == TransactionType.DEPOSIT) it.value.toStringWithSymbol() else
@@ -53,9 +52,7 @@ class FiatActivityDetailsBottomSheet :
                     configureForState(it.state)
                 }
                 with(details_list) {
-                    addItemDecoration(
-                        DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
-                    )
+                    addItemDecoration(BlockchainListDividerDecor(requireContext()))
 
                     layoutManager = LinearLayoutManager(
                         requireContext(),
@@ -73,7 +70,7 @@ class FiatActivityDetailsBottomSheet :
         when (state) {
             TransactionState.COMPLETED -> {
                 text = getString(R.string.activity_details_completed)
-                setBackgroundResource(R.drawable.bkgd_status_received)
+                setBackgroundResource(R.drawable.bkgd_green_100_rounded)
                 setTextColor(ContextCompat.getColor(context, R.color.green_600))
             }
             else -> {
@@ -88,9 +85,9 @@ class FiatActivityDetailsBottomSheet :
             FiatDetailItem(getString(R.string.date), Date(item.timeStampMs).toFormattedString()),
             FiatDetailItem(
                 if (item.type == TransactionType.DEPOSIT) {
-                    getString(R.string.to)
+                    getString(R.string.common_to)
                 } else {
-                    getString(R.string.from)
+                    getString(R.string.common_from)
                 }, item.account.label),
             FiatDetailItem(getString(R.string.amount), item.value.toStringWithSymbol()))
 

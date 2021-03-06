@@ -5,12 +5,12 @@
     android:orientation="vertical">
 
     <TextView
+        android:id="@+id/device_currency"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="8dp"
-        android:id="@+id/device_currency"
         android:layout_marginBottom="2dp"
         android:gravity="center"
         android:text="Device Currency" />
@@ -38,6 +38,13 @@
             android:layout_height="wrap_content"
             android:text="GBP" />
     </RadioGroup>
+
+    <Switch
+        android:id="@+id/swap_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/standard_margin"
+        android:text="Swap v2.0 enabled" />
 
     <Button
         android:id="@+id/clear_simple_buy_state"

@@ -2,9 +2,9 @@ package piuk.blockchain.android.ui.kyc.address
 
 import com.blockchain.android.testutils.rxInit
 import piuk.blockchain.android.ui.getBlankNabuUser
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.TierLevels
-import com.blockchain.swap.nabu.NabuToken
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.TierLevels
+import com.blockchain.nabu.NabuToken
 import com.nhaarman.mockito_kotlin.whenever
 import io.reactivex.Single
 import org.amshove.kluent.`should equal to`

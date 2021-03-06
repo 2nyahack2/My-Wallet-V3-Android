@@ -1,11 +1,5 @@
 package info.blockchain.wallet.multiaddress;
 
-import info.blockchain.api.blockexplorer.BlockExplorer;
-import info.blockchain.wallet.BlockchainFramework;
-import info.blockchain.wallet.MockedResponseTest;
-import info.blockchain.wallet.multiaddress.TransactionSummary.Direction;
-import info.blockchain.wallet.payload.data.AddressLabel;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +12,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import info.blockchain.api.blockexplorer.BlockExplorer;
+import info.blockchain.wallet.BlockchainFramework;
+import info.blockchain.wallet.MockedResponseTest;
+import info.blockchain.wallet.multiaddress.TransactionSummary.TransactionType;
+import info.blockchain.wallet.payload.data.AddressLabel;
 
 public class MultiAddressFactoryTest extends MockedResponseTest {
 
@@ -43,13 +43,13 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         mockInterceptor.setResponseString(response);
 
         List<TransactionSummary> summary = multiAddressFactory.getAccountTransactions(
-            new ArrayList<>(Collections.singletonList(dormantAddress)), new ArrayList<String>(), null, dormantAddress, 100, 0, 0);
+            new ArrayList<>(Collections.singletonList(dormantAddress)), null, dormantAddress, 100, 0, 0);
 
         Assert.assertEquals(2, summary.size());
         Assert.assertEquals(1, summary.get(0).getInputsMap().size());
         Assert.assertEquals(1, summary.get(0).getOutputsMap().size());
         Assert.assertEquals(20000, summary.get(0).getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, summary.get(0).getDirection());
+        Assert.assertEquals(TransactionType.SENT, summary.get(0).getTransactionType());
         Assert.assertEquals(10000, summary.get(0).getFee().longValue());
         Assert.assertEquals(1436437493, summary.get(0).getTime());
         Assert.assertEquals("04734caac4e2ae7feba9b74fb8d2c145db9ea9651487371c4d741428f8f5a24b", summary.get(0).getHash());
@@ -64,13 +64,13 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         mockInterceptor.setResponseString(response);
 
         List<TransactionSummary> summary = multiAddressFactory.getAccountTransactions(
-            new ArrayList<>(Collections.singletonList(dormantXpub)), new ArrayList<String>(), null, dormantXpub, 100, 0, 0);
+            new ArrayList<>(Collections.singletonList(dormantXpub)), null, dormantXpub, 100, 0, 0);
 
         Assert.assertEquals(34, summary.size());
         Assert.assertEquals(1, summary.get(0).getInputsMap().size());
         Assert.assertEquals(1, summary.get(0).getOutputsMap().size());
         Assert.assertEquals(20000, summary.get(0).getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, summary.get(0).getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.SENT, summary.get(0).getTransactionType());
         Assert.assertEquals(10000, summary.get(0).getFee().longValue());
         Assert.assertEquals(1452868237, summary.get(0).getTime());
         Assert.assertEquals("34c22edb3466708b974a7549d5b3cb51e05d4444f74d2a1b41484f8711dffd04", summary.get(0).getHash());
@@ -92,13 +92,13 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         mockInterceptor.setResponseString(response);
 
         List<TransactionSummary> summary = multiAddressFactory.getAccountTransactions(
-            new ArrayList<>(Arrays.asList(dormantAddress, dormantXpub)), new ArrayList<String>(), null, null, 100, 0, 0);
+            new ArrayList<>(Arrays.asList(dormantAddress, dormantXpub)), null, null, 100, 0, 0);
 
         Assert.assertEquals(36, summary.size());
         Assert.assertEquals(1, summary.get(0).getInputsMap().size());
         Assert.assertEquals(1, summary.get(0).getOutputsMap().size());
         Assert.assertEquals(20000, summary.get(0).getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, summary.get(0).getDirection());
+        Assert.assertEquals(TransactionType.SENT, summary.get(0).getTransactionType());
         Assert.assertEquals(10000, summary.get(0).getFee().longValue());
         Assert.assertEquals(1452868237, summary.get(0).getTime());
         Assert.assertEquals("34c22edb3466708b974a7549d5b3cb51e05d4444f74d2a1b41484f8711dffd04", summary.get(0).getHash());
@@ -125,7 +125,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         mockInterceptor.setResponseString(response);
 
         List<TransactionSummary> summary = multiAddressFactory.getAccountTransactions(
-            new ArrayList<>(Arrays.asList(xpub1, xpub2, address)), new ArrayList<String>(),
+            new ArrayList<>(Arrays.asList(xpub1, xpub2, address)),
             null, null, 100, 0, 0);
 
         Assert.assertEquals(7, summary.size());
@@ -134,7 +134,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         Assert.assertEquals(1, txSummary.getInputsMap().size());
         Assert.assertEquals(1, txSummary.getOutputsMap().size());
         Assert.assertEquals(166486, txSummary.getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, txSummary.getDirection());
+        Assert.assertEquals(TransactionType.SENT, txSummary.getTransactionType());
         Assert.assertEquals(27120, txSummary.getFee().longValue());
         Assert.assertEquals(1492614742, txSummary.getTime());
         Assert.assertEquals("de2db2e9b430f949f8c94ef4cd9093a020ef10c614b6802320920f7d84a8afab", txSummary.getHash());
@@ -143,7 +143,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         Assert.assertEquals(1, txSummary.getInputsMap().size());
         Assert.assertEquals(1, txSummary.getOutputsMap().size());
         Assert.assertEquals(446212, txSummary.getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, txSummary.getDirection());
+        Assert.assertEquals(TransactionType.SENT, txSummary.getTransactionType());
         Assert.assertEquals(27120, txSummary.getFee().longValue());
         Assert.assertEquals(1492614706, txSummary.getTime());
         Assert.assertEquals("8a5327e09c1789f9ef9467298bfb8e46748effd79ff981226df14e5a468378b6", txSummary.getHash());
@@ -152,7 +152,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         Assert.assertEquals(1, txSummary.getInputsMap().size());
         Assert.assertEquals(1, txSummary.getOutputsMap().size());
         Assert.assertEquals(166486, txSummary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, txSummary.getDirection());
+        Assert.assertEquals(TransactionType.TRANSFERRED, txSummary.getTransactionType());
         Assert.assertEquals(27120, txSummary.getFee().longValue());
         Assert.assertEquals(1492614681, txSummary.getTime());
         Assert.assertEquals("165b251a736e0e5d1e9aa287687b8d6fd5eb91c72b1138dd6047e34f8ed17217", txSummary.getHash());
@@ -161,7 +161,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         Assert.assertEquals(1, txSummary.getInputsMap().size());
         Assert.assertEquals(1, txSummary.getOutputsMap().size());
         Assert.assertEquals(83243, txSummary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, txSummary.getDirection());
+        Assert.assertEquals(TransactionType.TRANSFERRED, txSummary.getTransactionType());
         Assert.assertEquals(27120, txSummary.getFee().longValue());
         Assert.assertEquals(1492614642, txSummary.getTime());
         Assert.assertEquals("0b2804884f0ae1d151a7260d2009168078259ef6428c861b001ce6a028a19977", txSummary.getHash());
@@ -170,7 +170,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         Assert.assertEquals(1, txSummary.getInputsMap().size());
         Assert.assertEquals(1, txSummary.getOutputsMap().size());
         Assert.assertEquals(750181, txSummary.getTotal().longValue());
-        Assert.assertEquals(Direction.RECEIVED, txSummary.getDirection());
+        Assert.assertEquals(TransactionType.RECEIVED, txSummary.getTransactionType());
         Assert.assertEquals(0, txSummary.getFee().longValue());
         Assert.assertEquals(1492614623, txSummary.getTime());
         Assert.assertEquals("9fccf050f52ed23ee4fe20a89b03780a944d795ad897b38ff44a7369d6c7e665", txSummary.getHash());
@@ -179,7 +179,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         Assert.assertEquals(1, txSummary.getInputsMap().size());
         Assert.assertEquals(2, txSummary.getOutputsMap().size());
         Assert.assertEquals(909366, txSummary.getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, txSummary.getDirection());
+        Assert.assertEquals(TransactionType.SENT, txSummary.getTransactionType());
         Assert.assertEquals(133680, txSummary.getFee().longValue());
         Assert.assertEquals(1492497642, txSummary.getTime());
         Assert.assertEquals("8765362f7fd1895bb35942197c9f74a6e25c85d0043f38858021442b20bfa112", txSummary.getHash());
@@ -188,7 +188,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         Assert.assertEquals(1, txSummary.getInputsMap().size());
         Assert.assertEquals(1, txSummary.getOutputsMap().size());
         Assert.assertEquals(909366, txSummary.getTotal().longValue());
-        Assert.assertEquals(Direction.RECEIVED, txSummary.getDirection());
+        Assert.assertEquals(TransactionType.RECEIVED, txSummary.getTransactionType());
         Assert.assertEquals(0, txSummary.getFee().longValue());
         Assert.assertEquals(1486028570, txSummary.getTime());
         Assert.assertEquals("50115fce313d537b4a97ea24bb42d08b48f21d921b5710b765f07fc4fd23b101", txSummary.getHash());
@@ -208,14 +208,14 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
         mockInterceptor.setResponseString(response);
 
         List<TransactionSummary> transactionSummaries = multiAddressFactory.getAccountTransactions(
-            new ArrayList<>(Arrays.asList(xpub1, xpub2, address)), new ArrayList<String>(),
+            new ArrayList<>(Arrays.asList(xpub1, xpub2, address)),
             null, null, 100, 0, 0);
 
         Assert.assertEquals(8, transactionSummaries.size());
 
         TransactionSummary summary = transactionSummaries.get(0);
         Assert.assertEquals(68563, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("125QEfWq3eKzAQQHeqcMcDMeZGm13hVRvU"));//My Bitcoin Account
         Assert.assertEquals(2, summary.getOutputsMap().size());
@@ -224,7 +224,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
 
         summary = transactionSummaries.get(1);
         Assert.assertEquals(138068, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, summary.getDirection());
+        Assert.assertEquals(TransactionType.SENT, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("1CQpuTQrJQLW6PEar17zsd9EV14cZknqWJ"));//My Bitcoin Wallet
         Assert.assertEquals(2, summary.getOutputsMap().size());
@@ -233,7 +233,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
 
         summary = transactionSummaries.get(2);
         Assert.assertEquals(800100, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.RECEIVED, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.RECEIVED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("19CMnkUgBnTBNiTWXwoZr6Gb3aeXKHvuGG"));
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -241,7 +241,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
 
         summary = transactionSummaries.get(3);
         Assert.assertEquals(35194, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.SENT, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("15HjFY96ZANBkN5kvPRgrXH93jnntqs32n"));//My Bitcoin Wallet
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -249,7 +249,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
 
         summary = transactionSummaries.get(4);
         Assert.assertEquals(98326, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("1Peysd3qYDe35yNp6KB1ZkbVYHr42JT9zZ"));//My Bitcoin Wallet
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -257,7 +257,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
 
         summary = transactionSummaries.get(5);
         Assert.assertEquals(160640, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.RECEIVED, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.RECEIVED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("1BZe6YLaf2HiwJdnBbLyKWAqNia7foVe1w"));
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -265,7 +265,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
 
         summary = transactionSummaries.get(6);
         Assert.assertEquals(9833, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("17ijgwpGsVQRzMjsdAfdmeP53kpw9yvXur"));//My Bitcoin Wallet
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -273,7 +273,7 @@ public class MultiAddressFactoryTest extends MockedResponseTest {
 
         summary = transactionSummaries.get(7);
         Assert.assertEquals(40160, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.RECEIVED, summary.getDirection());
+        Assert.assertEquals(TransactionType.RECEIVED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("1Baa1cjB1CyBVSjw8SkFZ2YBuiwKnKLXhe"));
         Assert.assertEquals(1, summary.getOutputsMap().size());

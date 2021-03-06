@@ -1,19 +1,20 @@
 package piuk.blockchain.android.coincore.fiat
 
 import com.blockchain.preferences.CurrencyPrefs
-import com.blockchain.swap.nabu.datamanagers.CustodialWalletManager
-import com.blockchain.swap.nabu.datamanagers.repositories.AssetBalancesRepository
-import com.blockchain.swap.nabu.models.nabu.KycTierLevel
-import com.blockchain.swap.nabu.service.TierService
+import com.blockchain.nabu.datamanagers.CustodialWalletManager
+import com.blockchain.nabu.datamanagers.repositories.AssetBalancesRepository
+import com.blockchain.nabu.models.responses.nabu.KycTierLevel
+import com.blockchain.nabu.service.TierService
 import com.blockchain.wallet.DefaultLabels
 import io.reactivex.Completable
+import io.reactivex.Maybe
 import io.reactivex.Single
+import piuk.blockchain.android.coincore.AccountGroup
 import piuk.blockchain.android.coincore.Asset
 import piuk.blockchain.android.coincore.AssetFilter
-import piuk.blockchain.android.coincore.AccountGroup
-import piuk.blockchain.android.coincore.BlockchainAccount
-import piuk.blockchain.android.coincore.CryptoAddress
 import piuk.blockchain.android.coincore.FiatAccount
+import piuk.blockchain.android.coincore.ReceiveAddress
+import piuk.blockchain.android.coincore.SingleAccount
 import piuk.blockchain.android.coincore.SingleAccountList
 import piuk.blockchain.androidcore.data.exchangerate.ExchangeRateDataManager
 
@@ -28,7 +29,7 @@ class FiatAsset(
     override fun init(): Completable = Completable.complete()
     override val isEnabled: Boolean = true
 
-    override fun accountGroup(filter: AssetFilter): Single<AccountGroup> =
+    override fun accountGroup(filter: AssetFilter): Maybe<AccountGroup> =
         when (filter) {
             AssetFilter.All,
             AssetFilter.Custodial -> fetchFiatWallets()
@@ -36,18 +37,24 @@ class FiatAsset(
             AssetFilter.Interest -> TODO()
         }
 
-    private fun fetchFiatWallets(): Single<AccountGroup> =
+    private fun fetchFiatWallets(): Maybe<AccountGroup> =
         tierService.tiers()
             .flatMap { tier ->
                 custodialWalletManager.getSupportedFundsFiats(
                     currencyPrefs.selectedFiatCurrency,
                     tier.isApprovedFor(KycTierLevel.GOLD)
                 )
-            }.map { fiatList ->
-                FiatAccountGroup(
-                    label = "Fiat Accounts",
-                    accounts = fiatList.map { getAccount(it) }
-                )
+            }.flatMapMaybe { fiatList ->
+                if (fiatList.isNotEmpty()) {
+                    Maybe.just(
+                        FiatAccountGroup(
+                            label = "Fiat Accounts",
+                            accounts = fiatList.map { getAccount(it) }
+                        )
+                    )
+                } else {
+                    Maybe.empty<AccountGroup>()
+                }
             }
 
     private val accounts = mutableMapOf<String, FiatAccount>()
@@ -63,8 +70,9 @@ class FiatAsset(
             )
         }
 
-    override fun canTransferTo(account: BlockchainAccount): Single<SingleAccountList> =
+    // we cannot transfer for fiat
+    override fun transactionTargets(account: SingleAccount): Single<SingleAccountList> =
         Single.just(emptyList())
 
-    override fun parseAddress(address: String): CryptoAddress? = null
+    override fun parseAddress(address: String): Maybe<ReceiveAddress> = Maybe.empty()
 }

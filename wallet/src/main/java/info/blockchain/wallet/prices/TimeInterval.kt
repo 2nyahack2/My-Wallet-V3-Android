@@ -10,3 +10,7 @@ enum class TimeInterval(val intervalSeconds: Int) {
     ONE_DAY(86400),
     FIVE_DAYS(432000)
 }
+
+enum class TimeAgo(val epoch: Long) {
+    ONE_DAY((System.currentTimeMillis() / 1000) - TimeInterval.ONE_DAY.intervalSeconds)
+}

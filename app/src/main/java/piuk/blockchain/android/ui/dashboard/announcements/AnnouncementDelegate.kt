@@ -12,18 +12,19 @@ import android.widget.TextView
 import kotlinx.android.synthetic.main.item_announcement_standard.view.*
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.adapters.AdapterDelegate
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.isVisible
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.inflate
+import piuk.blockchain.android.util.isVisible
+import piuk.blockchain.android.util.visible
 import android.graphics.drawable.GradientDrawable
 import com.blockchain.notifications.analytics.Analytics
 import kotlinx.android.synthetic.main.item_announcement_mini.view.*
 import kotlinx.android.synthetic.main.item_announcement_standard.view.icon
 import kotlinx.android.synthetic.main.item_announcement_standard.view.msg_body
 import kotlinx.android.synthetic.main.item_announcement_standard.view.msg_title
-import piuk.blockchain.androidcoreui.utils.extensions.visible
 
-class StdAnnouncementDelegate<in T>(private val analytics: Analytics) : AdapterDelegate<T> {
+class StdAnnouncementDelegate<in T>(private val analytics: Analytics) :
+    AdapterDelegate<T> {
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(
@@ -141,7 +142,8 @@ class StdAnnouncementDelegate<in T>(private val analytics: Analytics) : AdapterD
     }
 }
 
-class MiniAnnouncementDelegate<in T>(private val analytics: Analytics) : AdapterDelegate<T> {
+class MiniAnnouncementDelegate<in T>(private val analytics: Analytics) :
+    AdapterDelegate<T> {
     override fun isForViewType(items: List<T>, position: Int): Boolean {
         val item = items[position]
         return item is MiniAnnouncementCard

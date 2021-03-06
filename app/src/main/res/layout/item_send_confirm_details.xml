@@ -6,21 +6,24 @@
     android:layout_height="wrap_content"
     android:id="@+id/item_account_parent"
     android:orientation="vertical"
-    android:paddingTop="@dimen/small_margin"
-    android:paddingBottom="@dimen/small_margin">
+    android:paddingStart="@dimen/standard_margin"
+    android:paddingEnd="@dimen/standard_margin"
+    android:paddingTop="@dimen/very_small_margin"
+    android:paddingBottom="@dimen/very_small_margin">
 
     <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/label"
+        android:id="@+id/confirmation_item_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/Text.Standard.Centered.14"
-        tools:text="LABEL"/>
+        style="@style/Text.Light.14"
+        tools:text="Label"/>
 
     <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/value"
+        android:id="@+id/confirmation_item_value"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/Text.Standard.Centered.12"
+        android:layout_marginTop="4dp"
+        style="@style/Text.Semibold.16"
         tools:text="Value"/>
 
 </LinearLayout>

@@ -18,9 +18,9 @@ interface LauncherView : View {
 
     fun onRequestUpgrade()
 
-    fun onStartMainActivity(uri: Uri?)
+    fun onStartMainActivity(uri: Uri?, launchBuySellIntro: Boolean = false)
 
-    fun startSimpleBuy()
+    fun launchBuySellIntro()
 
     fun onReEnterPassword()
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -164,8 +165,10 @@
         android:layout_marginBottom="@dimen/small_margin"
         android:padding="4dp"
         android:text="@string/airdrop_received_sheet_amount_label"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/divider_amount"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/amount_value"
@@ -177,9 +180,11 @@
         android:layout_marginBottom="@dimen/small_margin"
         android:gravity="end"
         android:padding="4dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/divider_amount"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:text="How much - optional" />
+        tools:text="How much - optional"
+        tools:visibility="visible" />
 
     <View
         android:id="@+id/divider_amount"
@@ -189,9 +194,11 @@
         android:layout_marginStart="@dimen/standard_margin"
         android:layout_marginEnd="@dimen/standard_margin"
         android:layout_marginBottom="@dimen/small_margin"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/support_heading"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        tools:visibility="visible" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/support_heading"
@@ -203,10 +210,10 @@
         android:layout_marginEnd="@dimen/standard_margin"
         android:textSize="16sp"
         android:visibility="gone"
-        tools:text="Support"
         app:layout_constraintBottom_toTopOf="@id/support_message"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Support" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/support_message"
@@ -217,10 +224,10 @@
         android:layout_marginTop="@dimen/small_margin"
         android:layout_marginEnd="@dimen/standard_margin"
         android:visibility="gone"
-        tools:text="Support message"
         app:layout_constraintBottom_toTopOf="@id/support_link"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Support message" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/support_link"
@@ -229,9 +236,9 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/standard_margin"
         android:layout_marginEnd="@dimen/standard_margin"
-        android:textColor="@color/blue_600"
         android:layout_marginBottom="@dimen/small_margin"
         android:text="@string/learn_more"
+        android:textColor="@color/blue_600"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/cta_button"
         app:layout_constraintEnd_toEndOf="parent"

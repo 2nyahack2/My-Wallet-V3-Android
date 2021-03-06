@@ -1,12 +1,12 @@
 package piuk.blockchain.android.simplebuy
 
-import com.blockchain.swap.nabu.datamanagers.BankAccount
-import com.blockchain.swap.nabu.datamanagers.OrderState
-import com.blockchain.swap.nabu.datamanagers.Partner
-import com.blockchain.swap.nabu.datamanagers.PaymentMethod
-import com.blockchain.swap.nabu.datamanagers.Quote
-import com.blockchain.swap.nabu.datamanagers.SimpleBuyPair
-import com.blockchain.swap.nabu.datamanagers.custodialwalletimpl.PaymentMethodType
+import com.blockchain.nabu.datamanagers.BuySellPair
+import com.blockchain.nabu.datamanagers.CustodialQuote
+import com.blockchain.nabu.datamanagers.OrderState
+import com.blockchain.nabu.datamanagers.Partner
+import com.blockchain.nabu.datamanagers.PaymentMethod
+import com.blockchain.nabu.datamanagers.custodialwalletimpl.PaymentMethodType
+import com.blockchain.nabu.models.data.LinkBankTransfer
 import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
 import info.blockchain.balance.FiatValue
@@ -15,6 +15,8 @@ import piuk.blockchain.android.ui.base.mvi.MviState
 import piuk.blockchain.androidcore.data.exchangerate.ExchangeRateDataManager
 import piuk.blockchain.androidcore.data.exchangerate.toCrypto
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
+import java.io.Serializable
+import java.math.BigInteger
 import java.util.Date
 import java.util.regex.Pattern
 
@@ -25,18 +27,17 @@ import java.util.regex.Pattern
  */
 data class SimpleBuyState(
     val id: String? = null,
-    val supportedPairsAndLimits: List<SimpleBuyPair>? = null,
+    val supportedPairsAndLimits: List<BuySellPair>? = null,
     private val amount: FiatValue? = null,
     val fiatCurrency: String = "USD",
     val predefinedAmounts: List<FiatValue> = emptyList(),
     val selectedCryptoCurrency: CryptoCurrency? = null,
     val orderState: OrderState = OrderState.UNINITIALISED,
     private val expirationDate: Date? = null,
-    val quote: Quote? = null,
+    val custodialQuote: CustodialQuote? = null,
     val kycStartedButNotCompleted: Boolean = false,
     val kycVerificationState: KycState? = null,
-    val bankAccount: BankAccount? = null,
-    val currentScreen: FlowScreen = FlowScreen.INTRO,
+    val currentScreen: FlowScreen = FlowScreen.ENTER_AMOUNT,
     val selectedPaymentMethod: SelectedPaymentMethod? = null,
     val orderExchangePrice: FiatValue? = null,
     val orderValue: CryptoValue? = null,
@@ -48,10 +49,14 @@ data class SimpleBuyState(
     @Transient val isLoading: Boolean = false,
     @Transient val everypayAuthOptions: EverypayAuthOptions? = null,
     val paymentSucceeded: Boolean = false,
+    val showRating: Boolean = false,
+    val withdrawalLockPeriod: BigInteger = BigInteger.ZERO,
+    @Transient val linkBankTransfer: LinkBankTransfer? = null,
     @Transient val paymentPending: Boolean = false,
     // we use this flag to avoid navigating back and forth, reset after navigating
     @Transient val confirmationActionRequested: Boolean = false,
-    @Transient val depositFundsRequested: Boolean = false
+    @Transient val depositFundsRequested: Boolean = false,
+    @Transient val linkBankRequested: Boolean = false
 ) : MviState {
 
     @delegate:Transient
@@ -60,7 +65,7 @@ data class SimpleBuyState(
             orderState,
             amount,
             expirationDate,
-            quote
+            custodialQuote
         )
     }
 
@@ -167,29 +172,37 @@ enum class KycState {
 }
 
 enum class FlowScreen {
-    INTRO, CURRENCY_SELECTOR, ENTER_AMOUNT, KYC, KYC_VERIFICATION, CHECKOUT, BANK_DETAILS, ADD_CARD
+    ENTER_AMOUNT, KYC, KYC_VERIFICATION, CHECKOUT, ADD_CARD
 }
 
 enum class InputError {
     BELOW_MIN, ABOVE_MAX
 }
 
-sealed class ErrorState {
+sealed class ErrorState : Serializable {
     object GenericError : ErrorState()
     object NoAvailableCurrenciesToTrade : ErrorState()
+    object BankLinkingUpdateFailed : ErrorState()
+    object BankLinkingFailed : ErrorState()
+    object BankLinkingTimeout : ErrorState()
+    object LinkedBankAlreadyLinked : ErrorState()
+    object LinkedBankAccountUnsupported : ErrorState()
+    object LinkedBankNamesMismatched : ErrorState()
+    object LinkedBankNotSupported : ErrorState()
 }
 
 data class SimpleBuyOrder(
     val orderState: OrderState = OrderState.UNINITIALISED,
     val amount: FiatValue? = null,
     val expirationDate: Date? = null,
-    val quote: Quote? = null
+    val custodialQuote: CustodialQuote? = null
 )
 
 data class PaymentOptions(
     val availablePaymentMethods: List<PaymentMethod> = emptyList(),
     val canAddCard: Boolean = false,
-    val canLinkFunds: Boolean = false
+    val canLinkFunds: Boolean = false,
+    val canLinkBank: Boolean = false
 )
 
 data class SelectedPaymentMethod(
@@ -198,6 +211,19 @@ data class SelectedPaymentMethod(
     val label: String? = "",
     val paymentMethodType: PaymentMethodType
 ) {
-    fun isBank() = paymentMethodType == PaymentMethodType.BANK_ACCOUNT
     fun isCard() = paymentMethodType == PaymentMethodType.PAYMENT_CARD
+    fun isBank() = paymentMethodType == PaymentMethodType.BANK_TRANSFER
+    fun isFunds() = paymentMethodType == PaymentMethodType.FUNDS
+
+    fun concreteId(): String? =
+        if (isDefinedBank() || isDefinedCard()) id else null
+
+    private fun isDefinedCard() = paymentMethodType == PaymentMethodType.PAYMENT_CARD &&
+            id != PaymentMethod.UNDEFINED_CARD_PAYMENT_ID
+
+    private fun isDefinedBank() = paymentMethodType == PaymentMethodType.BANK_TRANSFER &&
+            id != PaymentMethod.UNDEFINED_BANK_TRANSFER_PAYMENT_ID
+
+    fun isActive() =
+        concreteId() != null || (paymentMethodType == PaymentMethodType.FUNDS && id == PaymentMethod.FUNDS_PAYMENT_ID)
 }

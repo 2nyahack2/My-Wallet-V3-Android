@@ -3,7 +3,6 @@ package piuk.blockchain.android.ui.dashboard.announcements.rule
 import androidx.annotation.VisibleForTesting
 import io.reactivex.Single
 import piuk.blockchain.android.R
-import piuk.blockchain.android.simplebuy.SimpleBuyAvailability
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementHost
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementRule
 import piuk.blockchain.android.ui.dashboard.announcements.DismissRecorder
@@ -11,26 +10,13 @@ import piuk.blockchain.android.ui.dashboard.announcements.DismissRule
 import piuk.blockchain.android.ui.dashboard.announcements.StandardAnnouncementCard
 
 class BuyBitcoinAnnouncement(
-    dismissRecorder: DismissRecorder,
-    private val simpleBuyAvailability: SimpleBuyAvailability
+    dismissRecorder: DismissRecorder
 ) : AnnouncementRule(dismissRecorder) {
 
-    private var cta: (AnnouncementHost) -> Unit = {}
     override val dismissKey = DISMISS_KEY
 
     override fun shouldShow(): Single<Boolean> {
-        if (dismissEntry.isDismissed) {
-            return Single.just(false)
-        }
-
-        return simpleBuyAvailability.isAvailable()
-            .doOnSuccess { simpleBuyAvailable ->
-                if (simpleBuyAvailable) {
-                    cta = {
-                        it.startSimpleBuy()
-                    }
-                }
-            }
+        return Single.just(dismissEntry.isDismissed).map { !it }
     }
 
     override fun show(host: AnnouncementHost) {

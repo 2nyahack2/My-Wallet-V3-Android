@@ -3,26 +3,28 @@ package piuk.blockchain.android.ui.recover
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.inputmethod.EditorInfo
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.Toolbar
-import android.view.inputmethod.EditorInfo
 import com.blockchain.annotations.CommonCode
+import com.blockchain.koin.scopedInject
 import kotlinx.android.synthetic.main.activity_recover_funds.*
-import org.koin.android.ext.android.get
 import piuk.blockchain.android.R
-import piuk.blockchain.androidcoreui.ui.base.BaseMvpActivity
+import piuk.blockchain.android.ui.auth.PinEntryActivity
 import piuk.blockchain.android.ui.createwallet.CreateWalletActivity
-import com.blockchain.ui.dialog.MaterialProgressDialog
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
+import piuk.blockchain.androidcoreui.ui.base.BaseMvpActivity
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-
+import piuk.blockchain.android.util.ViewUtils
 import java.util.Locale
 
 internal class RecoverFundsActivity :
     BaseMvpActivity<RecoverFundsView, RecoverFundsPresenter>(),
     RecoverFundsView {
 
-    private var progressDialog: MaterialProgressDialog? = null
+    private val presenter: RecoverFundsPresenter by scopedInject()
 
+    private var progressDialog: MaterialProgressDialog? = null
     private val recoveryPhrase: String
         get() = field_passphrase?.text.toString().toLowerCase(Locale.US).trim()
 
@@ -47,8 +49,13 @@ internal class RecoverFundsActivity :
 
     override fun gotoCredentialsActivity(recoveryPhrase: String) {
         val intent = Intent(this, CreateWalletActivity::class.java)
-        intent.putExtra(RECOVERY_PHRASE, recoveryPhrase)
+        intent.putExtra(CreateWalletActivity.RECOVERY_PHRASE, recoveryPhrase)
         startActivity(intent)
+    }
+
+    override fun startPinEntryActivity() {
+        ViewUtils.hideKeyboard(this)
+        PinEntryActivity.startAfterWalletCreation(this)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -59,8 +66,8 @@ internal class RecoverFundsActivity :
     override fun startLogoutTimer() { /* No-op */
     }
 
-    override fun showToast(@StringRes message: Int, @ToastCustom.ToastType toastType: String) {
-        ToastCustom.makeText(this, getString(message), ToastCustom.LENGTH_SHORT, toastType)
+    override fun showError(@StringRes message: Int) {
+        ToastCustom.makeText(this, getString(message), ToastCustom.LENGTH_SHORT, ToastCustom.TYPE_ERROR)
     }
 
     override fun onDestroy() {
@@ -91,12 +98,10 @@ internal class RecoverFundsActivity :
 
     override fun enforceFlagSecure(): Boolean = true
 
-    override fun createPresenter(): RecoverFundsPresenter = get()
+    override fun createPresenter(): RecoverFundsPresenter = presenter
     override fun getView(): RecoverFundsView = this
 
     companion object {
-        const val RECOVERY_PHRASE = "RECOVERY_PHRASE"
-
         fun start(ctx: Context) {
             ctx.startActivity(Intent(ctx, RecoverFundsActivity::class.java))
         }

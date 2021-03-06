@@ -111,7 +111,7 @@ class BchDataManagerTest {
         // Arrange
 
         // Act
-        subject.clearBchAccountDetails()
+        subject.clearAccountDetails()
         // Assert
         verify(bchDataStore).clearData()
         verifyNoMoreInteractions(bchDataStore)

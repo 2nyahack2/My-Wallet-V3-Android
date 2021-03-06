@@ -15,7 +15,7 @@ class CryptoCurrencyFormatterTest {
 
     @Test
     fun `format BTC from Crypto Value`() {
-        CryptoValue.ZeroBtc.format(locale) `should equal` "0"
+        0.bitcoin().format(locale) `should equal` "0"
         1.bitcoin().format(locale) `should equal` "1.0"
         10_000.bitcoin().format(locale) `should equal` "10,000.0"
         21_000_000.bitcoin().format(locale) `should equal` "21,000,000.0"
@@ -23,7 +23,7 @@ class CryptoCurrencyFormatterTest {
 
     @Test
     fun `format BCH from Crypto Value`() {
-        CryptoValue.ZeroBch.format(locale) `should equal` "0"
+        0.bitcoinCash().format(locale) `should equal` "0"
         1.bitcoinCash().format(locale) `should equal` "1.0"
         10_000.bitcoinCash().format(locale) `should equal` "10,000.0"
         21_000_000.bitcoinCash().format(locale) `should equal` "21,000,000.0"
@@ -31,7 +31,7 @@ class CryptoCurrencyFormatterTest {
 
     @Test
     fun `format Ether from Crypto Value`() {
-        CryptoValue.ZeroEth.format(locale) `should equal` "0"
+        0.ether().format(locale) `should equal` "0"
         1.ether().format(locale) `should equal` "1.0"
         10_000.ether().format(locale) `should equal` "10,000.0"
         100_000_000.ether().format(locale) `should equal` "100,000,000.0"
@@ -39,7 +39,7 @@ class CryptoCurrencyFormatterTest {
 
     @Test
     fun `formatWithUnit 0 BTC`() {
-        CryptoValue.ZeroBtc.formatWithUnit(
+        0.bitcoin().formatWithUnit(
             locale = locale,
             precision = FormatPrecision.Short
         ) `should equal` "0 BTC"
@@ -67,7 +67,7 @@ class CryptoCurrencyFormatterTest {
 
     @Test
     fun `formatWithUnit 0 BCH`() {
-        CryptoValue.ZeroBch.formatWithUnit(locale) `should equal` "0 BCH"
+        0.bitcoinCash().formatWithUnit(locale) `should equal` "0 BCH"
     }
 
     @Test
@@ -92,7 +92,7 @@ class CryptoCurrencyFormatterTest {
 
     @Test
     fun `formatWithUnit 0 ETH`() {
-        CryptoValue.ZeroEth.formatWithUnit(locale) `should equal` "0 ETH"
+        0.ether().formatWithUnit(locale) `should equal` "0 ETH"
     }
 
     @Test
@@ -110,7 +110,7 @@ class CryptoCurrencyFormatterTest {
 
     @Test
     fun `formatWithUnit 0 STX`() {
-        CryptoValue.ZeroStx.formatWithUnit(locale) `should equal` "0 STX"
+        CryptoValue.zero(CryptoCurrency.STX).formatWithUnit(locale) `should equal` "0 STX"
     }
 
     @Test
@@ -174,7 +174,7 @@ class CryptoCurrencyFormatterTest {
 
     @Test
     fun `format in another locale`() {
-        CryptoValue.ZeroEth.format(Locale.FRANCE) `should equal` "0"
+        0.ether().format(Locale.FRANCE) `should equal` "0"
         1.ether().format(Locale.FRANCE) `should equal` "1,0"
         10_000.ether().format(Locale.FRANCE) `should equal` "10\u00a0000,0"
         100_000_000.ether().format(Locale.FRANCE) `should equal` "100\u00a0000\u00a0000,0"
@@ -182,7 +182,7 @@ class CryptoCurrencyFormatterTest {
 
     @Test
     fun `format in another locale, forced to another`() {
-        CryptoValue.ZeroEth.format(locale = Locale.US) `should equal` "0"
+        0.ether().format(locale = Locale.US) `should equal` "0"
         1.ether().format(locale = Locale.US) `should equal` "1.0"
         10_000.ether().format(locale = Locale.US) `should equal` "10,000.0"
         100_000_000.ether().format(locale = Locale.US) `should equal` "100,000,000.0"

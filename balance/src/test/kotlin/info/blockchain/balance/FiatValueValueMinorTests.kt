@@ -7,16 +7,16 @@ class FiatValueValueMinorTests {
 
     @Test
     fun `value minor gbp`() {
-        1.2.gbp().valueMinor `should equal` 120L
+        1.2.gbp().toBigInteger() `should equal` 120.toBigInteger()
     }
 
     @Test
     fun `value minor gbp 2 dp`() {
-        2.21.gbp().valueMinor `should equal` 221L
+        2.21.gbp().toBigInteger() `should equal` 221.toBigInteger()
     }
 
     @Test
     fun `value minor yen`() {
-        543.jpy().valueMinor `should equal` 543L
+        543.jpy().toBigInteger() `should equal` 543.toBigInteger()
     }
 }

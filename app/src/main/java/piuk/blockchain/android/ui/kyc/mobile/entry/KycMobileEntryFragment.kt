@@ -22,15 +22,15 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.plusAssign
 import piuk.blockchain.android.R
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
 import piuk.blockchain.androidcore.data.settings.PhoneNumber
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
 import piuk.blockchain.androidcoreui.ui.base.BaseFragment
-import com.blockchain.ui.dialog.MaterialProgressDialog
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.ParentActivityDelegate
-import piuk.blockchain.androidcoreui.utils.extensions.getTextString
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.toast
+import piuk.blockchain.androidcoreui.ui.customviews.toast
+import piuk.blockchain.android.ui.kyc.ParentActivityDelegate
+import piuk.blockchain.android.util.getTextString
+import piuk.blockchain.android.util.inflate
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlinx.android.synthetic.main.fragment_kyc_add_phone_number.button_kyc_phone_number_next as buttonNext
@@ -41,7 +41,9 @@ class KycMobileEntryFragment : BaseFragment<KycMobileEntryView, KycMobileEntryPr
     KycMobileEntryView {
 
     private val presenter: KycMobileEntryPresenter by scopedInject()
-    private val progressListener: KycProgressListener by ParentActivityDelegate(this)
+    private val progressListener: KycProgressListener by ParentActivityDelegate(
+        this
+    )
     private val compositeDisposable = CompositeDisposable()
     private val countryCode by unsafeLazy {
         KycMobileEntryFragmentArgs.fromBundle(
@@ -86,7 +88,6 @@ class KycMobileEntryFragment : BaseFragment<KycMobileEntryView, KycMobileEntryPr
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         progressListener.setHostTitle(R.string.kyc_phone_number_title)
-        progressListener.incrementProgress(KycStep.MobileNumberPage)
 
         editTextPhoneNumber.addTextChangedListener(PhoneNumberFormattingTextWatcher())
         editTextPhoneNumber.setOnFocusChangeListener { _, hasFocus ->
@@ -156,19 +157,10 @@ class KycMobileEntryFragment : BaseFragment<KycMobileEntryView, KycMobileEntryPr
             .map { mapToCompleted(it) }
             .distinctUntilChanged()
             .doOnNext {
-                updateProgress(it, kycStep)
                 buttonNext.isEnabled = it
             }
 
     private fun mapToCompleted(text: String): Boolean = PhoneNumber(text).isValid
-
-    private fun updateProgress(stepCompleted: Boolean, kycStep: KycStep) {
-        if (stepCompleted) {
-            progressListener.incrementProgress(kycStep)
-        } else {
-            progressListener.decrementProgress(kycStep)
-        }
-    }
 
     override fun createPresenter(): KycMobileEntryPresenter = presenter
 

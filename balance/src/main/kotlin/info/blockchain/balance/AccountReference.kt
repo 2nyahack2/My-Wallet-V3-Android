@@ -1,5 +1,6 @@
 package info.blockchain.balance
 
+@Deprecated("Switch to coincore")
 sealed class AccountReference(
     val cryptoCurrency: CryptoCurrency,
     val label: String
@@ -49,24 +50,7 @@ sealed class AccountReference(
         override val receiveAddress: String
             get() = ethAddress
     }
-
-    data class Stx(
-        private val _label: String,
-        val address: String
-    ) : AccountReference(CryptoCurrency.STX, _label) {
-        override val receiveAddress: String
-            get() = address
-    }
 }
 
-enum class AccountType {
-    Spendable,
-    ColdStorage,
-    WatchOnly
-}
-
+@Deprecated("Switch to coincore")
 typealias AccountReferenceList = List<AccountReference>
-
-data class Account(val reference: AccountReference, val type: AccountType)
-
-fun AccountReference.toAccount(type: AccountType): Account = Account(this, type)

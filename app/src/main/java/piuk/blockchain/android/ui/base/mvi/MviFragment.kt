@@ -2,15 +2,15 @@ package piuk.blockchain.android.ui.base.mvi
 
 import androidx.annotation.StringRes
 import androidx.annotation.UiThread
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import androidx.fragment.app.Fragment
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
 import com.blockchain.notifications.analytics.Analytics
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.subscribeBy
 import piuk.blockchain.android.ui.base.BlockchainActivity
+import piuk.blockchain.android.ui.base.SlidingModalBottomDialog
 import timber.log.Timber
-import java.lang.IllegalStateException
 
 abstract class MviFragment<M : MviModel<S, I>, I : MviIntent<S>, S : MviState> : Fragment() {
 
@@ -66,5 +66,19 @@ abstract class MviFragment<M : MviModel<S, I>, I : MviIntent<S>, S : MviState> :
 
     @UiThread
     fun showBottomSheet(bottomSheet: BottomSheetDialogFragment?) =
-        bottomSheet?.show(childFragmentManager, "BOTTOM_SHEET")
+        bottomSheet?.show(childFragmentManager, BOTTOM_SHEET)
+
+    @UiThread
+    fun clearBottomSheet() {
+        val dlg = childFragmentManager.findFragmentByTag(BOTTOM_SHEET)
+
+        dlg?.let {
+            (it as? SlidingModalBottomDialog)?.dismiss()
+                ?: throw IllegalStateException("Fragment is not a $BOTTOM_SHEET")
+        }
+    }
+
+    companion object {
+        const val BOTTOM_SHEET = "BOTTOM_SHEET"
+    }
 }

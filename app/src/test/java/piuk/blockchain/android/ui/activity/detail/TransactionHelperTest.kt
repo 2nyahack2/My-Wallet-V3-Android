@@ -36,7 +36,7 @@ class TransactionHelperTest {
         // Arrange
         val item = TestNonCustodialSummaryItem(
             exchangeRates = mock(),
-            direction = TransactionSummary.Direction.RECEIVED,
+            transactionType = TransactionSummary.TransactionType.RECEIVED,
             inputsMap = mapOf(
                 "key" to cryptoValBtc_1
             )
@@ -53,7 +53,7 @@ class TransactionHelperTest {
     @Test
     fun filterNonChangeReceivedAddressesMultipleInput() { // Arrange
         val item = TestNonCustodialSummaryItem(
-            direction = TransactionSummary.Direction.RECEIVED,
+            transactionType = TransactionSummary.TransactionType.RECEIVED,
             inputsMap = mapOf(
                 "key0" to cryptoValBtc_1,
                 "key1" to cryptoValBtc_1
@@ -72,7 +72,7 @@ class TransactionHelperTest {
     fun filterNonChangeAddressesMultipleInput() {
         // Arrange
         val item = TestNonCustodialSummaryItem(
-            direction = TransactionSummary.Direction.SENT,
+            transactionType = TransactionSummary.TransactionType.SENT,
             inputsMap = mapOf(
                 "key0" to cryptoValBtc_1,
                 "key1" to cryptoValBtc_1,
@@ -97,7 +97,7 @@ class TransactionHelperTest {
     fun filterNonChangeAddressesSingleInputSingleOutput() {
         // Arrange
         val item = TestNonCustodialSummaryItem(
-            direction = TransactionSummary.Direction.SENT,
+            transactionType = TransactionSummary.TransactionType.SENT,
             inputsMap = mapOf(
                 "key" to cryptoValBtc_1
             ),
@@ -123,7 +123,7 @@ class TransactionHelperTest {
     fun filterNonChangeAddressesSingleInputMultipleOutput() {
         // Arrange
         val item = TestNonCustodialSummaryItem(
-            direction = TransactionSummary.Direction.SENT,
+            transactionType = TransactionSummary.TransactionType.SENT,
             inputsMap = mapOf(
                 "key0" to cryptoValBtc_1
             ),
@@ -140,8 +140,6 @@ class TransactionHelperTest {
 
         whenever(payload.legacyAddressStringList)
             .thenReturn(legacyStrings)
-        whenever(payload.watchOnlyAddressStringList)
-            .thenReturn(watchOnlyStrings)
 
         whenever(payloadDataManager.wallet)
             .thenReturn(payload)
@@ -151,14 +149,14 @@ class TransactionHelperTest {
 
         // Assert
         assertEquals(1, value.left.size)
-        assertEquals(1, value.right.size)
+        assertEquals(2, value.right.size)
     }
 
     @Test
     fun filterNonChangeAddressesSingleInputSingleOutputHD() {
         // Arrange
         val item = TestNonCustodialSummaryItem(
-            direction = TransactionSummary.Direction.SENT,
+            transactionType = TransactionSummary.TransactionType.SENT,
             inputsMap = mapOf(
                 "key0" to cryptoValBtc_1
             ),
@@ -169,12 +167,10 @@ class TransactionHelperTest {
         )
 
         val legacyStrings = listOf("key0", "key1")
-        val watchOnlyStrings = listOf("key2")
 
         whenever(payload.legacyAddressStringList)
             .thenReturn(legacyStrings)
-        whenever(payload.watchOnlyAddressStringList)
-            .thenReturn(watchOnlyStrings)
+
         whenever(payloadDataManager.wallet)
             .thenReturn(payload)
         whenever(payloadDataManager.isOwnHDAddress(any()))
@@ -193,7 +189,7 @@ class TransactionHelperTest {
         // Arrange
         val item = TestNonCustodialSummaryItem(
             cryptoCurrency = CryptoCurrency.BCH,
-            direction = TransactionSummary.Direction.SENT,
+            transactionType = TransactionSummary.TransactionType.SENT,
             inputsMap = mapOf(
                 "key0" to cryptoValBch_1,
                 "key1" to cryptoValBch_1,
@@ -219,7 +215,7 @@ class TransactionHelperTest {
         // Arrange
         val item = TestNonCustodialSummaryItem(
             cryptoCurrency = CryptoCurrency.BCH,
-            direction = TransactionSummary.Direction.SENT,
+            transactionType = TransactionSummary.TransactionType.SENT,
             inputsMap = mapOf(
                 "key" to cryptoValBch_1
             ),
@@ -243,7 +239,7 @@ class TransactionHelperTest {
     fun filterNonChangeAddressesSingleInputMultipleOutputBch() {
         // Arrange
         val item = TestNonCustodialSummaryItem(
-            direction = TransactionSummary.Direction.SENT,
+            transactionType = TransactionSummary.TransactionType.SENT,
             inputsMap = mapOf(
                 "key0" to cryptoValBch_1
             ),
@@ -256,26 +252,23 @@ class TransactionHelperTest {
         )
 
         val legacyStrings = listOf("key0", "key1")
-        val watchOnlyStrings = listOf("key2")
 
         whenever(bchDataManager.getLegacyAddressStringList())
             .thenReturn(legacyStrings)
-        whenever(bchDataManager.getWatchOnlyAddressStringList())
-            .thenReturn(watchOnlyStrings)
 
         // Act
         val value = subject.filterNonChangeBchAddresses(item)
 
         // Assert
         assertEquals(1, value.left.size)
-        assertEquals(1, value.right.size)
+        assertEquals(2, value.right.size)
     }
 
     @Test
     fun filterNonChangeAddressesSingleInputSingleOutputHDBch() {
         // Arrange
         val item = TestNonCustodialSummaryItem(
-            direction = TransactionSummary.Direction.SENT,
+            transactionType = TransactionSummary.TransactionType.SENT,
             inputsMap = mapOf(
                 "key0" to cryptoValBch_1
             ),
@@ -286,12 +279,10 @@ class TransactionHelperTest {
         )
 
         val legacyStrings = listOf("key0", "key1")
-        val watchOnlyStrings = listOf("key2")
 
         whenever(bchDataManager.getLegacyAddressStringList())
             .thenReturn(legacyStrings)
-        whenever(bchDataManager.getWatchOnlyAddressStringList())
-            .thenReturn(watchOnlyStrings)
+
         whenever(bchDataManager.isOwnAddress(any()))
             .thenReturn(true)
 

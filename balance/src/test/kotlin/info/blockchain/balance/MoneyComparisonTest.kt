@@ -2,8 +2,6 @@ package info.blockchain.balance
 
 import org.amshove.kluent.`should be`
 import org.amshove.kluent.`should throw the Exception`
-import org.amshove.kluent.`should throw`
-import org.amshove.kluent.mock
 import org.amshove.kluent.withMessage
 import org.junit.Test
 
@@ -91,13 +89,6 @@ class MoneyComparisonTest {
         val a: Money = 3.bitcoin()
         val b: Money = 3.usd();
         { a > b } `should throw the Exception` ValueTypeMismatchException::class withMessage "Can't compare BTC and USD"
-    }
-
-    @Test
-    fun `can't compare to an unknown Money type`() {
-        val a: Money = 3.bitcoin()
-        val b: Money = mock();
-        { a > b } `should throw` IllegalArgumentException::class
     }
 
     @Test

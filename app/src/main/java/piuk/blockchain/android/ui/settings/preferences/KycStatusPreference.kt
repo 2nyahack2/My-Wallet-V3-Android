@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.core.content.ContextCompat
 import android.util.AttributeSet
 import android.widget.TextView
-import com.blockchain.swap.nabu.models.nabu.KycTierLevel
-import com.blockchain.swap.nabu.models.nabu.KycTiers
+import com.blockchain.nabu.models.responses.nabu.KycTierLevel
+import com.blockchain.nabu.models.responses.nabu.KycTiers
 import piuk.blockchain.android.R
 
 class KycStatusPreference @JvmOverloads constructor(

@@ -7,6 +7,7 @@
     <!-- in future -->
 
     <color name="white">#FFFFFF</color>
+    <color name="faded_white">#99FFFFFF</color>
     <color name="black">#000000</color>
 
     <color name="red_000">#FFECEB</color>
@@ -23,6 +24,7 @@
     <color name="orange_100">#FAE4CD</color>
     <color name="orange_300">#FFC994</color>
     <color name="orange_400">#FFB266</color>
+    <color name="orange_600">#F28B24</color>
     <color name="orange_800">#B34400</color>
 
     <color name="green_000">#E6FAEC</color>
@@ -46,6 +48,7 @@
     <color name="grey_900">#121D33</color>
 
     <color name="grey_fade_400">#6605183D</color>
+    <color name="grey_fade_900">#EE121D33</color>
 
     <color name="blue_000">#ECF5FE</color>
     <color name="blue_100">#D8EBFD</color>
@@ -83,6 +86,7 @@
     <color name="ltc_bkgd">#26BFBBBB</color>
     <color name="xrp_bkgd">#26000000</color>
     <color name="algo_bkgd">#26000000</color>
+    <color name="dgld_bkgd">#26FFE738</color>
 
     <color name="btc">#FF9B22</color>
     <color name="bch">#8DC351</color>
@@ -93,6 +97,8 @@
     <color name="ltc">#BFBBBB</color>
     <color name="xrp">#000000</color>
     <color name="algo">#000000</color>
+    <color name="dgld">#FFE738</color>
+    <color name="dgld_chart">#000000</color>
 
 </resources>
 

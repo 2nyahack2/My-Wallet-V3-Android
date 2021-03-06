@@ -23,12 +23,10 @@ class PitAnnouncementTest {
     fun setUp() {
         whenever(dismissRecorder[PitAnnouncement.DISMISS_KEY]).thenReturn(dismissEntry)
         whenever(dismissEntry.prefsKey).thenReturn(PitAnnouncement.DISMISS_KEY)
-        whenever(featureFlag.enabled).thenReturn(Single.just(true))
 
         subject = PitAnnouncement(
             pitLink = pitLinking,
             dismissRecorder = dismissRecorder,
-            featureFlag = featureFlag,
             analytics = analytics
         )
     }
@@ -64,18 +62,6 @@ class PitAnnouncementTest {
         subject.shouldShow()
             .test()
             .assertValue { it }
-            .assertValueCount(1)
-            .assertComplete()
-    }
-
-    @Test
-    fun `should not show, when is not enabled from feature flag`() {
-        whenever(dismissEntry.isDismissed).thenReturn(false)
-        whenever(pitLinking.isPitLinked()).thenReturn(Single.just(false))
-        whenever(featureFlag.enabled).thenReturn(Single.just(false))
-        subject.shouldShow()
-            .test()
-            .assertValue { !it }
             .assertValueCount(1)
             .assertComplete()
     }

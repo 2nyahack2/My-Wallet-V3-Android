@@ -12,8 +12,8 @@ import info.blockchain.wallet.crypto.AESUtil
 import info.blockchain.wallet.exceptions.InvalidCredentialsException
 import io.reactivex.Observable
 import junit.framework.TestCase.assertTrue
-import okhttp3.ResponseBody
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.ResponseBody
 import org.amshove.kluent.mock
 import org.junit.Before
 import org.junit.Test
@@ -103,7 +103,6 @@ class AuthDataManagerTest : RxTest() {
 
     @Test
     fun validatePinSuccessful() {
-        // Arrange
         val pin = "1234"
         val key = "SHARED_KEY"
         val encryptedPassword = "ENCRYPTED_PASSWORD"
@@ -112,11 +111,14 @@ class AuthDataManagerTest : RxTest() {
         val status = Status()
 
         status.success = decryptionKey
-        whenever(prefsUtil.getValue(PersistentPrefs.KEY_PIN_IDENTIFIER, "")).thenReturn(key)
+        whenever(prefsUtil.pinId).thenReturn(key)
         whenever(prefsUtil.getValue(PersistentPrefs.KEY_ENCRYPTED_PASSWORD, ""))
             .thenReturn(encryptedPassword)
+        whenever(prefsUtil.backupEnabled).thenReturn(true)
+        whenever(prefsUtil.hasBackup()).thenReturn(true)
         whenever(authService.validateAccess(key, pin))
             .thenReturn(Observable.just(Response.success(status)))
+
         whenever(
             aesUtilWrapper.decrypt(
                 encryptedPassword,
@@ -133,16 +135,26 @@ class AuthDataManagerTest : RxTest() {
         verify(accessState).isNewlyCreated = false
         verify(accessState).isRestored = false
         verifyNoMoreInteractions(accessState)
-        verify(prefsUtil).getValue(PersistentPrefs.KEY_PIN_IDENTIFIER, "")
+        verify(prefsUtil).pinId
+        verify(prefsUtil).hasBackup()
+        verify(prefsUtil).backupEnabled
+        verify(prefsUtil).getValue(PersistentPrefs.KEY_WALLET_GUID)
+
         verify(prefsUtil).getValue(PersistentPrefs.KEY_ENCRYPTED_PASSWORD, "")
+
+        verify(prefsUtil).restoreFromBackup(anyString(), eq(aesUtilWrapper))
+
         verifyNoMoreInteractions(prefsUtil)
+
         verify(authService).validateAccess(key, pin)
         verifyNoMoreInteractions(authService)
+
         verify(aesUtilWrapper).decrypt(
             encryptedPassword,
             decryptionKey,
             AESUtil.PIN_PBKDF2_ITERATIONS
         )
+
         verifyNoMoreInteractions(aesUtilWrapper)
         verifyZeroInteractions(prngHelper)
         observer.assertComplete()
@@ -155,13 +167,12 @@ class AuthDataManagerTest : RxTest() {
         // Arrange
         val pin = "1234"
         val key = "SHARED_KEY"
-        val encryptedPassword = "ENCRYPTED_PASSWORD"
+
         val decryptionKey = "DECRYPTION_KEY"
         val status = Status()
         status.success = decryptionKey
-        whenever(prefsUtil.getValue(PersistentPrefs.KEY_PIN_IDENTIFIER, "")).thenReturn(key)
-        whenever(prefsUtil.getValue(PersistentPrefs.KEY_ENCRYPTED_PASSWORD, ""))
-            .thenReturn(encryptedPassword)
+
+        whenever(prefsUtil.pinId).thenReturn(key)
         whenever(authService.validateAccess(key, pin))
             .thenReturn(
                 Observable.just(
@@ -179,8 +190,7 @@ class AuthDataManagerTest : RxTest() {
         // Assert
         verify(accessState).setPin(pin)
         verifyNoMoreInteractions(accessState)
-        verify(prefsUtil).getValue(PersistentPrefs.KEY_PIN_IDENTIFIER, "")
-        verify(prefsUtil).getValue(PersistentPrefs.KEY_ENCRYPTED_PASSWORD, "")
+        verify(prefsUtil).pinId == ""
         verifyNoMoreInteractions(prefsUtil)
         verify(authService).validateAccess(key, pin)
         verifyNoMoreInteractions(authService)
@@ -230,8 +240,12 @@ class AuthDataManagerTest : RxTest() {
                 eq(AESUtil.PIN_PBKDF2_ITERATIONS)
             )
         ).thenReturn(encryptedPassword)
+        whenever(prefsUtil.backupEnabled).thenReturn(true)
+        whenever(prefsUtil.hasBackup()).thenReturn(false)
+
         // Act
         val observer = subject.createPin(password, pin).test()
+
         // Assert
         verify(accessState).setPin(pin)
         verifyNoMoreInteractions(accessState)
@@ -250,7 +264,11 @@ class AuthDataManagerTest : RxTest() {
         )
         verifyNoMoreInteractions(aesUtilWrapper)
         verify(prefsUtil).setValue(PersistentPrefs.KEY_ENCRYPTED_PASSWORD, encryptedPassword)
-        verify(prefsUtil).setValue(eq(PersistentPrefs.KEY_PIN_IDENTIFIER), anyString())
+        verify(prefsUtil).pinId = anyString()
+        verify(prefsUtil).backupEnabled
+        verify(prefsUtil).hasBackup()
+
+        verify(prefsUtil).backupCurrentPrefs(anyString(), eq(aesUtilWrapper))
         verifyNoMoreInteractions(prefsUtil)
         observer.assertComplete()
         observer.assertNoErrors()
@@ -373,7 +391,7 @@ class AuthDataManagerTest : RxTest() {
     companion object {
 
         private const val ERROR_BODY = "{\n" +
-                "\t\"authorization_required\": \"true\"\n" +
-                "}"
+            "\t\"authorization_required\": \"true\"\n" +
+            "}"
     }
 }

@@ -20,7 +20,13 @@ import org.koin.dsl.module
 val notificationModule = module {
 
     scope(payloadScopeQualifier) {
-        scoped { NotificationTokenManager(get(), get(), get(), get(), get()) }
+        scoped { NotificationTokenManager(
+            notificationService = get(),
+            payloadManager = get(),
+            prefs = get(),
+            firebaseInstanceId = get(),
+            rxBus = get()
+        ) }
     }
 
     single { FirebaseInstanceId.getInstance() }
@@ -33,7 +39,7 @@ val notificationModule = module {
 
     single { FirebaseDynamicLinks.getInstance() }
 
-    factory { DynamicLinkHandler(get()) as PendingLink }
+    factory { DynamicLinkHandler(get()) }.bind(PendingLink::class)
 
     factory {
         AnalyticsImpl(

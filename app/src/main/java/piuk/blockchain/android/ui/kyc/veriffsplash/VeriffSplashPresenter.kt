@@ -1,10 +1,10 @@
 package piuk.blockchain.android.ui.kyc.veriffsplash
 
 import piuk.blockchain.android.ui.kyc.BaseKycPresenter
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.NabuApiException
-import com.blockchain.swap.nabu.models.nabu.NabuErrorStatusCodes
-import com.blockchain.swap.nabu.NabuToken
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.NabuApiException
+import com.blockchain.nabu.models.responses.nabu.NabuErrorStatusCodes
+import com.blockchain.nabu.NabuToken
 import com.blockchain.notifications.analytics.Analytics
 import com.blockchain.notifications.analytics.AnalyticsEvent
 import com.blockchain.veriff.VeriffApplicantAndToken
@@ -79,7 +79,7 @@ class VeriffSplashPresenter(
                         if (e is NabuApiException) {
                             handleSessionStartError(e)
                         } else {
-                            view.showErrorToast(R.string.kyc_veriff_splash_verification_error)
+                            view.showError(R.string.kyc_veriff_splash_verification_error)
                         }
                     }
                 )
@@ -92,13 +92,13 @@ class VeriffSplashPresenter(
             // announcements etc
             NabuErrorStatusCodes.PreIDVCheckFailed,
             // Or did we try to register with a duplicate email?
-            NabuErrorStatusCodes.AlreadyRegistered -> {
+            NabuErrorStatusCodes.Conflict -> {
                 prefs.devicePreIDVCheckFailed = true
                 updateUiState(UiState.FAILURE)
             }
             // For anything else, just show the 'failed' toast as before:
             NabuErrorStatusCodes.TokenExpired,
-            NabuErrorStatusCodes.Unknown -> view.showErrorToast(R.string.kyc_veriff_splash_verification_error)
+            NabuErrorStatusCodes.Unknown -> view.showError(R.string.kyc_veriff_splash_verification_error)
         }
     }
 
@@ -116,7 +116,7 @@ class VeriffSplashPresenter(
                 .subscribeBy(
                     onComplete = { view.continueToCompletion() },
                     onError = {
-                        view.showErrorToast(R.string.kyc_veriff_splash_verification_error)
+                        view.showError(R.string.kyc_veriff_splash_verification_error)
                     }
                 )
     }

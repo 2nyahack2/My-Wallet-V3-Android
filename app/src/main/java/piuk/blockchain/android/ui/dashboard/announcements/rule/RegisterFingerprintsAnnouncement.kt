@@ -3,16 +3,16 @@ package piuk.blockchain.android.ui.dashboard.announcements.rule
 import androidx.annotation.VisibleForTesting
 import io.reactivex.Single
 import piuk.blockchain.android.R
+import piuk.blockchain.android.data.biometrics.BiometricsController
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementHost
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementRule
 import piuk.blockchain.android.ui.dashboard.announcements.DismissRecorder
 import piuk.blockchain.android.ui.dashboard.announcements.DismissRule
 import piuk.blockchain.android.ui.dashboard.announcements.StandardAnnouncementCard
-import piuk.blockchain.android.ui.fingerprint.FingerprintHelper
 
 class RegisterFingerprintsAnnouncement(
     dismissRecorder: DismissRecorder,
-    private val fingerprints: FingerprintHelper
+    private val biometricsController: BiometricsController
 ) : AnnouncementRule(dismissRecorder) {
 
     override val dismissKey = DISMISS_KEY
@@ -23,8 +23,8 @@ class RegisterFingerprintsAnnouncement(
         }
 
         return Single.just(
-            fingerprints.isHardwareDetected() &&
-                    !fingerprints.isFingerprintUnlockEnabled()
+            biometricsController.isHardwareDetected &&
+                    !biometricsController.isFingerprintUnlockEnabled
         )
     }
 

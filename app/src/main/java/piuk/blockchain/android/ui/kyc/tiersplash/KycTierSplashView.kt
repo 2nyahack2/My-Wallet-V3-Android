@@ -2,13 +2,13 @@ package piuk.blockchain.android.ui.kyc.tiersplash
 
 import androidx.annotation.StringRes
 import androidx.navigation.NavDirections
-import com.blockchain.swap.nabu.models.nabu.KycTiers
+import com.blockchain.nabu.models.responses.nabu.KycTiers
 
 interface KycTierSplashView : piuk.blockchain.androidcoreui.ui.base.View {
 
     fun navigateTo(directions: NavDirections, tier: Int)
 
-    fun showErrorToast(@StringRes message: Int)
+    fun showError(@StringRes message: Int)
 
     fun renderTiersList(tiers: KycTiers)
 }

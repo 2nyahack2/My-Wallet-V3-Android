@@ -1,23 +1,19 @@
 package piuk.blockchain.android.ui.backup.completed
 
 import android.app.Activity
-import androidx.fragment.app.FragmentManager
-import android.content.DialogInterface
 import android.os.Bundle
-import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.FragmentManager
 import com.blockchain.koin.scopedInject
 import kotlinx.android.synthetic.main.fragment_backup_complete.*
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.backup.start.BackupWalletStartingFragment
-import piuk.blockchain.android.ui.backup.transfer.ConfirmFundsTransferDialogFragment
 import piuk.blockchain.androidcoreui.ui.base.BaseFragment
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.setOnClickListenerDebounced
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.inflate
+import piuk.blockchain.android.util.setOnClickListenerDebounced
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -40,10 +36,6 @@ class BackupWalletCompletedFragment :
         button_backup_done.setOnClickListenerDebounced { onBackupDone() }
         button_backup_again.setOnClickListenerDebounced { onBackupAgainRequested() }
 
-        if (arguments?.getBoolean(KEY_CHECK_TRANSFER) == true) {
-            presenter.checkTransferableFunds()
-        }
-
         onViewReady()
     }
 
@@ -56,21 +48,6 @@ class BackupWalletCompletedFragment :
 
     override fun hideLastBackupDate() {
         subheading_date.gone()
-    }
-
-    override fun showTransferFundsPrompt() {
-        val alertDialog = AlertDialog.Builder(context!!, R.style.AlertDialogStyle)
-            .setTitle(R.string.transfer_funds)
-            .setMessage(getString(R.string.transfer_recommend))
-            .setPositiveButton(R.string.transfer) { _, _ -> showTransferFundsConfirmationDialog() }
-            .setNegativeButton(R.string.not_now, null)
-            .create()
-
-        alertDialog.show()
-
-        alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE).apply {
-            setTextColor(ContextCompat.getColor(context, R.color.primary_grey_dark))
-        }
     }
 
     override fun createPresenter() = presenter
@@ -94,22 +71,10 @@ class BackupWalletCompletedFragment :
         }
     }
 
-    private fun showTransferFundsConfirmationDialog() {
-        activity?.let {
-            val fragment = ConfirmFundsTransferDialogFragment.newInstance()
-            fragment.show(it.supportFragmentManager, ConfirmFundsTransferDialogFragment.TAG)
-        }
-    }
-
     companion object {
 
         const val TAG = "BackupWalletCompletedFragment"
-        private const val KEY_CHECK_TRANSFER = "check_transfer"
 
-        fun newInstance(checkTransfer: Boolean): BackupWalletCompletedFragment {
-            val fragment = BackupWalletCompletedFragment()
-            fragment.arguments = Bundle().apply { putBoolean(KEY_CHECK_TRANSFER, checkTransfer) }
-            return fragment
-        }
+        fun newInstance(): BackupWalletCompletedFragment = BackupWalletCompletedFragment()
     }
 }

@@ -3,12 +3,13 @@ package piuk.blockchain.android.ui.dashboard.assetdetails
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
+import androidx.annotation.UiThread
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.blockchain.extensions.exhaustive
 import com.blockchain.koin.scopedInject
+import piuk.blockchain.android.simplebuy.CustodialBalanceClicked
 import com.blockchain.preferences.CurrencyPrefs
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
@@ -20,30 +21,28 @@ import com.google.android.material.tabs.TabLayout
 import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.FiatValue
 import info.blockchain.wallet.prices.data.PriceDatum
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.plusAssign
-import io.reactivex.rxkotlin.subscribeBy
-import kotlinx.android.synthetic.main.dialog_dashboared_asset_details.view.*
+import kotlinx.android.synthetic.main.dialog_sheet_dashboard_asset_details.view.*
 import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
-import piuk.blockchain.android.coincore.AccountGroup
-import piuk.blockchain.android.coincore.AssetAction
 import piuk.blockchain.android.coincore.AssetFilter
 import piuk.blockchain.android.coincore.BlockchainAccount
 import piuk.blockchain.android.coincore.Coincore
+import piuk.blockchain.android.coincore.CryptoAccount
 import piuk.blockchain.android.coincore.CryptoAsset
-import piuk.blockchain.android.coincore.SingleAccount
-import piuk.blockchain.android.ui.base.SlidingModalBottomDialog
+import piuk.blockchain.android.ui.base.mvi.MviBottomSheet
+import piuk.blockchain.android.ui.customviews.BlockchainListDividerDecor
+import piuk.blockchain.android.ui.customviews.account.PendingBalanceAccountDecorator
 import piuk.blockchain.android.ui.dashboard.setDeltaColour
-import piuk.blockchain.androidcore.data.charts.PriceSeries
-import piuk.blockchain.androidcore.data.charts.TimeSpan
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.invisible
-import piuk.blockchain.androidcoreui.utils.extensions.visible
-import piuk.blockchain.androidcoreui.utils.helperfunctions.CustomFont
-import piuk.blockchain.androidcoreui.utils.helperfunctions.loadFont
-import piuk.blockchain.androidcoreui.utils.helperfunctions.setOnTabSelectedListener
+import piuk.blockchain.android.util.getDecimalPlaces
+import piuk.blockchain.android.util.loadInterMedium
+import piuk.blockchain.androidcore.data.exchangerate.PriceSeries
+import piuk.blockchain.androidcore.data.exchangerate.TimeSpan
+import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
+import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom.TYPE_ERROR
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.invisible
+import piuk.blockchain.android.util.visible
+import piuk.blockchain.android.util.setOnTabSelectedListener
 import java.math.RoundingMode
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -51,25 +50,10 @@ import java.util.Currency
 import java.util.Date
 import java.util.Locale
 
-class AssetDetailSheet : SlidingModalBottomDialog() {
-
-    val compositeDisposable = CompositeDisposable()
-
+class AssetDetailSheet :
+    MviBottomSheet<AssetDetailsModel, AssetDetailsIntent, AssetDetailsState>() {
     private val currencyPrefs: CurrencyPrefs by inject()
-    private val assetDetailsViewModel: AssetDetailsCalculator by scopedInject()
     private val locale = Locale.getDefault()
-
-    interface Host : SlidingModalBottomDialog.Host {
-        fun gotoSendFor(account: SingleAccount)
-        fun goToReceiveFor(account: SingleAccount)
-        fun gotoActivityFor(account: BlockchainAccount)
-        fun gotoSwap(account: SingleAccount)
-    }
-
-    override val host: Host by lazy {
-        super.host as? Host ?: throw IllegalStateException(
-            "Host fragment is not a AssetDetailSheet.Host")
-    }
 
     private val cryptoCurrency: CryptoCurrency by lazy {
         arguments?.getSerializable(ARG_CRYPTO_CURRENCY) as? CryptoCurrency
@@ -77,141 +61,145 @@ class AssetDetailSheet : SlidingModalBottomDialog() {
     }
 
     private val assetSelect: Coincore by scopedInject()
+
     private val token: CryptoAsset by lazy {
         assetSelect[cryptoCurrency]
     }
 
+    private val detailsAdapter by lazy {
+        AssetDetailAdapter(
+            ::onAccountSelected,
+            cryptoCurrency.hasFeature(CryptoCurrency.CUSTODIAL_ONLY),
+            token
+        ) {
+            PendingBalanceAccountDecorator(it.account)
+        }
+    }
+
+    private var state = AssetDetailsState()
+
+    override val model: AssetDetailsModel by scopedInject()
+
     override val layoutResource: Int
-        get() = R.layout.dialog_dashboared_asset_details
+        get() = R.layout.dialog_sheet_dashboard_asset_details
+
+    @UiThread
+    override fun render(newState: AssetDetailsState) {
+        if (newState.errorState != AssetDetailsError.NONE) {
+            handleErrorState(newState.errorState)
+        }
+
+        newState.assetDisplayMap?.let { assetDisplayMap ->
+            onGotAssetDetails(assetDisplayMap)
+        }
+
+        dialogView.current_price.text = newState.assetFiatPrice
+
+        configureTimespanSelectionUI(dialogView, newState.timeSpan)
+
+        if (newState.chartLoading) {
+            chartToLoadingState()
+        } else {
+            chartToDataState()
+        }
+
+        dialogView.chart.apply {
+            if (newState.chartData != state.chartData) {
+                updateChart(this, newState.chartData)
+            }
+        }
+
+        updatePriceChange(dialogView.price_change, newState.chartData)
+
+        state = newState
+    }
 
     override fun initControls(view: View) {
         with(view) {
-
             configureChart(chart,
                 getFiatSymbol(currencyPrefs.selectedFiatCurrency),
                 cryptoCurrency.getDecimalPlaces())
 
             configureTabs(view.chart_price_periods)
 
-            assetDetailsViewModel.token.accept(token)
             current_price_title.text =
                 getString(R.string.dashboard_price_for_asset, cryptoCurrency.displayTicker)
 
-            compositeDisposable += assetDetailsViewModel.assetDisplayDetails
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy(
-                    onError = { },
-                    onNext = { map ->
-                        onGotAssetDetails(view, map)
-                    }
-                )
+            asset_list.apply {
+                adapter = detailsAdapter
 
-            compositeDisposable += assetDetailsViewModel.exchangeRate
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy(
-                    onError = { },
-                    onNext = { current_price.text = it }
-                )
-
-            compositeDisposable += assetDetailsViewModel.timeSpan.subscribeBy {
-                configureUiForSelection(view, it)
+                layoutManager = LinearLayoutManager(requireContext())
+                addItemDecoration(BlockchainListDividerDecor(requireContext()))
             }
 
-            compositeDisposable += assetDetailsViewModel
-                .chartLoading
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy { isLoading ->
-                    if (isLoading) {
-                        chartToLoadingState()
-                    } else {
-                        chartToDataState()
-                    }
-                }
-
-            compositeDisposable += assetDetailsViewModel
-                .historicPrices
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy { data ->
-                    chart.apply {
-                        updateChart(chart, data)
-                    }
-                    updatePriceChange(view.price_change, data)
-                }
+            model.process(LoadAssetDisplayDetails)
+            model.process(LoadAssetFiatValue)
+            model.process(LoadHistoricPrices)
         }
     }
 
-    private fun onGotAssetDetails(view: View, assetDetails: AssetDisplayMap) {
-        with(view) {
+    override fun dismiss() {
+        super.dismiss()
+        model.process(ClearSheetDataIntent)
+    }
 
-            asset_list.layoutManager = LinearLayoutManager(requireContext())
-            asset_list.addItemDecoration(
-                DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+    private fun onGotAssetDetails(assetDetails: AssetDisplayMap) {
+
+        val itemList = mutableListOf<AssetDetailItem>()
+
+        assetDetails[AssetFilter.NonCustodial]?.let {
+            itemList.add(
+                AssetDetailItem(
+                    assetFilter = AssetFilter.NonCustodial,
+                    account = it.account,
+                    balance = it.amount,
+                    fiatBalance = it.fiatValue,
+                    actions = it.actions,
+                    interestRate = it.interestRate
+                )
             )
-            val itemList = mutableListOf<AssetDetailItem>()
-
-            assetDetails[AssetFilter.NonCustodial]?.let {
-                itemList.add(
-                    AssetDetailItem(
-                        AssetFilter.NonCustodial,
-                        it.account,
-                        it.amount,
-                        it.fiatValue,
-                        it.actions,
-                        it.interestRate
-                    )
-                )
-            }
-
-            assetDetails[AssetFilter.Custodial]?.let {
-                itemList.add(
-                    AssetDetailItem(
-                        AssetFilter.Custodial,
-                        it.account,
-                        it.amount,
-                        it.fiatValue,
-                        it.actions,
-                        it.interestRate
-                    )
-                )
-            }
-
-            assetDetails[AssetFilter.Interest]?.let {
-                itemList.add(
-                    AssetDetailItem(
-                        AssetFilter.Interest,
-                        it.account,
-                        it.amount,
-                        it.fiatValue,
-                        it.actions,
-                        it.interestRate
-                    )
-                )
-            }
-
-            asset_list.adapter = AssetDetailAdapter(itemList, ::onAssetActionSelected, analytics,
-            cryptoCurrency.hasFeature(CryptoCurrency.CUSTODIAL_ONLY), token)
         }
+
+        assetDetails[AssetFilter.Custodial]?.let {
+            itemList.add(
+                AssetDetailItem(
+                    assetFilter = AssetFilter.Custodial,
+                    account = it.account,
+                    balance = it.amount,
+                    fiatBalance = it.fiatValue,
+                    actions = it.actions,
+                    interestRate = it.interestRate
+                )
+            )
+        }
+
+        assetDetails[AssetFilter.Interest]?.let {
+            itemList.add(
+                AssetDetailItem(
+                    assetFilter = AssetFilter.Interest,
+                    account = it.account,
+                    balance = it.amount,
+                    fiatBalance = it.fiatValue,
+                    actions = it.actions,
+                    interestRate = it.interestRate
+                )
+            )
+        }
+
+        detailsAdapter.itemList = itemList
     }
 
-    private fun onAssetActionSelected(action: AssetAction, account: BlockchainAccount) {
-        dismiss()
-        when (action) {
-            AssetAction.ViewActivity -> host.gotoActivityFor(selectAccount(account))
-            AssetAction.Send -> host.gotoSendFor(selectAccount(account))
-            AssetAction.Receive -> host.goToReceiveFor(selectAccount(account))
-            AssetAction.Swap -> host.gotoSwap(selectAccount(account))
-        }.exhaustive
-    }
-
-    private fun selectAccount(account: BlockchainAccount): SingleAccount =
-        when (account) {
-            is SingleAccount -> account
-            is AccountGroup -> account.accounts
-                    .firstOrNull { a -> a.isDefault }
-                ?: account.accounts.firstOrNull()
-                ?: throw IllegalStateException("No SingleAccount found")
-            else -> throw IllegalStateException("Unknown account base")
+    private fun onAccountSelected(account: BlockchainAccount, assetFilter: AssetFilter) {
+        if (account is CryptoAccount && assetFilter == AssetFilter.Custodial) {
+            analytics.logEvent(CustodialBalanceClicked(account.asset))
         }
+
+        state.assetDisplayMap?.get(assetFilter)?.let {
+            model.process(
+                ShowAssetActionsIntent(account)
+            )
+        }
+    }
 
     private fun updateChart(chart: LineChart, data: List<PriceDatum>) {
         chart.apply {
@@ -248,6 +236,19 @@ class AssetDetailSheet : SlidingModalBottomDialog() {
         }
     }
 
+    private fun handleErrorState(error: AssetDetailsError) {
+        val errorString = when (error) {
+            AssetDetailsError.NO_CHART_DATA ->
+                getString(R.string.asset_details_chart_load_failed_toast)
+            AssetDetailsError.NO_ASSET_DETAILS ->
+                getString(R.string.asset_details_load_failed_toast)
+            AssetDetailsError.NO_EXCHANGE_RATE ->
+                getString(R.string.asset_details_exchange_load_failed_toast)
+            else -> "" // this never triggers
+        }
+        ToastCustom.makeText(requireContext(), errorString, Toast.LENGTH_SHORT, TYPE_ERROR)
+    }
+
     private fun chartToLoadingState() {
         with(dialogView) {
             prices_loading?.visible()
@@ -269,7 +270,7 @@ class AssetDetailSheet : SlidingModalBottomDialog() {
             chartPricePeriods.getTabAt(index)?.text = timeSpan.tabName()
         }
         chartPricePeriods.setOnTabSelectedListener {
-            assetDetailsViewModel.timeSpan.accept(TimeSpan.values()[it])
+            model.process(UpdateTimeSpan(TimeSpan.values()[it]))
         }
     }
 
@@ -350,17 +351,13 @@ class AssetDetailSheet : SlidingModalBottomDialog() {
             xAxis.isGranularityEnabled = true
             setExtraOffsets(8f, 0f, 0f, 10f)
             setNoDataTextColor(ContextCompat.getColor(context, R.color.primary_grey_medium))
-            loadFont(
-                context,
-                CustomFont.MONTSERRAT_LIGHT
-            ) {
-                xAxis.typeface = it
-                axisLeft.typeface = it
-            }
+            val typeFace = context.loadInterMedium()
+            xAxis.typeface = typeFace
+            axisLeft.typeface = typeFace
         }
     }
 
-    private fun configureUiForSelection(view: View, selection: TimeSpan) {
+    private fun configureTimespanSelectionUI(view: View, selection: TimeSpan) {
         val dateFormat = when (selection) {
             TimeSpan.ALL_TIME -> SimpleDateFormat("yyyy", locale)
             TimeSpan.YEAR -> SimpleDateFormat("MMM ''yy", locale)
@@ -399,18 +396,6 @@ class AssetDetailSheet : SlidingModalBottomDialog() {
         }
     }
 
-    private fun CryptoCurrency.getDecimalPlaces(): Int =
-        when (this) {
-            CryptoCurrency.BTC,
-            CryptoCurrency.ETHER,
-            CryptoCurrency.BCH,
-            CryptoCurrency.PAX,
-            CryptoCurrency.ALGO,
-            CryptoCurrency.USDT -> 2
-            CryptoCurrency.XLM -> 4
-            CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
-        }
-
     companion object {
         private const val ARG_CRYPTO_CURRENCY = "crypto"
 
@@ -419,6 +404,7 @@ class AssetDetailSheet : SlidingModalBottomDialog() {
                 arguments = Bundle().apply {
                     putSerializable(ARG_CRYPTO_CURRENCY, cryptoCurrency)
                 }
+                model.process(LoadAsset(token))
             }
         }
 

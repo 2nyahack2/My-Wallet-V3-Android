@@ -20,7 +20,6 @@ class BalanceUpdateTest {
                 CryptoCurrency.ETHER to initialEthState,
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = CryptoCurrency.ETHER,
             announcement = testAnnouncementCard_1
         )
 
@@ -40,7 +39,6 @@ class BalanceUpdateTest {
                 CryptoCurrency.ETHER to initialEthState,
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = CryptoCurrency.ETHER,
             announcement = testAnnouncementCard_1
         )
 
@@ -56,7 +54,6 @@ class BalanceUpdateTest {
         assertEquals(result[CryptoCurrency.ETHER], initialState[CryptoCurrency.ETHER])
         assertEquals(result[CryptoCurrency.XLM], initialState[CryptoCurrency.XLM])
 
-        assertEquals(result.showAssetSheetFor, initialState.showAssetSheetFor)
         assertEquals(result.announcement, initialState.announcement)
     }
 
@@ -68,7 +65,6 @@ class BalanceUpdateTest {
                 CryptoCurrency.ETHER to initialEthState.copy(hasBalanceError = true),
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = CryptoCurrency.ETHER,
             announcement = testAnnouncementCard_1
         )
 
@@ -85,7 +81,6 @@ class BalanceUpdateTest {
         assertEquals(result[CryptoCurrency.BTC], initialState[CryptoCurrency.BTC])
         assertEquals(result[CryptoCurrency.XLM], initialState[CryptoCurrency.XLM])
 
-        assertEquals(result.showAssetSheetFor, initialState.showAssetSheetFor)
         assertEquals(result.announcement, initialState.announcement)
     }
 }

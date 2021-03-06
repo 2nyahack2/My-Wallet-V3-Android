@@ -10,7 +10,7 @@ import info.blockchain.wallet.exceptions.ServerConnectionException;
 import info.blockchain.wallet.exceptions.UnsupportedVersionException;
 import info.blockchain.wallet.multiaddress.MultiAddressFactory;
 import info.blockchain.wallet.multiaddress.TransactionSummary;
-import info.blockchain.wallet.multiaddress.TransactionSummary.Direction;
+import info.blockchain.wallet.multiaddress.TransactionSummary.TransactionType;
 import info.blockchain.wallet.payload.data.Account;
 import info.blockchain.wallet.payload.data.AddressLabel;
 import info.blockchain.wallet.payload.data.LegacyAddress;
@@ -560,7 +560,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
         Assert.assertEquals(8, transactionSummaries.size());
         TransactionSummary summary = transactionSummaries.get(0);
         Assert.assertEquals(68563, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("125QEfWq3eKzAQQHeqcMcDMeZGm13hVRvU"));//My Bitcoin Account
         Assert.assertEquals(2, summary.getOutputsMap().size());
@@ -569,7 +569,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
 
         summary = transactionSummaries.get(1);
         Assert.assertEquals(138068, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, summary.getDirection());
+        Assert.assertEquals(TransactionType.SENT, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("1CQpuTQrJQLW6PEar17zsd9EV14cZknqWJ"));//My Bitcoin Wallet
         Assert.assertEquals(2, summary.getOutputsMap().size());
@@ -578,7 +578,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
 
         summary = transactionSummaries.get(2);
         Assert.assertEquals(800100, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.RECEIVED, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.RECEIVED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("19CMnkUgBnTBNiTWXwoZr6Gb3aeXKHvuGG"));
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -586,7 +586,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
 
         summary = transactionSummaries.get(3);
         Assert.assertEquals(35194, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.SENT, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.SENT, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("15HjFY96ZANBkN5kvPRgrXH93jnntqs32n"));//My Bitcoin Wallet
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -594,7 +594,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
 
         summary = transactionSummaries.get(4);
         Assert.assertEquals(98326, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("1Peysd3qYDe35yNp6KB1ZkbVYHr42JT9zZ"));//My Bitcoin Wallet
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -602,7 +602,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
 
         summary = transactionSummaries.get(5);
         Assert.assertEquals(160640, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.RECEIVED, summary.getDirection());
+        Assert.assertEquals(TransactionType.RECEIVED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("1BZe6YLaf2HiwJdnBbLyKWAqNia7foVe1w"));
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -610,7 +610,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
 
         summary = transactionSummaries.get(6);
         Assert.assertEquals(9833, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("17ijgwpGsVQRzMjsdAfdmeP53kpw9yvXur"));//My Bitcoin Wallet
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -618,7 +618,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
 
         summary = transactionSummaries.get(7);
         Assert.assertEquals(40160, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.RECEIVED, summary.getDirection());
+        Assert.assertEquals(TransactionType.RECEIVED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("1Baa1cjB1CyBVSjw8SkFZ2YBuiwKnKLXhe"));
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -633,7 +633,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
         Assert.assertEquals(2, transactionSummaries.size());
         summary = transactionSummaries.get(0);
         Assert.assertEquals(68563, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("125QEfWq3eKzAQQHeqcMcDMeZGm13hVRvU"));//My Bitcoin Wallet
         Assert.assertEquals(2, summary.getOutputsMap().size());
@@ -642,7 +642,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
 
         summary = transactionSummaries.get(1);
         Assert.assertEquals(9833, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("17ijgwpGsVQRzMjsdAfdmeP53kpw9yvXur"));//My Bitcoin Wallet
         Assert.assertEquals(1, summary.getOutputsMap().size());
@@ -657,7 +657,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
         summary = transactionSummaries.get(0);
         Assert.assertEquals(2, transactionSummaries.size());
         Assert.assertEquals(68563, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("125QEfWq3eKzAQQHeqcMcDMeZGm13hVRvU"));//My Bitcoin Wallet
         Assert.assertEquals(2, summary.getOutputsMap().size());
@@ -666,7 +666,7 @@ public final class PayloadManagerTest extends WalletApiMockedResponseTest {
 
         summary = transactionSummaries.get(1);
         Assert.assertEquals(98326, summary.getTotal().longValue());
-        Assert.assertEquals(Direction.TRANSFERRED, summary.getDirection());
+        Assert.assertEquals(TransactionSummary.TransactionType.TRANSFERRED, summary.getTransactionType());
         Assert.assertEquals(1, summary.getInputsMap().size());
         Assert.assertTrue(summary.getInputsMap().keySet().contains("1Peysd3qYDe35yNp6KB1ZkbVYHr42JT9zZ"));//My Bitcoin Wallet
         Assert.assertEquals(1, summary.getOutputsMap().size());

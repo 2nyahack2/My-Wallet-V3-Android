@@ -1,18 +1,18 @@
 package piuk.blockchain.android.ui.kyc.profile
 
 import piuk.blockchain.android.ui.kyc.BaseKycPresenter
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.NabuApiException
-import com.blockchain.swap.nabu.models.nabu.NabuErrorStatusCodes
-import com.blockchain.swap.nabu.util.toISO8601DateString
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.NabuApiException
+import com.blockchain.nabu.models.responses.nabu.NabuErrorStatusCodes
+import com.blockchain.nabu.util.toISO8601DateString
 import piuk.blockchain.android.campaign.CampaignType
 import piuk.blockchain.android.ui.kyc.profile.models.ProfileModel
 import com.blockchain.metadata.MetadataRepository
-import com.blockchain.swap.nabu.NabuToken
-import com.blockchain.swap.nabu.metadata.NabuCredentialsMetadata
-import com.blockchain.swap.nabu.models.tokenresponse.NabuOfflineTokenResponse
-import com.blockchain.swap.nabu.models.tokenresponse.mapFromMetadata
-import com.blockchain.swap.nabu.models.tokenresponse.mapToMetadata
+import com.blockchain.nabu.NabuToken
+import com.blockchain.nabu.metadata.NabuCredentialsMetadata
+import com.blockchain.nabu.models.responses.tokenresponse.NabuOfflineTokenResponse
+import com.blockchain.nabu.models.responses.tokenresponse.mapFromMetadata
+import com.blockchain.nabu.models.responses.tokenresponse.mapToMetadata
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
@@ -74,14 +74,15 @@ class KycProfilePresenter(
                 .subscribeBy(
                     onComplete = {
                         ProfileModel(
-                            view.firstName,
-                            view.lastName,
-                            view.countryCode
+                            firstName = view.firstName,
+                            lastName = view.lastName,
+                            countryCode = view.countryCode,
+                            state = view.state
                         ).run { view.continueSignUp(this) }
                     },
                     onError = {
                         if (it is NabuApiException &&
-                            it.getErrorStatusCode() == NabuErrorStatusCodes.AlreadyRegistered
+                            it.getErrorStatusCode() == NabuErrorStatusCodes.Conflict
                         ) {
                             view.showErrorToast(stringUtils.getString(R.string.kyc_profile_error_conflict))
                         } else {
@@ -104,12 +105,16 @@ class KycProfilePresenter(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribeBy(
                         onSuccess = {
+                            val firstName = it.firstName ?: return@subscribeBy
+                            val lastName = it.lastName ?: return@subscribeBy
+                            val dob = it.dob ?: return@subscribeBy
                             val displayFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
                             val backendFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                            val displayDate = backendFormat.parse(it.dob!!)
+                            val displayDate = backendFormat.parse(dob)
+
                             view.restoreUiState(
-                                it.firstName!!,
-                                it.lastName!!,
+                                firstName,
+                                lastName,
                                 displayFormat.format(displayDate),
                                 displayDate.toCalendar()
                             )

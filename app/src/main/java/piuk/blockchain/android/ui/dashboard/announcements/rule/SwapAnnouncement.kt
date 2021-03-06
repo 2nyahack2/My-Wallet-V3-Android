@@ -1,9 +1,9 @@
 package piuk.blockchain.android.ui.dashboard.announcements.rule
 
-import androidx.annotation.VisibleForTesting
-import com.blockchain.swap.common.trade.MorphTradeDataHistoryList
+import com.blockchain.nabu.datamanagers.EligibilityProvider
 import io.reactivex.Single
 import piuk.blockchain.android.R
+import piuk.blockchain.android.campaign.CampaignType
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementHost
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementQueries
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementRule
@@ -12,56 +12,89 @@ import piuk.blockchain.android.ui.dashboard.announcements.DismissRule
 import piuk.blockchain.android.ui.dashboard.announcements.StandardAnnouncementCard
 
 class SwapAnnouncement(
-    private val dataManager: MorphTradeDataHistoryList,
     private val queries: AnnouncementQueries,
+    private val eligibilityProvider: EligibilityProvider,
     dismissRecorder: DismissRecorder
 ) : AnnouncementRule(dismissRecorder) {
 
-    override val dismissKey = DISMISS_KEY
+    private lateinit var announcementType: AnnouncementType
 
-    override fun shouldShow(): Single<Boolean> {
-        if (dismissEntry.isDismissed) {
-            return Single.just(false)
-        }
-        return hasSwaps().flatMap {
-            if (it) {
-                Single.just(false)
-            } else {
-                queries.isTier1Or2Verified()
+    override val dismissKey: String
+        get() = DISMISS_KEY.plus(announcementType.toString())
+
+    override val name: String
+        get() = "swap_v2"
+
+    override fun shouldShow(): Single<Boolean> =
+        queries.isTier1Or2Verified().flatMap {
+            if (!it)
+                Single.just(AnnouncementType.PROMO)
+            else eligibilityProvider.isEligibleForSimpleBuy().map { eligible ->
+                if (eligible) AnnouncementType.ELIGIBLE
+                else AnnouncementType.NOT_ELIGIBLE
             }
-        }
-    }
-
-    private fun hasSwaps(): Single<Boolean> =
-        dataManager.getTrades().map {
-            it.isNotEmpty()
+        }.doOnSuccess {
+            announcementType = it
+        }.map {
+            !dismissEntry.isDismissed
         }
 
     override fun show(host: AnnouncementHost) {
+        val title = when (announcementType) {
+            AnnouncementType.PROMO -> R.string.swap_faster_cheaper
+            AnnouncementType.NOT_ELIGIBLE -> R.string.swap_better
+            AnnouncementType.ELIGIBLE -> R.string.swap_hot
+        }
+
+        val body = when (announcementType) {
+            AnnouncementType.PROMO -> R.string.swap_upgrade_to_gold
+            AnnouncementType.NOT_ELIGIBLE -> R.string.swap_better_experience
+            AnnouncementType.ELIGIBLE -> R.string.swap_faster_cheaper_better
+        }
+
+        val ctaText = when (announcementType) {
+            AnnouncementType.PROMO -> R.string.upgrade_now
+            AnnouncementType.ELIGIBLE,
+            AnnouncementType.NOT_ELIGIBLE -> R.string.swap_now
+        }
+
+        val ctaAction: () -> Unit = when (announcementType) {
+            AnnouncementType.PROMO -> {
+                {
+                    host.startKyc(CampaignType.Swap)
+                }
+            }
+            AnnouncementType.NOT_ELIGIBLE,
+            AnnouncementType.ELIGIBLE -> {
+                host::startSwap
+            }
+        }
+
         host.showAnnouncementCard(
-            StandardAnnouncementCard(
+            card = StandardAnnouncementCard(
                 name = name,
-                titleText = R.string.swap_announcement_title,
-                bodyText = R.string.swap_announcement_description,
-                ctaText = R.string.swap_announcement_introducing_link,
-                iconImage = R.drawable.ic_announce_swap,
+                dismissRule = DismissRule.CardOneTime,
+                dismissEntry = dismissEntry,
+                titleText = title,
+                bodyText = body,
+                ctaText = ctaText,
+                iconImage = R.drawable.ic_swap_blue_circle,
                 dismissFunction = {
                     host.dismissAnnouncementCard()
                 },
                 ctaFunction = {
+                    ctaAction()
                     host.dismissAnnouncementCard()
-                    host.startSwap()
-                },
-                dismissEntry = dismissEntry,
-                dismissRule = DismissRule.CardPeriodic
+                }
             )
         )
     }
 
-    override val name = "swap"
-
     companion object {
-        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-        const val DISMISS_KEY = "SwapAnnouncementCard_DISMISSED"
+        private const val DISMISS_KEY = "SWAP_NEW_ANNOUNCEMENT_DISMISSED"
+    }
+
+    private enum class AnnouncementType {
+        PROMO, NOT_ELIGIBLE, ELIGIBLE
     }
 }

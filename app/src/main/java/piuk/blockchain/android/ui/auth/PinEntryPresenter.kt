@@ -8,23 +8,24 @@ import androidx.annotation.VisibleForTesting
 import com.blockchain.logging.CrashLogger
 import com.blockchain.notifications.analytics.Analytics
 import com.blockchain.notifications.analytics.AnalyticsEvents
+import com.blockchain.remoteconfig.RemoteConfig
 import info.blockchain.wallet.api.Environment
 import info.blockchain.wallet.api.data.UpdateType
 import info.blockchain.wallet.exceptions.AccountLockedException
 import info.blockchain.wallet.exceptions.DecryptionException
 import info.blockchain.wallet.exceptions.HDWalletException
 import info.blockchain.wallet.exceptions.InvalidCredentialsException
-import info.blockchain.wallet.exceptions.PayloadException
 import info.blockchain.wallet.exceptions.ServerConnectionException
 import info.blockchain.wallet.exceptions.UnsupportedVersionException
+import io.reactivex.Single
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 import org.spongycastle.crypto.InvalidCipherTextException
 import piuk.blockchain.android.R
-import piuk.blockchain.android.ui.fingerprint.FingerprintHelper
+import piuk.blockchain.android.data.biometrics.BiometricsController
+import piuk.blockchain.android.ui.home.CredentialsWiper
 import piuk.blockchain.android.ui.launcher.LauncherActivity
 import piuk.blockchain.android.util.AppUtil
-import piuk.blockchain.android.util.DialogButtonCallback
 import piuk.blockchain.android.util.StringUtils
 import piuk.blockchain.androidcore.data.access.AccessState
 import piuk.blockchain.androidcore.data.api.EnvironmentConfig
@@ -47,34 +48,38 @@ class PinEntryPresenter(
     private val prefs: PersistentPrefs,
     private val payloadDataManager: PayloadDataManager,
     private val stringUtils: StringUtils,
-    private val fingerprintHelper: FingerprintHelper,
     private val accessState: AccessState,
     private val walletOptionsDataManager: WalletOptionsDataManager,
     private val environmentSettings: EnvironmentConfig,
     private val prngFixer: PrngFixer,
     private val mobileNoticeRemoteConfig: MobileNoticeRemoteConfig,
-    private val crashLogger: CrashLogger
-) :
-    BasePresenter<PinEntryView>() {
+    private val crashLogger: CrashLogger,
+    private val config: RemoteConfig,
+    private val credentialsWiper: CredentialsWiper,
+    private val biometricsController: BiometricsController
+) : BasePresenter<PinEntryView>() {
 
     @VisibleForTesting
     var canShowFingerprintDialog = true
+
     @VisibleForTesting
     var isForValidatingPinForResult = false
+
     @VisibleForTesting
     var userEnteredPin = ""
+
     @VisibleForTesting
     var userEnteredConfirmationPin: String? = null
+
     @VisibleForTesting
     internal var bAllowExit = true
 
     internal val ifShouldShowFingerprintLogin: Boolean
         get() = (!(isForValidatingPinForResult || isCreatingNewPin) &&
-                fingerprintHelper.isFingerprintUnlockEnabled() &&
-                fingerprintHelper.getEncryptedData(PersistentPrefs.KEY_ENCRYPTED_PIN_CODE) != null)
+            biometricsController.isFingerprintUnlockEnabled)
 
     val isCreatingNewPin: Boolean
-        get() = prefs.getValue(PersistentPrefs.KEY_PIN_IDENTIFIER, "").isEmpty()
+        get() = prefs.pinId.isEmpty()
 
     private val isChangingPin: Boolean
         get() = isCreatingNewPin && accessState.pin.isNotEmpty()
@@ -109,8 +114,7 @@ class PinEntryPresenter(
 
     fun checkFingerprintStatus() {
         if (ifShouldShowFingerprintLogin) {
-            view.showFingerprintDialog(
-                fingerprintHelper.getEncryptedData(PersistentPrefs.KEY_ENCRYPTED_PIN_CODE)!!)
+            view.showFingerprintDialog()
         } else {
             view.showKeyboard()
         }
@@ -198,23 +202,28 @@ class PinEntryPresenter(
     @Thunk
     internal fun validateAndConfirmPin() {
         // Validate
-        if (!prefs.getValue(PersistentPrefs.KEY_PIN_IDENTIFIER, "").isEmpty()) {
-            view.setTitleVisibility(View.INVISIBLE)
-            validatePIN(userEnteredPin)
-        } else if (userEnteredConfirmationPin == null) {
-            // End of Create -  Change to Confirm
-            userEnteredConfirmationPin = userEnteredPin
-            userEnteredPin = ""
-            view.setTitleString(R.string.confirm_pin)
-            clearPinBoxes()
-        } else if (userEnteredConfirmationPin == userEnteredPin) {
-            // End of Confirm - Pin is confirmed
-            createNewPin(userEnteredPin)
-        } else {
-            // End of Confirm - Pin Mismatch
-            showErrorToast(R.string.pin_mismatch_error)
-            view.setTitleString(R.string.create_pin)
-            clearPinViewAndReset()
+        when {
+            prefs.pinId.isNotEmpty() -> {
+                view.setTitleVisibility(View.INVISIBLE)
+                validatePIN(userEnteredPin)
+            }
+            userEnteredConfirmationPin == null -> {
+                // End of Create -  Change to Confirm
+                userEnteredConfirmationPin = userEnteredPin
+                userEnteredPin = ""
+                view.setTitleString(R.string.confirm_pin)
+                clearPinBoxes()
+            }
+            userEnteredConfirmationPin == userEnteredPin -> {
+                // End of Confirm - Pin is confirmed
+                createNewPin(userEnteredPin)
+            }
+            else -> {
+                // End of Confirm - Pin Mismatch
+                showErrorToast(R.string.pin_mismatch_error)
+                view.setTitleString(R.string.create_pin)
+                clearPinViewAndReset()
+            }
         }
     }
 
@@ -234,7 +243,7 @@ class PinEntryPresenter(
     }
 
     @VisibleForTesting
-    fun updatePayload(password: String) {
+    fun updatePayload(password: String, isFromPinCreation: Boolean = false) {
         view.showProgressDialog(R.string.decrypting_wallet, null)
 
         compositeDisposable += payloadDataManager.initializeAndDecrypt(
@@ -247,12 +256,13 @@ class PinEntryPresenter(
                 canShowFingerprintDialog = true
             }
             .subscribeBy(
-                onComplete = { handlePayloadUpdateComplete() },
+                onComplete = { handlePayloadUpdateComplete(isFromPinCreation) },
                 onError = { handlePayloadUpdateError(it) }
             )
     }
 
-    private fun handlePayloadUpdateComplete() {
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    fun handlePayloadUpdateComplete(isFromPinCreation: Boolean) {
         val wallet = payloadDataManager.wallet!!
         appUtil.sharedKey = wallet.sharedKey
 
@@ -263,8 +273,16 @@ class PinEntryPresenter(
         if (!wallet.isUpgraded) {
             view.goToUpgradeWalletActivity()
         } else {
-            view.restartAppWithVerifiedPin()
+            if (isFromPinCreation && biometricsController.isFingerprintAvailable) {
+                view.askToUseBiometrics()
+            } else {
+                view.restartAppWithVerifiedPin()
+            }
         }
+    }
+
+    fun finishSignupProcess() {
+        view.restartAppWithVerifiedPin()
     }
 
     private fun handlePayloadUpdateError(t: Throwable) {
@@ -278,10 +296,6 @@ class PinEntryPresenter(
             }
             is UnsupportedVersionException -> view.showWalletVersionNotSupportedDialog(t.message)
             is DecryptionException -> view.goToPasswordRequiredActivity()
-            is PayloadException -> {
-                // This shouldn't happen - Payload retrieved from server couldn't be parsed
-                showFatalErrorToastAndRestart(R.string.unexpected_error, t)
-            }
             is HDWalletException -> {
                 // This shouldn't happen. HD fatal error - not safe to continue - don't clear credentials
                 showFatalErrorToastAndRestart(R.string.unexpected_error, t)
@@ -306,7 +320,8 @@ class PinEntryPresenter(
         compositeDisposable += payloadDataManager.initializeAndDecrypt(
             prefs.getValue(PersistentPrefs.KEY_SHARED_KEY, ""),
             prefs.getValue(PersistentPrefs.KEY_WALLET_GUID, ""),
-            password)
+            password
+        )
             .doAfterTerminate { view.dismissProgressDialog() }
             .subscribeBy(
                 onComplete = { handlePasswordValidated() },
@@ -317,7 +332,7 @@ class PinEntryPresenter(
     private fun handlePasswordValidated() {
         showMessageToast(R.string.pin_4_strikes_password_accepted)
         prefs.removeValue(PersistentPrefs.KEY_PIN_FAILS)
-        prefs.removeValue(PersistentPrefs.KEY_PIN_IDENTIFIER)
+        prefs.pinId = ""
         crashLogger.logEvent("new password. pin reset")
         accessState.clearPin()
         view.restartPageAndClearTop()
@@ -328,10 +343,6 @@ class PinEntryPresenter(
             is ServerConnectionException,
             is SocketTimeoutException ->
                 showFatalErrorToastAndRestart(R.string.server_unreachable_exit, t)
-            is PayloadException -> {
-                // This shouldn't happen - Payload retrieved from server couldn't be parsed
-                showFatalErrorToastAndRestart(R.string.unexpected_error, t)
-            }
             is HDWalletException -> {
                 // This shouldn't happen. HD fatal error - not safe to continue - don't clear credentials
                 showFatalErrorToastAndRestart(R.string.unexpected_error, t)
@@ -359,10 +370,9 @@ class PinEntryPresenter(
             .subscribeBy(
                 onComplete = {
                     view.dismissProgressDialog()
-                    fingerprintHelper.clearEncryptedData(PersistentPrefs.KEY_ENCRYPTED_PIN_CODE)
-                    fingerprintHelper.setFingerprintUnlockEnabled(false)
+                    biometricsController.setFingerprintUnlockEnabled(false)
                     prefs.setValue(PersistentPrefs.KEY_PIN_FAILS, 0)
-                    updatePayload(tempPassword)
+                    updatePayload(tempPassword, true)
                 },
                 onError = {
                     showErrorToast(R.string.create_pin_failed)
@@ -427,20 +437,21 @@ class PinEntryPresenter(
         view.restartPageAndClearTop()
     }
 
-    // Check user's password if PIN fails >= 4
+    // Check user's password if PIN fails >= max
     private fun checkPinFails() {
         val fails = prefs.getValue(PersistentPrefs.KEY_PIN_FAILS, 0)
-        if (fails >= MAX_ATTEMPTS) {
-            showErrorToast(R.string.pin_4_strikes)
-            view.showMaxAttemptsDialog()
+        getPinRetriesFromRemoteConfig { maxAttempts ->
+            if (fails >= maxAttempts) {
+                showParameteredErrorToast(R.string.pin_max_strikes, maxAttempts)
+                view.showMaxAttemptsDialog()
+            }
         }
     }
 
     private fun setAccountLabelIfNecessary() {
         if (accessState.isNewlyCreated &&
             payloadDataManager.accounts.isNotEmpty() &&
-            (payloadDataManager.getAccount(0).label == null ||
-                    payloadDataManager.getAccount(0).label.isEmpty())
+            payloadDataManager.getAccount(0).label.isNullOrEmpty()
         ) {
             payloadDataManager.getAccount(0).label =
                 stringUtils.getString(R.string.btc_default_wallet_name)
@@ -453,8 +464,7 @@ class PinEntryPresenter(
     }
 
     fun resetApp() {
-        appUtil.clearCredentials()
-        appUtil.restartApp(LauncherActivity::class.java)
+        credentialsWiper.wipe()
     }
 
     fun allowExit(): Boolean {
@@ -471,6 +481,12 @@ class PinEntryPresenter(
     private fun showErrorToast(@StringRes message: Int) {
         view.dismissProgressDialog()
         view.showToast(message, ToastCustom.TYPE_ERROR)
+    }
+
+    @UiThread
+    private fun showParameteredErrorToast(@StringRes message: Int, parameter: Int) {
+        view.dismissProgressDialog()
+        view.showParameteredToast(message, ToastCustom.TYPE_ERROR, parameter)
     }
 
     private class PinEntryLogException(cause: Throwable) : Exception(cause)
@@ -510,8 +526,21 @@ class PinEntryPresenter(
             )
     }
 
+    private fun getPinRetriesFromRemoteConfig(action: (Int) -> Unit) {
+        compositeDisposable += Single.just(LOCAL_MAX_ATTEMPTS)
+            .onErrorReturn { LOCAL_MAX_ATTEMPTS }
+            .subscribeBy(
+                onSuccess = {
+                    action.invoke(it.toInt())
+                }, onError = {
+                    Timber.d("Error getting PIN tries from remote config: $it")
+                }
+            )
+    }
+
     companion object {
         private const val PIN_LENGTH = 4
-        private const val MAX_ATTEMPTS = 4
+        private const val LOCAL_MAX_ATTEMPTS: Long = 4
+        private const val PIN_RETRIES_KEY = "pin_retries_count"
     }
 }

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/details_sheet_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/tiny_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/vector_sheet_indicator" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/current_price_title"
+        style="@style/Text.Light.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/small_margin"
+        android:layout_marginEnd="@dimen/small_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/details_sheet_indicator"
+        tools:text="Current BTC Price" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/current_price"
+        style="@style/Text.Semibold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:textSize="32sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/current_price_title"
+        tools:text="$10,468.07" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/price_change"
+        style="@style/Text.Semibold.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        app:layout_constraintEnd_toStartOf="@+id/price_change_period"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/current_price"
+        tools:text="+$158.45 (1.56%)" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/price_change_period"
+        style="@style/Text.Light.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/price_change"
+        app:layout_constraintTop_toBottomOf="@+id/current_price"
+        tools:text="last 24hrs" />
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/price_change_period"
+        tools:ignore="RtlHardcoded,RtlSymmetry" />
+
+    <ProgressBar
+        android:id="@+id/prices_loading"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="35dp"
+        android:layout_marginEnd="35dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/blue_600"
+        android:indeterminateTintMode="src_in"
+        app:layout_constraintBottom_toBottomOf="@+id/chart"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/chart" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/chart_price_periods"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/chart"
+        app:tabIndicatorColor="@color/dashboard_chart_indicator_color">
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/day_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1D" />
+
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/week_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1W" />
+
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/month_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1M" />
+
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/year_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1Y" />
+
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/all_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ALL" />
+
+    </com.google.android.material.tabs.TabLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/asset_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/very_small_margin"
+        app:layout_constrainedHeight="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chart_price_periods"
+        tools:listitem="@layout/dialog_dashboard_asset_detail_item" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

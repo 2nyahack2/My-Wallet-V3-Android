@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <group android:id="@+id/nav_menu_top">
+
         <item
-            android:id="@+id/nav_simple_buy"
-            android:icon="@drawable/ic_nav_buy_sell"
-            android:title="@string/item_buy"
-            android:visible="false"
-            app:contentDescription="@string/item_simple_buy" />
+            android:id="@+id/nav_interest"
+            android:icon="@drawable/ic_interest_grey_circle"
+            android:title="@string/earn_interest"
+            android:visible="true" />
 
         <item
             android:id="@+id/nav_backup"

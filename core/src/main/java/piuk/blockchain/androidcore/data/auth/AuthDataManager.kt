@@ -12,11 +12,11 @@ import io.reactivex.exceptions.Exceptions
 import okhttp3.ResponseBody
 import org.spongycastle.util.encoders.Hex
 import piuk.blockchain.androidcore.data.access.AccessState
-import piuk.blockchain.androidcore.data.access.isValidPin
 import piuk.blockchain.androidcore.utils.AESUtilWrapper
 import piuk.blockchain.androidcore.utils.PersistentPrefs
 import piuk.blockchain.androidcore.utils.PrngFixer
 import piuk.blockchain.androidcore.utils.extensions.applySchedulers
+import piuk.blockchain.androidcore.utils.extensions.isValidPin
 import retrofit2.Response
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
@@ -153,8 +153,7 @@ class AuthDataManager(
     }
 
     private fun getValidatePinObservable(passedPin: String): Observable<String> {
-        val key = prefs.getValue(PersistentPrefs.KEY_PIN_IDENTIFIER, "")
-        val encryptedPassword = prefs.getValue(PersistentPrefs.KEY_ENCRYPTED_PASSWORD, "")
+        val key = prefs.pinId
 
         if (!passedPin.isValidPin()) {
             return Observable.error(IllegalArgumentException("Invalid PIN"))
@@ -174,8 +173,10 @@ class AuthDataManager(
                     accessState.isRestored = false
                     val decryptionKey = response.body()!!.success
 
+                    handleBackup(decryptionKey)
+
                     return@map aesUtilWrapper.decrypt(
-                        encryptedPassword,
+                        prefs.getValue(PersistentPrefs.KEY_ENCRYPTED_PASSWORD, ""),
                         decryptionKey,
                         AESUtil.PIN_PBKDF2_ITERATIONS
                     )
@@ -188,6 +189,25 @@ class AuthDataManager(
                     }
                 }
             }
+    }
+
+    /*
+    This function takes care of saving the encrypted values into the special storage for
+    the automatic backup, and also decrypts the values when necessary into local storage.
+     */
+    private fun handleBackup(decryptionKey: String) {
+        if (!prefs.backupEnabled) {
+            // Just to make sure, if the user specifically opted out out of cloud backups,
+            // always clear the backup over here. 
+            prefs.clearBackup()
+            return
+        }
+
+        if (prefs.hasBackup() && prefs.getValue(PersistentPrefs.KEY_WALLET_GUID) == null) {
+            prefs.restoreFromBackup(decryptionKey, aesUtilWrapper)
+        } else {
+            prefs.backupCurrentPrefs(decryptionKey, aesUtilWrapper)
+        }
     }
 
     private fun getCreatePinObservable(password: String, passedPin: String): Completable {
@@ -221,7 +241,9 @@ class AuthDataManager(
                         )
 
                         prefs.setValue(PersistentPrefs.KEY_ENCRYPTED_PASSWORD, encryptedPassword)
-                        prefs.setValue(PersistentPrefs.KEY_PIN_IDENTIFIER, key)
+                        prefs.pinId = key
+
+                        handleBackup(encryptionKey)
 
                         if (!subscriber.isDisposed) {
                             subscriber.onComplete()

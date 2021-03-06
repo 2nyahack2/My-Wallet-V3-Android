@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="exchange_row_height">58dp</dimen>
-    <dimen name="list_item_height">80dp</dimen>
 
+    <dimen name="xhuge_margin">48dp</dimen>
     <dimen name="huge_margin">40dp</dimen>
+    <dimen name="xlarge_margin">36dp</dimen>
     <dimen name="large_margin">32dp</dimen>
     <dimen name="medium_margin">20dp</dimen>
     <dimen name="standard_margin">24dp</dimen>
@@ -20,7 +20,6 @@
     <dimen name="size_standard">16dp</dimen>
     <dimen name="size_small">12dp</dimen>
     <dimen name="size_tiny">8dp</dimen>
-
 
     <dimen name="asset_icon_size">32dp</dimen>
 </resources>

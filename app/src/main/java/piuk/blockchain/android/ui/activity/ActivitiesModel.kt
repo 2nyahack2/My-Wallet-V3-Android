@@ -13,9 +13,16 @@ import timber.log.Timber
 enum class ActivitiesSheet {
     ACCOUNT_SELECTOR,
     CRYPTO_ACTIVITY_DETAILS,
-    FIAT_ACTIVITY_DETAILS,
-    BANK_TRANSFER_DETAILS,
-    BANK_ORDER_CANCEL
+    FIAT_ACTIVITY_DETAILS
+}
+
+enum class CryptoActivityType {
+    NON_CUSTODIAL,
+    CUSTODIAL_TRADING,
+    CUSTODIAL_INTEREST,
+    SWAP,
+    SELL,
+    UNKNOWN
 }
 
 data class ActivitiesState(
@@ -27,7 +34,7 @@ data class ActivitiesState(
     val selectedTxId: String = "",
     val selectedCryptoCurrency: CryptoCurrency? = null,
     val selectedFiatCurrency: String? = null,
-    val isCustodial: Boolean = false
+    val activityType: CryptoActivityType = CryptoActivityType.UNKNOWN
 ) : MviState
 
 class ActivitiesModel(
@@ -38,6 +45,9 @@ class ActivitiesModel(
     initialState,
     mainScheduler
 ) {
+
+    private var fetchSubscription: Disposable? = null
+
     override fun performAction(
         previousState: ActivitiesState,
         intent: ActivitiesIntent
@@ -45,8 +55,11 @@ class ActivitiesModel(
         Timber.d("***> performAction: ${intent.javaClass.simpleName}")
 
         return when (intent) {
-            is AccountSelectedIntent ->
-                interactor.getActivityForAccount(intent.account, intent.isRefreshRequested)
+            is AccountSelectedIntent -> {
+
+                fetchSubscription?.dispose()
+
+                fetchSubscription = interactor.getActivityForAccount(intent.account, intent.isRefreshRequested)
                     .subscribeBy(
                         onNext = {
                             process(ActivityListUpdatedIntent(it))
@@ -56,6 +69,9 @@ class ActivitiesModel(
                         },
                         onError = { process(ActivityListUpdatedErrorIntent) }
                     )
+
+                fetchSubscription
+            }
             is SelectDefaultAccountIntent ->
                 interactor.getDefaultAccount()
                     .subscribeBy(

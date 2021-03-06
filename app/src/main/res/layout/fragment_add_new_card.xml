@@ -1,140 +1,217 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/card_name_input"
-        style="@style/CardDataInputLayoutAppearance"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/standard_margin"
-        android:hint="@string/name_on_card"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <com.braintreepayments.cardform.view.CardholderNameEditText
-            android:id="@+id/card_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/card_input_form"
-        style="@style/CardDataInputLayoutAppearance"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/standard_margin"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="@dimen/standard_margin"
-        android:hint="@string/card_number"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/card_name_input">
-
-        <piuk.blockchain.android.cards.views.CardNumberEditText
-            android:id="@+id/card_number"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="@dimen/small_margin"
-            android:paddingEnd="@dimen/small_margin" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/card_date_input"
-        style="@style/CardDataInputLayoutAppearance"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/standard_margin"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="12dp"
-        android:hint="@string/expiry_date"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/card_input_form">
-
-        <piuk.blockchain.android.cards.views.CardExpirationDateEditText
-            android:id="@+id/expiry_date"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="@dimen/small_margin"
-            android:paddingEnd="@dimen/small_margin" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/card_cvv_input"
-        style="@style/CardDataInputLayoutAppearance"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="@dimen/standard_margin"
-        android:hint="@string/card_cvv"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/card_input_form">
-
-        <piuk.blockchain.android.cards.views.CardCvvEditText
-            android:id="@+id/cvv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="@dimen/small_margin"
-            android:paddingEnd="@dimen/small_margin" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="1dp"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true">
 
     <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/locker"
+        android:id="@+id/card_info_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="27dp"
+        android:layout_marginStart="@dimen/standard_margin"
         android:layout_marginTop="@dimen/standard_margin"
+        android:tint="@color/blue_600"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/card_cvv_input"
-        app:srcCompat="@drawable/ic_card_locker" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/vector_card" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/card_info_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/standard_margin"
+        android:layout_marginEnd="@dimen/standard_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_close_circle_grey" />
 
     <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/security_text"
-        style="@style/Text.Standard.12"
+        android:id="@+id/card_info_title"
+        style="@style/Text.Semibold.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/small_margin"
+        android:text="@string/card_info_title"
+        app:layout_constraintStart_toEndOf="@id/card_info_icon"
+        app:layout_constraintTop_toTopOf="@id/card_info_icon" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/card_info_desc"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/tiny_margin"
-        android:layout_marginEnd="@dimen/standard_margin"
-        android:text="@string/privacy_protected_ssl"
-        android:textColor="@color/grey_800"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/locker"
-        app:layout_constraintTop_toTopOf="@+id/locker" />
+        android:layout_marginEnd="@dimen/tiny_margin"
+        android:text="@string/card_info_description"
+        app:layout_constraintEnd_toStartOf="@id/card_info_close"
+        app:layout_constraintStart_toStartOf="@id/card_info_title"
+        app:layout_constraintTop_toBottomOf="@id/card_info_title" />
 
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/same_card_error"
-        style="@style/Text.Standard.Centered.14"
+    <View
+        android:id="@+id/card_info_separator"
+        style="@style/SeparatorWithoutMargins"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/small_margin"
-        android:text="@string/card_already_saved"
-        android:textColor="@color/red_400"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@+id/security_text" />
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/standard_margin"
+        app:layout_constraintTop_toBottomOf="@id/card_info_desc" />
 
-    <Button
-        android:id="@+id/btn_next"
-        style="@style/CtaButton.Blue"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/standard_margin"
-        android:text="@string/next"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="0dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/card_info_separator">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/card_name_input"
+                style="@style/CommonDataInputAppearance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/standard_margin"
+                android:layout_marginTop="@dimen/standard_margin"
+                android:layout_marginEnd="@dimen/standard_margin"
+                android:hint="@string/name_on_card">
+
+                <com.braintreepayments.cardform.view.CardholderNameEditText
+                    android:id="@+id/card_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/card_input_form"
+                style="@style/CommonDataInputAppearance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/standard_margin"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="@dimen/standard_margin"
+                android:hint="@string/card_number">
+
+                <piuk.blockchain.android.cards.views.CardNumberEditText
+                    android:id="@+id/card_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="@dimen/small_margin"
+                    android:paddingEnd="@dimen/small_margin" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/card_date_input"
+                    style="@style/CommonDataInputAppearance"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/standard_margin"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginEnd="@dimen/very_small_margin"
+                    android:layout_weight="1"
+                    android:hint="@string/expiry_date">
+
+                    <piuk.blockchain.android.cards.views.CardExpirationDateEditText
+                        android:id="@+id/expiry_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionNext"
+                        android:nextFocusRight="@id/card_cvv_input"
+                        android:paddingStart="@dimen/small_margin"
+                        android:paddingEnd="@dimen/small_margin" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/card_cvv_input"
+                    style="@style/CommonDataInputAppearance"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/very_small_margin"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginEnd="@dimen/standard_margin"
+                    android:layout_weight="1"
+                    android:hint="@string/card_cvv"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/guideline"
+                    app:layout_constraintTop_toBottomOf="@+id/card_input_form">
+
+                    <piuk.blockchain.android.cards.views.CardCvvEditText
+                        android:id="@+id/cvv"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionDone"
+                        android:paddingStart="@dimen/small_margin"
+                        android:paddingEnd="@dimen/small_margin" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/locker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="27dp"
+                    android:layout_marginTop="@dimen/standard_margin"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/card_cvv_input"
+                    app:srcCompat="@drawable/ic_card_locker" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/security_text"
+                    style="@style/Text.Standard.12"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/tiny_margin"
+                    android:layout_marginTop="@dimen/standard_margin"
+                    android:layout_marginEnd="@dimen/standard_margin"
+                    android:layout_weight="1"
+                    android:text="@string/privacy_protected_ssl"
+                    android:textColor="@color/grey_800" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/same_card_error"
+                style="@style/Text.Standard.Centered.14"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/small_margin"
+                android:layout_marginTop="@dimen/small_margin"
+                android:layout_marginEnd="@dimen/small_margin"
+                android:text="@string/card_already_saved"
+                android:textColor="@color/red_400"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@+id/security_text"
+                tools:visibility="visible" />
+
+            <Button
+                android:id="@+id/btn_next"
+                style="@style/CtaButton.Blue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/standard_margin"
+                android:layout_marginBottom="@dimen/standard_margin"
+                android:text="@string/next"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+        </LinearLayout>
+    </ScrollView>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/card_info_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="card_info_close, card_info_desc, card_info_icon, card_info_title, card_info_separator" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

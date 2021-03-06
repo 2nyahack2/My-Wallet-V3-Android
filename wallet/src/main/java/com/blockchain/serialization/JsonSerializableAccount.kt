@@ -1,3 +1,5 @@
 package com.blockchain.serialization
 
-interface JsonSerializableAccount : JsonSerializable
+interface JsonSerializableAccount : JsonSerializable {
+    var label: String
+}

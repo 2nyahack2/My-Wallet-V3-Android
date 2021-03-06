@@ -2,9 +2,6 @@ package piuk.blockchain.android.ui.upgrade
 
 import android.content.Context
 import android.os.Bundle
-import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AlertDialog
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -14,15 +11,18 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.StringRes
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.blockchain.koin.scopedInject
+import com.blockchain.ui.password.SecondPasswordHandler
 import piuk.blockchain.android.R
 import piuk.blockchain.android.databinding.ActivityUpgradeWalletBinding
-import com.blockchain.ui.password.SecondPasswordHandler
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
 import piuk.blockchain.androidcoreui.ui.base.BaseMvpActivity
-import com.blockchain.ui.dialog.MaterialProgressDialog
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
 
 internal class UpgradeWalletActivity : BaseMvpActivity<UpgradeWalletView, UpgradeWalletPresenter>(),
@@ -75,12 +75,12 @@ internal class UpgradeWalletActivity : BaseMvpActivity<UpgradeWalletView, Upgrad
             .setMessage(R.string.weak_password)
             .setCancelable(false)
             .setView(pwLayout)
-            .setPositiveButton(R.string.yes) { _, _ ->
+            .setPositiveButton(R.string.common_yes) { _, _ ->
                 val password1 = (pwLayout.findViewById<View>(R.id.pw1) as EditText).text.toString()
                 val password2 = (pwLayout.findViewById<View>(R.id.pw2) as EditText).text.toString()
                 presenter.submitPasswords(password1, password2)
             }
-            .setNegativeButton(R.string.no) { dialog, whichButton ->
+            .setNegativeButton(R.string.common_no) { dialog, whichButton ->
                 showToast(R.string.password_unchanged,
                     ToastCustom.TYPE_GENERAL)
             }
@@ -151,15 +151,18 @@ internal class UpgradeWalletActivity : BaseMvpActivity<UpgradeWalletView, Upgrad
     }
 
     private fun upgradeClicked() {
-        secondPasswordHandler.validate(object : SecondPasswordHandler.ResultListener {
-            override fun onNoSecondPassword() {
-                presenter.onUpgradeRequested(null)
-            }
+        secondPasswordHandler.validate(
+            this,
+            object : SecondPasswordHandler.ResultListener {
+                override fun onNoSecondPassword() {
+                    presenter.onUpgradeRequested(null)
+                }
 
-            override fun onSecondPasswordValidated(validatedSecondPassword: String) {
-                presenter.onUpgradeRequested(validatedSecondPassword)
+                override fun onSecondPasswordValidated(validatedSecondPassword: String) {
+                    presenter.onUpgradeRequested(validatedSecondPassword)
+                }
             }
-        })
+        )
     }
 
     private fun setSelectedPage(position: Int) {

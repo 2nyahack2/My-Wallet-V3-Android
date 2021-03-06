@@ -1,16 +1,18 @@
 package piuk.blockchain.android.simplebuy
 
+import com.blockchain.preferences.RatingPrefs
 import com.blockchain.preferences.SimpleBuyPrefs
-import com.blockchain.swap.nabu.datamanagers.BuyOrder
-import com.blockchain.swap.nabu.datamanagers.OrderState
-import com.blockchain.swap.nabu.datamanagers.PaymentMethod
-import com.blockchain.swap.nabu.datamanagers.SimpleBuyPairs
-import com.blockchain.swap.nabu.datamanagers.custodialwalletimpl.PaymentMethodType
-import com.blockchain.swap.nabu.models.simplebuy.EverypayPaymentAttrs
+import com.blockchain.nabu.datamanagers.BuySellOrder
+import com.blockchain.nabu.datamanagers.OrderState
+import com.blockchain.nabu.datamanagers.PaymentMethod
+import com.blockchain.nabu.datamanagers.custodialwalletimpl.PaymentMethodType
+import com.blockchain.nabu.models.data.LinkedBankErrorState
+import com.blockchain.nabu.models.data.LinkedBankState
+import com.blockchain.nabu.models.responses.simplebuy.EverypayPaymentAttrs
 import com.google.gson.Gson
-import info.blockchain.balance.CryptoCurrency
 import io.reactivex.Completable
 import io.reactivex.Scheduler
+import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.subscribeBy
 import piuk.blockchain.android.cards.partners.CardActivator
@@ -20,6 +22,7 @@ import piuk.blockchain.androidcore.utils.extensions.thenSingle
 
 class SimpleBuyModel(
     private val prefs: SimpleBuyPrefs,
+    private val ratingPrefs: RatingPrefs,
     initialState: SimpleBuyState,
     scheduler: Scheduler,
     private val gson: Gson,
@@ -27,7 +30,8 @@ class SimpleBuyModel(
     private val interactor: SimpleBuyInteractor
 ) : MviModel<SimpleBuyState, SimpleBuyIntent>(
     gson.fromJson(prefs.simpleBuyState(), SimpleBuyState::class.java) ?: initialState,
-    scheduler) {
+    scheduler
+) {
 
     override fun performAction(previousState: SimpleBuyState, intent: SimpleBuyIntent): Disposable? =
         when (intent) {
@@ -35,22 +39,14 @@ class SimpleBuyModel(
                 interactor.fetchBuyLimitsAndSupportedCryptoCurrencies(intent.fiatCurrency)
                     .subscribeBy(
                         onSuccess = { pairs ->
-                            val selectedCryptoCurrency =
-                                getSelectedCryptoCurrency(pairs, intent.fiatCurrency, previousState)
-
-                            process(SimpleBuyIntent.UpdatedBuyLimitsAndSupportedCryptoCurrencies(pairs,
-                                selectedCryptoCurrency))
-
-                            selectedCryptoCurrency?.let {
-                                process(SimpleBuyIntent.NewCryptoCurrencySelected(it))
-                            }
+                            process(
+                                SimpleBuyIntent.UpdatedBuyLimitsAndSupportedCryptoCurrencies(
+                                    pairs,
+                                    intent.cryptoCurrency
+                                )
+                            )
+                            process(SimpleBuyIntent.NewCryptoCurrencySelected(intent.cryptoCurrency))
                         },
-                        onError = { process(SimpleBuyIntent.ErrorIntent()) }
-                    )
-            is SimpleBuyIntent.FetchPredefinedAmounts ->
-                interactor.fetchPredefinedAmounts(intent.fiatCurrency)
-                    .subscribeBy(
-                        onSuccess = { process(it) },
                         onError = { process(SimpleBuyIntent.ErrorIntent()) }
                     )
             is SimpleBuyIntent.FetchSupportedFiatCurrencies ->
@@ -66,22 +62,6 @@ class SimpleBuyModel(
                     onComplete = { process(SimpleBuyIntent.OrderCanceled) },
                     onError = { process(SimpleBuyIntent.ErrorIntent()) }
                 )
-            is SimpleBuyIntent.FetchBankAccount ->
-                when {
-                    previousState.bankAccount != null -> {
-                        process(SimpleBuyIntent.BankAccountUpdated(previousState.bankAccount))
-                        null
-                    }
-                    previousState.selectedPaymentMethod?.isBank() == true ->
-                        interactor.fetchBankAccount(previousState.fiatCurrency).subscribeBy(
-                            onSuccess = { process(it) },
-                            onError = {
-                                process(SimpleBuyIntent.ErrorIntent())
-                                process(SimpleBuyIntent.CancelOrder)
-                            }
-                        )
-                    else -> null
-                }
             is SimpleBuyIntent.CancelOrderIfAnyAndCreatePendingOne -> (previousState.id?.let {
                 interactor.cancelOrder(it)
             } ?: Completable.complete()).thenSingle {
@@ -89,28 +69,26 @@ class SimpleBuyModel(
                     previousState.selectedCryptoCurrency
                         ?: throw IllegalStateException("Missing Cryptocurrency "),
                     previousState.order.amount ?: throw IllegalStateException("Missing amount"),
-                    previousState.selectedPaymentMethod?.takeIf {
-                        it.paymentMethodType == PaymentMethodType.PAYMENT_CARD &&
-                                it.id != PaymentMethod.UNDEFINED_CARD_PAYMENT_ID
-                    }?.id,
+                    previousState.selectedPaymentMethod?.concreteId(),
                     previousState.selectedPaymentMethod?.paymentMethodType
                         ?: throw IllegalStateException("Missing Payment Method"),
                     true
                 )
-            }
-                .subscribeBy(
-                    onSuccess = {
-                        process(it)
-                    },
-                    onError = {
-                        process(SimpleBuyIntent.ErrorIntent())
-                    }
-                )
-            is SimpleBuyIntent.FetchKycState -> interactor.pollForKycState(previousState.fiatCurrency)
+            }.subscribeBy(
+                onSuccess = {
+                    process(it)
+                },
+                onError = {
+                    process(SimpleBuyIntent.ErrorIntent())
+                }
+            )
+
+            is SimpleBuyIntent.FetchKycState -> interactor.pollForKycState()
                 .subscribeBy(
                     onSuccess = { process(it) },
                     onError = { /*never fails. will return SimpleBuyIntent.KycStateUpdated(KycState.FAILED)*/ }
                 )
+
             is SimpleBuyIntent.FetchQuote -> interactor.fetchQuote(
                 previousState.selectedCryptoCurrency,
                 previousState.order.amount
@@ -118,11 +96,101 @@ class SimpleBuyModel(
                 onSuccess = { process(it) },
                 onError = { process(SimpleBuyIntent.ErrorIntent()) }
             )
-            is SimpleBuyIntent.BuyButtonClicked -> interactor.checkTierLevel(previousState.fiatCurrency)
+
+            is SimpleBuyIntent.BuyButtonClicked -> interactor.checkTierLevel()
                 .subscribeBy(
                     onSuccess = { process(it) },
                     onError = { process(SimpleBuyIntent.ErrorIntent()) }
                 )
+
+            is SimpleBuyIntent.LinkBankTransferRequested -> {
+                interactor.userIsEligibleToLinkABank(previousState.fiatCurrency).flatMap {
+                    if (it) {
+                        interactor.linkNewBank(previousState.fiatCurrency)
+                    } else {
+                        Single.just(SimpleBuyIntent.SelectedPaymentMethodUpdate(
+                            previousState.paymentOptions.availablePaymentMethods.first { paymentMethod ->
+                                paymentMethod.id == PaymentMethod.UNDEFINED_BANK_TRANSFER_PAYMENT_ID
+                            }
+                        ))
+                    }
+                }
+                    .subscribeBy(
+                        onSuccess = { process(it) },
+                        onError = { process(SimpleBuyIntent.ErrorIntent(ErrorState.LinkedBankNotSupported)) }
+                    )
+            }
+
+            is SimpleBuyIntent.TryToLinkABankTransfer -> {
+                interactor.fetchPaymentMethods(previousState.fiatCurrency).map {
+                    it.any { paymentMethod -> paymentMethod is PaymentMethod.UndefinedBankTransfer }
+                }.subscribeBy(
+                    onSuccess = { isEligibleToLinkABank ->
+                        if (isEligibleToLinkABank) {
+                            process(SimpleBuyIntent.LinkBankTransferRequested)
+                        } else {
+                            process(SimpleBuyIntent.ErrorIntent(ErrorState.LinkedBankNotSupported))
+                        }
+                    },
+                    onError = {
+                        process(SimpleBuyIntent.ErrorIntent(ErrorState.LinkedBankNotSupported))
+                    }
+                )
+            }
+
+            is SimpleBuyIntent.UpdateAccountProvider -> {
+                interactor.updateAccountProviderId(
+                    linkingId = intent.linkingBankId,
+                    providerAccountId = intent.accountProviderId,
+                    accountId = intent.accountId
+                ).subscribeBy(
+                    onComplete = {
+                        process(SimpleBuyIntent.StartPollingForLinkStatus(intent.linkingBankId))
+                    },
+                    onError = {
+                        process(SimpleBuyIntent.ProviderAccountIdUpdateError)
+                    }
+                )
+            }
+
+            is SimpleBuyIntent.StartPollingForLinkStatus -> {
+                interactor.pollForLinkedBankState(intent.bankId).subscribeBy(
+                    onSuccess = {
+                        when (it.state) {
+                            LinkedBankState.ACTIVE -> {
+                                process(SimpleBuyIntent.LinkedBankStateSuccess(it))
+                            }
+                            LinkedBankState.BLOCKED,
+                            LinkedBankState.UNKNOWN -> {
+                                when (it.errorStatus) {
+                                    LinkedBankErrorState.ACCOUNT_ALREADY_LINKED -> {
+                                        process(SimpleBuyIntent.LinkedBankStateAlreadyLinked)
+                                    }
+                                    LinkedBankErrorState.UNKNOWN -> {
+                                        process(SimpleBuyIntent.LinkedBankStateError)
+                                    }
+                                    LinkedBankErrorState.ACCOUNT_TYPE_UNSUPPORTED -> {
+                                        process(SimpleBuyIntent.LinkedBankStateUnsupportedAccount)
+                                    }
+                                    LinkedBankErrorState.NAMES_MISS_MATCHED -> {
+                                        process(SimpleBuyIntent.LinkedBankStateNamesMissMatch)
+                                    }
+                                    LinkedBankErrorState.NONE -> {
+                                        // do nothing
+                                    }
+                                }
+                            }
+                            LinkedBankState.PENDING -> {
+                                process(SimpleBuyIntent.LinkedBankStateTimeout)
+                            }
+                        }
+                    },
+                    onError = {
+                        process(SimpleBuyIntent.LinkedBankStateError)
+                    }
+                )
+            }
+
             is SimpleBuyIntent.UpdateExchangeRate -> interactor.exchangeRate(intent.currency)
                 .subscribeBy(
                     onSuccess = { process(it) },
@@ -133,6 +201,17 @@ class SimpleBuyModel(
                     onSuccess = { process(it) },
                     onError = { }
                 )
+            is SimpleBuyIntent.FetchWithdrawLockTime -> {
+                require(previousState.selectedPaymentMethod != null)
+                interactor.fetchWithdrawLockTime(
+                    previousState.selectedPaymentMethod.paymentMethodType
+                )
+                    .subscribeBy(
+                        onSuccess = { process(it) },
+                        onError = { }
+                    )
+            }
+
             is SimpleBuyIntent.FetchSuggestedPaymentMethod -> interactor.fetchPaymentMethods(
                 intent.fiatCurrency,
                 intent.selectedPaymentMethodId
@@ -145,7 +224,8 @@ class SimpleBuyModel(
                         process(SimpleBuyIntent.ErrorIntent())
                     }
                 )
-            is SimpleBuyIntent.DepositFundsRequested -> interactor.checkTierLevel(previousState.fiatCurrency)
+            is SimpleBuyIntent.LinkBankSelected,
+            is SimpleBuyIntent.DepositFundsRequested -> interactor.checkTierLevel()
                 .subscribeBy(
                     onSuccess = { process(it) },
                     onError = { process(SimpleBuyIntent.ErrorIntent()) }
@@ -164,13 +244,16 @@ class SimpleBuyModel(
                     })
             is SimpleBuyIntent.ConfirmOrder -> interactor.confirmOrder(
                 previousState.id ?: throw IllegalStateException("Order Id not available"),
+                previousState.selectedPaymentMethod?.takeIf { it.isBank() }?.concreteId(),
                 cardActivators.firstOrNull {
                     previousState.selectedPaymentMethod?.partner == it.partner
                 }?.paymentAttributes()
             )
                 .subscribeBy(
                     onSuccess = {
-                        process(SimpleBuyIntent.OrderCreated(it))
+                        val orderCreatedSuccessfully = it.state == OrderState.FINISHED
+                        if (orderCreatedSuccessfully) updatePreRatingCompletedActionsCounter()
+                        process(SimpleBuyIntent.OrderCreated(it, shouldShowAppRating(orderCreatedSuccessfully)))
                     },
                     onError = { process(SimpleBuyIntent.ErrorIntent()) }
                 )
@@ -188,22 +271,36 @@ class SimpleBuyModel(
                     process(SimpleBuyIntent.ErrorIntent())
                 }
             )
+            is SimpleBuyIntent.AppRatingShown -> {
+                ratingPrefs.hasSeenRatingDialog = true
+                null
+            }
             else -> null
         }
+
+    private fun updatePreRatingCompletedActionsCounter() {
+        ratingPrefs.preRatingActionCompletedTimes = ratingPrefs.preRatingActionCompletedTimes + 1
+    }
+
+    private fun shouldShowAppRating(orderCreatedSuccessFully: Boolean): Boolean =
+        ratingPrefs.preRatingActionCompletedTimes >= COMPLETED_ORDERS_BEFORE_SHOWING_APP_RATING &&
+            !ratingPrefs.hasSeenRatingDialog && orderCreatedSuccessFully
 
     private fun pollForOrderStatus() {
         process(SimpleBuyIntent.CheckOrderStatus)
     }
 
-    private fun handleCardPayment(order: BuyOrder) {
+    private fun handleCardPayment(order: BuySellOrder) {
         order.attributes?.everypay?.let { attrs ->
             if (attrs.paymentState == EverypayPaymentAttrs.WAITING_3DS &&
                 order.state == OrderState.AWAITING_FUNDS
             ) {
-                process(SimpleBuyIntent.Open3dsAuth(
-                    attrs.paymentLink,
-                    EverypayCardActivator.redirectUrl
-                ))
+                process(
+                    SimpleBuyIntent.Open3dsAuth(
+                        attrs.paymentLink,
+                        EverypayCardActivator.redirectUrl
+                    )
+                )
                 process(SimpleBuyIntent.ResetEveryPayAuth)
             } else {
                 process(SimpleBuyIntent.CheckOrderStatus)
@@ -213,16 +310,11 @@ class SimpleBuyModel(
         }
     }
 
-    private fun getSelectedCryptoCurrency(
-        pairs: SimpleBuyPairs,
-        fiatCurrency: String,
-        previousState: SimpleBuyState
-    ): CryptoCurrency? =
-        previousState.selectedCryptoCurrency ?: pairs.pairs.firstOrNull {
-            it.fiatCurrency == fiatCurrency
-        }?.cryptoCurrency
-
     override fun onStateUpdate(s: SimpleBuyState) {
         prefs.updateSimpleBuyState(gson.toJson(s))
+    }
+
+    companion object {
+        private const val COMPLETED_ORDERS_BEFORE_SHOWING_APP_RATING = 1
     }
 }

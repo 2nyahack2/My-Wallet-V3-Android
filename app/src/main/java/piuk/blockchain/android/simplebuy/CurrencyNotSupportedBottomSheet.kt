@@ -2,7 +2,6 @@ package piuk.blockchain.android.simplebuy
 
 import android.os.Bundle
 import android.view.View
-import com.blockchain.notifications.analytics.SimpleBuyAnalytics
 import kotlinx.android.synthetic.main.simple_buy_currency_not_supported.view.*
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.base.SlidingModalBottomDialog

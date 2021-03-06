@@ -1,20 +1,21 @@
 package piuk.blockchain.android.ui.kyc.invalidcountry
 
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.tokenresponse.NabuOfflineTokenResponse
-import com.blockchain.swap.nabu.models.tokenresponse.mapToMetadata
+import com.blockchain.metadata.MetadataRepository
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.metadata.NabuCredentialsMetadata
+import com.blockchain.nabu.models.responses.tokenresponse.NabuOfflineTokenResponse
+import com.blockchain.nabu.models.responses.tokenresponse.mapToMetadata
 import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
-import piuk.blockchain.androidcore.data.metadata.MetadataManager
 import piuk.blockchain.androidcoreui.ui.base.BasePresenter
 import timber.log.Timber
 
 class KycInvalidCountryPresenter(
     private val nabuDataManager: NabuDataManager,
-    private val metadataManager: MetadataManager
+    private val metadataRepository: MetadataRepository
 ) : BasePresenter<KycInvalidCountryView>() {
 
     override fun onViewReady() = Unit
@@ -58,8 +59,11 @@ class KycInvalidCountryPresenter(
                     .subscribeOn(Schedulers.io())
                     .flatMap { tokenResponse ->
                         val nabuMetadata = tokenResponse.mapToMetadata()
-                        metadataManager.saveToMetadata(nabuMetadata.toJson(), nabuMetadata.getMetadataType())
-                            .toSingle { jwt to tokenResponse }
+                        metadataRepository.saveMetadata(
+                            nabuMetadata,
+                            NabuCredentialsMetadata::class.java,
+                            NabuCredentialsMetadata.USER_CREDENTIALS_METADATA_NODE
+                        ).toSingle { jwt to tokenResponse }
                     }
             }
 

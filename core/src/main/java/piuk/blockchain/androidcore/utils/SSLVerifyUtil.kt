@@ -1,11 +1,12 @@
 package piuk.blockchain.androidcore.utils
 
+import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import okhttp3.ResponseBody
 import piuk.blockchain.androidcore.data.api.ConnectionApi
 import piuk.blockchain.androidcore.data.rxjava.RxBus
 import piuk.blockchain.androidcore.data.rxjava.RxPinning
-import piuk.blockchain.androidcore.utils.rxjava.IgnorableDefaultObserver
+import timber.log.Timber
 import javax.net.ssl.SSLPeerUnverifiedException
 
 /**
@@ -23,9 +24,10 @@ class SSLVerifyUtil(rxBus: RxBus, private val connectionApi: ConnectionApi) {
      * [SSLPeerUnverifiedException], the [ ] object will broadcast this to the BaseAuthActivity
      * which will handle the response appropriately.
      */
-    fun validateSSL() {
+    fun validateSSL() =
         rxPinning.call<ResponseBody> { connectionApi.getExplorerConnection() }
             .subscribeOn(Schedulers.io())
-            .subscribe(IgnorableDefaultObserver<ResponseBody>())
-    }
+            .subscribeBy(
+                onError = { Timber.e(it) }
+            )
 }

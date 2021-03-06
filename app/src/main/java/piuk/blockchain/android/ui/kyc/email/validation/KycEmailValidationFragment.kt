@@ -12,7 +12,6 @@ import com.blockchain.koin.scopedInject
 import com.blockchain.notifications.analytics.Analytics
 import com.blockchain.notifications.analytics.logEvent
 import piuk.blockchain.android.ui.kyc.navhost.KycProgressListener
-import piuk.blockchain.android.ui.kyc.navhost.models.KycStep
 import piuk.blockchain.android.ui.kyc.navigate
 import com.blockchain.notifications.analytics.AnalyticsEvents
 import com.blockchain.notifications.analytics.KYCAnalyticsEvents
@@ -24,12 +23,12 @@ import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
 import piuk.blockchain.androidcoreui.ui.base.BaseMvpFragment
-import com.blockchain.ui.dialog.MaterialProgressDialog
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
 import piuk.blockchain.android.util.StringUtils
-import piuk.blockchain.androidcoreui.utils.ParentActivityDelegate
-import piuk.blockchain.androidcoreui.utils.ViewUtils
-import piuk.blockchain.androidcoreui.utils.extensions.goneIf
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
+import piuk.blockchain.android.ui.kyc.ParentActivityDelegate
+import piuk.blockchain.android.util.ViewUtils
+import piuk.blockchain.android.util.goneIf
+import piuk.blockchain.android.util.inflate
 import kotlinx.android.synthetic.main.fragment_kyc_email_validation.button_kyc_email_validation_next as buttonNext
 import kotlinx.android.synthetic.main.fragment_kyc_email_validation.text_view_email as textViewEmail
 import kotlinx.android.synthetic.main.fragment_kyc_email_validation.text_view_resend_prompt as textViewResend
@@ -41,7 +40,9 @@ class KycEmailValidationFragment :
     private val presenter: KycEmailValidationPresenter by scopedInject()
     private val analytics: Analytics by inject()
     private val stringUtils: StringUtils by inject()
-    private val progressListener: KycProgressListener by ParentActivityDelegate(this)
+    private val progressListener: KycProgressListener by ParentActivityDelegate(
+        this
+    )
     private var progressDialog: MaterialProgressDialog? = null
     private val email by unsafeLazy {
         KycEmailValidationFragmentArgs.fromBundle(
@@ -68,7 +69,6 @@ class KycEmailValidationFragment :
         super.onViewCreated(view, savedInstanceState)
         logEvent(AnalyticsEvents.KycEmail)
         progressListener.setHostTitle(R.string.kyc_email_title)
-        progressListener.incrementProgress(KycStep.EmailVerifiedPage)
         textViewEmail.text = email
 
         val linksMap = mapOf<String, Uri?>(
@@ -76,7 +76,7 @@ class KycEmailValidationFragment :
         )
 
         textViewResend.text =
-            stringUtils.getStringWithMappedLinks(
+            stringUtils.getStringWithMappedAnnotations(
                 R.string.kyc_email_did_not_see_email,
                 linksMap,
                 requireActivity()

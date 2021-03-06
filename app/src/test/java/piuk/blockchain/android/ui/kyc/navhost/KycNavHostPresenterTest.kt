@@ -2,16 +2,14 @@ package piuk.blockchain.android.ui.kyc.navhost
 
 import com.blockchain.android.testutils.rxInit
 import com.blockchain.exceptions.MetadataNotFoundException
-import piuk.blockchain.android.ui.getBlankNabuUser
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.Address
-import com.blockchain.swap.nabu.models.nabu.KycState
-import com.blockchain.swap.nabu.models.nabu.NabuUser
-import com.blockchain.swap.nabu.models.nabu.TierLevels
-import com.blockchain.swap.nabu.models.nabu.UserState
-import com.blockchain.swap.nabu.NabuToken
-import com.blockchain.swap.nabu.service.TierUpdater
-import piuk.blockchain.android.ui.validOfflineToken
+import com.blockchain.nabu.NabuToken
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.Address
+import com.blockchain.nabu.models.responses.nabu.KycState
+import com.blockchain.nabu.models.responses.nabu.NabuUser
+import com.blockchain.nabu.models.responses.nabu.TierLevels
+import com.blockchain.nabu.models.responses.nabu.UserState
+import com.blockchain.nabu.service.TierUpdater
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
@@ -25,9 +23,11 @@ import org.junit.Test
 import piuk.blockchain.android.KycNavXmlDirections
 import piuk.blockchain.android.campaign.CampaignType
 import piuk.blockchain.android.campaign.SunriverCampaignRegistration
+import piuk.blockchain.android.ui.getBlankNabuUser
 import piuk.blockchain.android.ui.kyc.reentry.ReentryDecision
 import piuk.blockchain.android.ui.kyc.reentry.ReentryDecisionKycNavigator
 import piuk.blockchain.android.ui.kyc.reentry.ReentryPoint
+import piuk.blockchain.android.ui.validOfflineToken
 
 class KycNavHostPresenterTest {
 
@@ -101,6 +101,7 @@ class KycNavHostPresenterTest {
         // Arrange
         givenReentryDecision(ReentryPoint.CountrySelection)
         whenever(view.campaignType).thenReturn(CampaignType.Swap)
+        whenever(view.showTiersLimitsSplash).thenReturn(true).thenReturn(false)
         whenever(nabuToken.fetchNabuToken()).thenReturn(Single.just(validOfflineToken))
         whenever(nabuDataManager.getUser(validOfflineToken))
             .thenReturn(

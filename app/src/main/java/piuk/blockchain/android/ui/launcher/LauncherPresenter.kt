@@ -7,7 +7,6 @@ import com.blockchain.logging.CrashLogger
 import com.blockchain.notifications.NotificationTokenManager
 import com.blockchain.notifications.analytics.Analytics
 import com.blockchain.preferences.CurrencyPrefs
-import com.blockchain.remoteconfig.FeatureFlag
 import info.blockchain.wallet.api.Environment
 import com.blockchain.notifications.analytics.AnalyticsEvents
 import info.blockchain.wallet.api.data.Settings
@@ -38,7 +37,6 @@ class LauncherPresenter(
     private val settingsDataManager: SettingsDataManager,
     private val notificationTokenManager: NotificationTokenManager,
     private val envSettings: EnvironmentConfig,
-    private val featureFlag: FeatureFlag,
     private val currencyPrefs: CurrencyPrefs,
     private val analytics: Analytics,
     private val prerequisites: Prerequisites,
@@ -82,23 +80,31 @@ class LauncherPresenter(
             }
         }
 
+        val hasBackup = prefs.hasBackup()
+        val pin = prefs.pinId
+
         when {
-            // No GUID? Treat as new installation
-            prefs.getValue(PersistentPrefs.KEY_WALLET_GUID, "").isEmpty() -> view.onNoGuid()
+            // No GUID and no backup? Treat as new installation
+            prefs.getValue(PersistentPrefs.KEY_WALLET_GUID, "").isEmpty() && !hasBackup -> view.onNoGuid()
+            // No GUID but a backup. Show PIN entry page to populate other values
+            prefs.getValue(PersistentPrefs.KEY_WALLET_GUID, "").isEmpty() && hasBackup -> view.onRequestPin()
             // User has logged out recently. Show password reentry page
             hasLoggedOut -> view.onReEnterPassword()
             // No PIN ID? Treat as installed app without confirmed PIN
-            prefs.getValue(PersistentPrefs.KEY_PIN_IDENTIFIER, "").isEmpty() -> view.onRequestPin()
+            pin.isEmpty() -> view.onRequestPin()
             // Installed app, check sanity
             !appUtil.isSane -> view.onCorruptPayload()
             // Legacy app has not been prompted for upgrade
-            isPinValidated && !payloadDataManager.wallet!!.isUpgraded -> promptUpgrade()
+            isPinValidated && upgradeNeeded() -> promptUpgrade()
             // App has been PIN validated
             isPinValidated || accessState.isLoggedIn -> initSettings()
             // Something odd has happened, re-request PIN
             else -> view.onRequestPin()
         }
     }
+
+    private fun upgradeNeeded(): Boolean =
+        payloadDataManager.wallet?.isUpgraded == false
 
     fun clearCredentialsAndRestart() =
         appUtil.clearCredentialsAndRestart(LauncherActivity::class.java)
@@ -119,29 +125,33 @@ class LauncherPresenter(
     @SuppressLint("CheckResult")
     private fun initSettings() {
 
-        val settings = prerequisites.initSettings(
-            payloadDataManager.wallet!!.guid,
-            payloadDataManager.wallet!!.sharedKey).doOnNext {
-            // If the account is new, we need to check if we should launch Simple buy flow
-            // (in that case, currency will be selected by user manually)
-            // or select the default from device Locale
-            if (!isNewAccount())
-                setCurrencyUnits(it)
+        val settings = Single.defer {
+            Single.just(payloadDataManager.wallet!!)
+        }.flatMap { wallet ->
+            prerequisites.initSettings(
+                wallet.guid,
+                wallet.sharedKey
+            ).doOnSuccess {
+                // If the account is new, we need to check if we should launch Simple buy flow
+                // (in that case, currency will be selected by user manually)
+                // or select the default from device Locale
+                if (!isNewAccount())
+                    setCurrencyUnits(it)
+            }
         }
-            .singleOrError()
 
         val metadata = prerequisites.initMetadataAndRelatedPrerequisites()
         val updateFiatWithDefault = settingsDataManager.updateFiatUnit(currencyPrefs.defaultFiatCurrency)
             .ignoreElements()
 
         compositeDisposable +=
-            settings.zipWith(metadata.toSingleDefault(true)).flatMap { (_, _) ->
+            settings.zipWith(
+                metadata.toSingleDefault(true)
+            ).flatMap { (_, _) ->
                 if (!shouldCheckForSimpleBuyLaunching())
                     Single.just(false)
                 else {
-                    featureFlag.enabled.map { simpleBuyFeatureFlagEnabled ->
-                        simpleBuyFeatureFlagEnabled && walletJustCreated()
-                    }
+                    Single.just(walletJustCreated())
                 }
             }.flatMap { simpleBuyShouldLaunched ->
                 if (!simpleBuyShouldLaunched && noCurrencySet())
@@ -150,36 +160,36 @@ class LauncherPresenter(
                     Single.just(simpleBuyShouldLaunched)
                 }
             }
-                .doOnSuccess { accessState.isLoggedIn = true }
-                .doOnSuccess { notificationTokenManager.registerAuthEvent() }
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { view.updateProgressVisibility(true) }
-                .subscribeBy(
-                    onSuccess = { simpleBuyShouldLaunched ->
-                        view.updateProgressVisibility(false)
-                        if (simpleBuyShouldLaunched) {
-                            startSimpleBuy()
+            .doOnSuccess { accessState.isLoggedIn = true }
+            .doOnSuccess { notificationTokenManager.registerAuthEvent() }
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSubscribe { view.updateProgressVisibility(true) }
+            .subscribeBy(
+                onSuccess = { simpleBuyShouldLaunched ->
+                    view.updateProgressVisibility(false)
+                    if (simpleBuyShouldLaunched) {
+                        launchBuySellIntro()
+                    } else {
+                        startMainActivity()
+                    }
+                }, onError = { throwable ->
+                    view.updateProgressVisibility(false)
+                    if (throwable is InvalidCredentialsException || throwable is HDWalletException) {
+                        if (payloadDataManager.isDoubleEncrypted) {
+                            // Wallet double encrypted and needs to be decrypted to set up ether wallet, contacts etc
+                            view?.showSecondPasswordDialog()
                         } else {
-                            startMainActivity()
-                        }
-                    }, onError = { throwable ->
-                        view.updateProgressVisibility(false)
-                        if (throwable is InvalidCredentialsException || throwable is HDWalletException) {
-                            if (payloadDataManager.isDoubleEncrypted) {
-                                // Wallet double encrypted and needs to be decrypted to set up ether wallet, contacts etc
-                                view?.showSecondPasswordDialog()
-                            } else {
-                                view.showToast(R.string.unexpected_error, ToastCustom.TYPE_ERROR)
-                                view.onRequestPin()
-                            }
-                        } else {
-                            view.showToast(R.string.unexpected_error, ToastCustom.TYPE_ERROR)
+                        view.showToast(R.string.unexpected_error, ToastCustom.TYPE_ERROR)
                             view.onRequestPin()
                         }
-                        logException(throwable)
+                    } else {
+                        view.showToast(R.string.unexpected_error, ToastCustom.TYPE_ERROR)
+                        view.onRequestPin()
                     }
-                )
-    }
+                    logException(throwable)
+                }
+            )
+        }
 
     private fun isNewAccount(): Boolean = accessState.isNewlyCreated
 
@@ -223,8 +233,8 @@ class LauncherPresenter(
         view.onStartMainActivity(deepLinkPersistence.popUriFromSharedPrefs())
     }
 
-    private fun startSimpleBuy() {
-        view.startSimpleBuy()
+    private fun launchBuySellIntro() {
+        view.launchBuySellIntro()
     }
 
     private fun setCurrencyUnits(settings: Settings) {

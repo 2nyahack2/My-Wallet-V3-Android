@@ -11,8 +11,8 @@
         android:fitsSystemWindows="true"
         app:insetForeground="@color/white">
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
-            android:id="@+id/coordinator_layout"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/parent_constraint_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -22,7 +22,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:elevation="4dp"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <include
                     android:id="@+id/toolbar_main"
@@ -35,18 +36,20 @@
             <FrameLayout
                 android:id="@+id/content_frame"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="@dimen/action_bar_height"
-                android:background="@color/white" />
+                android:layout_height="0dp"
+                android:background="@color/white"
+                app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+                app:layout_constraintTop_toBottomOf="@id/appbar_layout" />
 
             <!--The bottom navigation panel -->
             <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
                 android:id="@+id/bottom_navigation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom" />
+                android:layout_gravity="bottom"
+                app:layout_constraintBottom_toBottomOf="parent" />
 
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- The navigation drawer that comes from the left -->
         <!-- Note that `android:layout_gravity` needs to be set to 'start' -->

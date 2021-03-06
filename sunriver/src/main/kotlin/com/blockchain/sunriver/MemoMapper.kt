@@ -4,7 +4,7 @@ import org.stellar.sdk.Memo
 
 internal class MemoMapper {
 
-    fun mapMemo(memo: com.blockchain.transactions.Memo?): Memo =
+    fun mapMemo(memo: com.blockchain.sunriver.Memo?): Memo =
         when {
             memo == null || memo.isEmpty() -> Memo.none()
             memo.type == "id" -> Memo.id(memo.value.toLong())

@@ -6,7 +6,7 @@ import com.blockchain.koin.scopedInject
 import kotlinx.android.synthetic.main.simple_buy_cancel_order_bottom_sheet.view.*
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.base.SlidingModalBottomDialog
-import piuk.blockchain.androidcoreui.utils.extensions.setOnClickListenerDebounced
+import piuk.blockchain.android.util.setOnClickListenerDebounced
 import java.lang.IllegalStateException
 
 class SimpleBuyCancelOrderBottomSheet : SlidingModalBottomDialog() {

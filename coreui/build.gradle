@@ -70,14 +70,12 @@ dependencies {
     // Rx UI Bindings
     api Libraries.rxBindingV4
     api Libraries.rxBindingV7
-    api Libraries.rxFingerprint
 
     // Logging
     implementation(Libraries.firebaseCrashlytics)
     implementation(Libraries.firebaseAnalytics)
 
     // Custom Views
-    api Libraries.konfetti
     api Libraries.wheelPicker
 
     // Utils

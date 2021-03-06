@@ -16,10 +16,7 @@ internal class BtcAccountListAdapter(
 ) : AccountList {
 
     override fun defaultAccount(): Single<AccountReference> =
-        Single.just(defaultAccountReference())
-
-    override fun defaultAccountReference() =
-        payloadDataManager.defaultAccount.toAccountReference()
+        Single.just(payloadDataManager.defaultAccount.toAccountReference())
 
     override fun accounts(): Single<AccountReferenceList> =
         Single.just(payloadDataManager.accounts
@@ -31,12 +28,11 @@ internal class BchAccountListAdapter(private val bchPayloadDataManager: BchDataM
     AccountList {
 
     override fun defaultAccount(): Single<AccountReference> =
-        Single.just(defaultAccountReference())
-
-    override fun defaultAccountReference() =
-        with(bchPayloadDataManager) {
-            getAccountMetadataList()[getDefaultAccountPosition()].toAccountReference()
-        }
+        Single.just(
+            with(bchPayloadDataManager) {
+                getAccountMetadataList()[getDefaultAccountPosition()].toAccountReference()
+            }
+        )
 
     override fun accounts(): Single<AccountReferenceList> =
         Single.just(bchPayloadDataManager.getAccountMetadataList()
@@ -52,7 +48,7 @@ internal class PaxAccountListAdapter(
     override fun defaultAccount(): Single<AccountReference> =
         Single.just(defaultAccountReference())
 
-    override fun defaultAccountReference() =
+    private fun defaultAccountReference() =
         AccountReference.Pax(labels.getDefaultNonCustodialWalletLabel(CryptoCurrency.PAX),
             ethDataManager.getEthWallet()?.account?.address
                 ?: throw Exception("No ether wallet found"), "")
@@ -69,7 +65,7 @@ internal class UsdtAccountListAdapter(
     override fun defaultAccount(): Single<AccountReference> =
         Single.just(defaultAccountReference())
 
-    override fun defaultAccountReference() =
+    private fun defaultAccountReference() =
         AccountReference.Usdt(labels.getDefaultNonCustodialWalletLabel(CryptoCurrency.USDT),
             ethDataManager.getEthWallet()?.account?.address
                 ?: throw Exception("No usdt wallet found"), "")
@@ -83,7 +79,7 @@ internal class EthAccountListAdapter(private val ethDataManager: EthDataManager)
     override fun defaultAccount(): Single<AccountReference> =
         Single.just(defaultAccountReference())
 
-    override fun defaultAccountReference() =
+    private fun defaultAccountReference() =
         (ethDataManager.getEthWallet() ?: throw Exception("No ether wallet found"))
             .account.toAccountReference()
 

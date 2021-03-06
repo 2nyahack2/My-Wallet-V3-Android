@@ -2,7 +2,6 @@ package piuk.blockchain.android.util
 
 import android.app.ActivityManager
 import android.content.Context
-import android.content.pm.PackageManager.NameNotFoundException
 
 class OSUtil(private val context: Context) {
 
@@ -15,15 +14,5 @@ class OSUtil(private val context: Context) {
             }
         }
         return false
-    }
-
-    fun hasPackage(p: String): Boolean {
-        val pm = context.packageManager
-        return try {
-            pm.getPackageInfo(p, 0)
-            true
-        } catch (nnfe: NameNotFoundException) {
-            false
-        }
     }
 }

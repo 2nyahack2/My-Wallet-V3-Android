@@ -2,6 +2,8 @@ package piuk.blockchain.androidcore.data.ethereum
 
 import com.blockchain.logging.LastTxUpdater
 import info.blockchain.balance.CryptoCurrency
+import info.blockchain.balance.CryptoCurrency.Companion.IS_ERC20
+import info.blockchain.balance.CryptoValue
 import info.blockchain.wallet.api.Environment
 import info.blockchain.wallet.ethereum.Erc20TokenData
 import info.blockchain.wallet.ethereum.EthAccountApi
@@ -20,8 +22,13 @@ import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import org.bitcoinj.core.ECKey
 import org.spongycastle.util.encoders.Hex
+import org.web3j.abi.TypeEncoder
+import org.web3j.abi.datatypes.Address
 import org.web3j.crypto.RawTransaction
 import piuk.blockchain.androidcore.data.api.EnvironmentConfig
+import piuk.blockchain.androidcore.data.erc20.Erc20DataModel
+import piuk.blockchain.androidcore.data.erc20.Erc20Transfer
+import piuk.blockchain.androidcore.data.erc20.datastores.Erc20DataStore
 import piuk.blockchain.androidcore.data.ethereum.datastores.EthDataStore
 import piuk.blockchain.androidcore.data.ethereum.models.CombinedEthModel
 import piuk.blockchain.androidcore.data.metadata.MetadataManager
@@ -38,6 +45,7 @@ class EthDataManager(
     private val payloadDataManager: PayloadDataManager,
     private val ethAccountApi: EthAccountApi,
     private val ethDataStore: EthDataStore,
+    private val erc20DataStore: Erc20DataStore,
     private val walletOptionsDataManager: WalletOptionsDataManager,
     private val metadataManager: MetadataManager,
     private val environmentSettings: EnvironmentConfig,
@@ -50,7 +58,10 @@ class EthDataManager(
     /**
      * Clears the currently stored ETH account from memory.
      */
-    fun clearEthAccountDetails() = ethDataStore.clearData()
+    fun clearAccountDetails() {
+        ethDataStore.clearData()
+        erc20DataStore.clearData()
+    }
 
     /**
      * Returns an [CombinedEthModel] object for a given ETH address as an [Observable]. An
@@ -73,6 +84,17 @@ class EthDataManager(
             }
         }
 
+    fun fetchErc20DataModel(asset: CryptoCurrency): Observable<Erc20DataModel> {
+        require(asset.hasFeature(IS_ERC20))
+        return getErc20Address(asset)
+            .map { Erc20DataModel(it, asset) }
+            .doOnNext { erc20DataStore.erc20DataModel[asset] = it }
+            .subscribeOn(Schedulers.io())
+    }
+
+    fun refreshErc20Model(asset: CryptoCurrency): Completable =
+        Completable.fromObservable(fetchErc20DataModel(asset))
+
     fun getBalance(account: String): Single<BigInteger> =
         ethAccountApi.getEthAddress(listOf(account))
             .map(::CombinedEthModel)
@@ -82,17 +104,39 @@ class EthDataManager(
             .onErrorReturn { BigInteger.ZERO }
             .subscribeOn(Schedulers.io())
 
-    fun getErc20Address(currency: CryptoCurrency): Observable<Erc20AddressResponse> {
+    fun getErc20Balance(cryptoCurrency: CryptoCurrency): Single<CryptoValue> {
+        require(cryptoCurrency.hasFeature(IS_ERC20))
+
+        return getErc20Address(cryptoCurrency)
+            .map {
+                it.balance
+            }.singleOrError()
+            .map { CryptoValue.fromMinor(cryptoCurrency, it) }
+    }
+
+    private fun getErc20Address(currency: CryptoCurrency): Observable<Erc20AddressResponse> {
         // If the metadata is not yet loaded, ethDataStore.ethWallet will be null.
         // So defer() this call, so that the exception occurs after-subscription, rather than
         // when constructing the Rx chain, so it will can be handled by onError() etc
         return Observable.defer {
+            val address = ethDataStore.ethWallet!!.account.address
+            val contractAddress = getErc20TokenData(currency).contractAddress
             ethAccountApi.getErc20Address(
-                ethDataStore.ethWallet!!.account.address,
-                getErc20TokenData(currency).contractAddress
+                address,
+                contractAddress
             )
         }.subscribeOn(Schedulers.io())
     }
+
+    fun getErc20AccountHash(asset: CryptoCurrency): Single<String> =
+        erc20DataStore.erc20DataModel[asset]?.let { model ->
+            Single.just(model.accountHash)
+        } ?: Single.error(IllegalStateException("erc20 token ${asset.networkTicker} uninitialised"))
+
+    fun getErc20Transactions(asset: CryptoCurrency): Observable<List<Erc20Transfer>> =
+        erc20DataStore.erc20DataModel[asset]?.let { model ->
+            Observable.just(model.transfers)
+        } ?: Observable.just(emptyList())
 
     /**
      * Returns the user's ETH account object if previously fetched.
@@ -107,6 +151,8 @@ class EthDataManager(
      * @return A nullable [EthereumWallet] object
      */
     fun getEthWallet(): EthereumWallet? = ethDataStore.ethWallet
+
+    fun getEthWalletAddress(): String? = ethDataStore.ethWallet?.account?.address
 
     fun getDefaultEthAddress(): Single<String?> =
         Single.just(getEthWallet()?.account?.address)
@@ -133,8 +179,8 @@ class EthDataManager(
      */
     fun isLastTxPending(): Single<Boolean> =
         ethDataStore.ethWallet?.account?.address?.let {
-            ethAccountApi.getLastEthTransaction(listOf(it)).map {
-                it.state.toLocalState() == TransactionState.PENDING
+            ethAccountApi.getLastEthTransaction(listOf(it)).map { tx ->
+                tx.state.toLocalState() == TransactionState.PENDING
             }.defaultIfEmpty(false).toSingle()
         } ?: Single.just(false)
 
@@ -218,20 +264,25 @@ class EthDataManager(
         } ?: Completable.error { IllegalStateException("ETH Wallet is null") }
             .applySchedulers()
 
-    fun updateErc20TransactionNotes(hash: String, note: String): Completable = rxPinning.call {
-        getErc20TokenData(CryptoCurrency.PAX).putTxNote(hash, note)
-        return@call save()
-    }.applySchedulers()
+    fun updateErc20TransactionNotes(hash: String, note: String, asset: CryptoCurrency): Completable {
+        require(asset.hasFeature(IS_ERC20))
+
+        return rxPinning.call {
+            getErc20TokenData(asset).putTxNote(hash, note)
+            return@call save()
+        }.applySchedulers()
+    }
 
     /**
      * Fetches EthereumWallet stored in metadata. If metadata entry doesn't exists it will be created.
      *
-     * @param defaultLabel The ETH address default label to be used if metadata entry doesn't exist
-     * @param defaultPaxLabel The default label for PAX
+     * @param labelsMap The list of ETH & ERC-20 address default labels to be used if metadata entry doesn't exist
      * @return An [Completable]
      */
-    fun initEthereumWallet(defaultLabel: String, defaultPaxLabel: String, defaultUsdtLabel: String): Completable =
-        fetchOrCreateEthereumWallet(defaultLabel, defaultPaxLabel, defaultUsdtLabel)
+    fun initEthereumWallet(
+        labelsMap: Map<CryptoCurrency, String>
+    ): Completable =
+        fetchOrCreateEthereumWallet(labelsMap)
             .flatMapCompletable { (wallet, needsSave) ->
                 ethDataStore.ethWallet = wallet
                 if (needsSave) {
@@ -261,6 +312,35 @@ class EthDataManager(
         to,
         weiValue
     )
+
+    fun createErc20Transaction(
+        nonce: BigInteger,
+        to: String,
+        contractAddress: String,
+        gasPriceWei: BigInteger,
+        gasLimitGwei: BigInteger,
+        amount: BigInteger
+    ): RawTransaction? =
+        RawTransaction.createTransaction(
+            nonce,
+            gasPriceWei,
+            gasLimitGwei,
+            contractAddress,
+            0.toBigInteger(),
+            erc20TransferMethod(to, amount)
+        )
+
+    private fun erc20TransferMethod(to: String, amount: BigInteger): String {
+        val transferMethodHex = "0xa9059cbb"
+
+        return transferMethodHex + TypeEncoder.encode(Address(to)) +
+            TypeEncoder.encode(org.web3j.abi.datatypes.generated.Uint256(amount))
+    }
+
+    fun erc20ContractAddress(cryptoCurrency: CryptoCurrency): String {
+        require(cryptoCurrency.hasFeature(CryptoCurrency.IS_ERC20))
+        return getErc20TokenData(cryptoCurrency).contractAddress
+    }
 
     fun getTransaction(hash: String): Observable<EthTransaction> =
         rxPinning.call<EthTransaction> {
@@ -318,7 +398,6 @@ class EthDataManager(
         setLastTxHashObservable(txHash, System.currentTimeMillis())
             .singleOrError()
 
-    @Throws(Exception::class)
     private fun setLastTxHash(txHash: String, timestamp: Long): Observable<String> {
         ethDataStore.ethWallet!!.lastTransactionHash = txHash
         ethDataStore.ethWallet!!.lastTransactionTimestamp = timestamp
@@ -326,8 +405,9 @@ class EthDataManager(
         return save().andThen(Observable.just(txHash))
     }
 
-    @Throws(Exception::class)
-    private fun fetchOrCreateEthereumWallet(defaultLabel: String, defaultPaxLabel: String, defaultUsdtLabel: String):
+    private fun fetchOrCreateEthereumWallet(
+        labelsMap: Map<CryptoCurrency, String>
+    ):
         Single<Pair<EthereumWallet, Boolean>> =
         metadataManager.fetchMetadata(EthereumWallet.METADATA_TYPE_EXTERNAL).defaultIfEmpty("")
             .map { metadata ->
@@ -339,15 +419,16 @@ class EthDataManager(
                 if (ethWallet?.account == null || !ethWallet.account.isCorrect) {
                     try {
                         val masterKey = payloadDataManager.masterKey
-                        ethWallet = EthereumWallet(masterKey, defaultLabel, defaultPaxLabel, defaultUsdtLabel)
+                        ethWallet =
+                            EthereumWallet(masterKey, labelsMap)
                         needsSave = true
                     } catch (e: HDWalletException) {
                         // Wallet private key unavailable. First decrypt with second password.
                         throw InvalidCredentialsException(e.message)
                     }
                 }
-                // AND-2011: Add erc20 token data if not present
-                if (ethWallet.updateErc20Tokens(defaultPaxLabel, defaultUsdtLabel)) {
+
+                if (ethWallet.updateErc20Tokens(labelsMap.filter { it.key.hasFeature(IS_ERC20) })) {
                     needsSave = true
                 }
 
@@ -367,11 +448,10 @@ class EthDataManager(
         )
 
     fun getErc20TokenData(currency: CryptoCurrency): Erc20TokenData {
-        when (currency) {
-            CryptoCurrency.PAX -> return getEthWallet()!!.getErc20TokenData(
-                Erc20TokenData.PAX_CONTRACT_NAME)
-            CryptoCurrency.USDT -> return getEthWallet()!!.getErc20TokenData(
-                Erc20TokenData.USDT_CONTRACT_NAME)
+        return when (currency) {
+            CryptoCurrency.PAX -> getEthWallet()!!.getErc20TokenData(Erc20TokenData.PAX_CONTRACT_NAME)
+            CryptoCurrency.USDT -> getEthWallet()!!.getErc20TokenData(Erc20TokenData.USDT_CONTRACT_NAME)
+            CryptoCurrency.DGLD -> getEthWallet()!!.getErc20TokenData(Erc20TokenData.DGLD_CONTRACT_NAME)
             else -> throw IllegalArgumentException("Not an ERC20 token")
         }
     }

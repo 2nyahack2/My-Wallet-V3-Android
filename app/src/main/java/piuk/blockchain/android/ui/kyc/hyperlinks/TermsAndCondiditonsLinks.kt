@@ -4,14 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
-import androidx.annotation.StringRes
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
 import android.widget.TextView
+import androidx.annotation.StringRes
 import com.blockchain.ui.urllinks.URL_PRIVACY_POLICY
 import com.blockchain.ui.urllinks.URL_TOS_POLICY
 import piuk.blockchain.android.R
@@ -50,7 +49,6 @@ fun TextView.renderSingleLink(@StringRes startText: Int, @StringRes link: Int, @
 private val defaultClickSpan =
     object : ClickableSpan() {
         override fun onClick(view: View) = Unit
-        override fun updateDrawState(ds: TextPaint?) = Unit
     }
 
 private fun TextView.formatLinks(vararg linkPairs: Pair<String, ClickableSpan>) {
@@ -74,7 +72,7 @@ private fun TextView.formatLinks(vararg linkPairs: Pair<String, ClickableSpan>) 
 
 private fun Context.goToUrlClickableSpan(url: String) =
     object : ClickableSpan() {
-        override fun onClick(widget: View?) {
+        override fun onClick(widget: View) {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         }
     }

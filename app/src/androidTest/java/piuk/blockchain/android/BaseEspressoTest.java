@@ -8,6 +8,8 @@ import androidx.test.InstrumentationRegistry;
 
 import android.view.MotionEvent;
 
+import com.blockchain.logging.CrashLogger;
+
 import org.junit.After;
 import org.junit.Before;
 
@@ -25,7 +27,12 @@ public class BaseEspressoTest {
     @Mock
     protected UUIDGenerator uuidGenerator;
 
-    private SharedPreferences store = PreferenceManager.getDefaultSharedPreferences(InstrumentationRegistry.getTargetContext());
+    @Mock
+    protected CrashLogger crashLogger;
+
+    private final SharedPreferences store =
+        PreferenceManager.getDefaultSharedPreferences(InstrumentationRegistry.getTargetContext());
+
     private SystemAnimations systemAnimations;
     protected PrefsUtil prefs;
 
@@ -34,7 +41,7 @@ public class BaseEspressoTest {
     public void setup() {
         systemAnimations = new SystemAnimations(InstrumentationRegistry.getTargetContext());
 
-        prefs = new PrefsUtil(store, idGenerator, uuidGenerator);
+        prefs = new PrefsUtil(store, store, idGenerator, uuidGenerator, crashLogger);
         clearState();
         ignoreTapJacking(true);
         disableAnimations();

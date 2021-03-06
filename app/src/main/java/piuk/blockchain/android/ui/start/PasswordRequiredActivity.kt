@@ -2,29 +2,45 @@ package piuk.blockchain.android.ui.start
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.CountDownTimer
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
-import android.text.InputType
-import android.text.method.DigitsKeyListener
-import androidx.annotation.StringRes
-import androidx.appcompat.widget.AppCompatEditText
 import com.blockchain.koin.scopedInject
-import info.blockchain.wallet.api.data.Settings
+import com.blockchain.preferences.WalletStatus
 import kotlinx.android.synthetic.main.activity_password_required.*
 import org.json.JSONObject
+import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.auth.PinEntryActivity
 import piuk.blockchain.android.ui.base.MvpActivity
+import piuk.blockchain.android.ui.customviews.getTwoFactorDialog
 import piuk.blockchain.android.ui.launcher.LauncherActivity
 import piuk.blockchain.android.ui.recover.RecoverFundsActivity
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.ViewUtils
+import piuk.blockchain.android.util.ViewUtils
 
 class PasswordRequiredActivity : MvpActivity<PasswordRequiredView, PasswordRequiredPresenter>(),
     PasswordRequiredView {
 
     override val presenter: PasswordRequiredPresenter by scopedInject()
     override val view: PasswordRequiredView = this
+    private val walletPrefs: WalletStatus by inject()
+
+    private var isTwoFATimerRunning = false
+    private val twoFATimer by lazy {
+        object : CountDownTimer(TWO_FA_COUNTDOWN, TWO_FA_STEP) {
+            override fun onTick(millisUntilFinished: Long) {
+                isTwoFATimerRunning = true
+            }
+
+            override fun onFinish() {
+                isTwoFATimerRunning = false
+                walletPrefs.setResendSmsRetries(3)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +56,17 @@ class PasswordRequiredActivity : MvpActivity<PasswordRequiredView, PasswordRequi
         button_recover.setOnClickListener { launchRecoveryFlow() }
     }
 
+    override fun onResume() {
+        super.onResume()
+        presenter.loadWalletGuid()
+    }
+
     override fun showToast(@StringRes messageId: Int, @ToastCustom.ToastType toastType: String) {
         ToastCustom.makeText(this, getString(messageId), ToastCustom.LENGTH_SHORT, toastType)
+    }
+
+    override fun showErrorToastWithParameter(@StringRes messageId: Int, message: String) {
+        ToastCustom.makeText(this, getString(messageId, message), ToastCustom.LENGTH_SHORT, ToastCustom.TYPE_ERROR)
     }
 
     override fun restartPage() {
@@ -52,6 +77,10 @@ class PasswordRequiredActivity : MvpActivity<PasswordRequiredView, PasswordRequi
 
     override fun resetPasswordField() {
         if (!isFinishing) field_password.setText("")
+    }
+
+    override fun showWalletGuid(guid: String) {
+        wallet_identifier.text = guid
     }
 
     override fun goToPinPage() {
@@ -81,37 +110,28 @@ class PasswordRequiredActivity : MvpActivity<PasswordRequiredView, PasswordRequi
     ) {
         ViewUtils.hideKeyboard(this)
 
-        val editText = AppCompatEditText(this)
-        editText.setHint(R.string.two_factor_dialog_hint)
-
-        val message = when (authType) {
-            Settings.AUTH_TYPE_GOOGLE_AUTHENTICATOR -> {
-                editText.inputType = InputType.TYPE_NUMBER_VARIATION_NORMAL
-                editText.keyListener = DigitsKeyListener.getInstance("1234567890")
-                R.string.two_factor_dialog_message_authenticator
-            }
-            Settings.AUTH_TYPE_SMS -> {
-                editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
-                R.string.two_factor_dialog_message_sms
-            }
-            else -> throw IllegalArgumentException("Auth Type $authType should not be passed to this function")
-        }
-
-        showAlert(
-            AlertDialog.Builder(this, R.style.AlertDialogStyle)
-                .setTitle(R.string.two_factor_dialog_title)
-                .setMessage(message)
-                .setView(ViewUtils.getAlertDialogPaddedView(this, editText))
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    presenter.submitTwoFactorCode(responseObject,
-                        sessionId,
-                        guid,
-                        password,
-                        editText.text.toString())
+        val dialog = getTwoFactorDialog(this, authType,
+            walletPrefs,
+            positiveAction = {
+                presenter.submitTwoFactorCode(responseObject,
+                    sessionId,
+                    guid,
+                    password,
+                    it
+                )
+            }, resendAction = { limitReached ->
+            if (!limitReached) {
+                presenter.requestNew2FaCode(password, guid)
+            } else {
+                ToastCustom.makeText(this, getString(R.string.two_factor_retries_exceeded),
+                    Toast.LENGTH_SHORT, ToastCustom.TYPE_ERROR)
+                if (!isTwoFATimerRunning) {
+                    twoFATimer.start()
                 }
-                .setNegativeButton(android.R.string.cancel, null)
-                .create()
-        )
+            }
+        })
+
+        showAlert(dialog)
     }
 
     override fun onDestroy() {
@@ -121,4 +141,9 @@ class PasswordRequiredActivity : MvpActivity<PasswordRequiredView, PasswordRequi
     }
 
     private fun launchRecoveryFlow() = RecoverFundsActivity.start(this)
+
+    companion object {
+        const val TWO_FA_COUNTDOWN = 60000L
+        const val TWO_FA_STEP = 1000L
+    }
 }

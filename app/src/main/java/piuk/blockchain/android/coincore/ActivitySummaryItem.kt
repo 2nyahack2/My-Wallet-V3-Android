@@ -1,8 +1,14 @@
 package piuk.blockchain.android.coincore
 
-import com.blockchain.swap.nabu.datamanagers.OrderState
-import com.blockchain.swap.nabu.datamanagers.TransactionState
-import com.blockchain.swap.nabu.datamanagers.TransactionType
+import com.blockchain.nabu.datamanagers.CurrencyPair
+import com.blockchain.nabu.datamanagers.InterestState
+import com.blockchain.nabu.datamanagers.OrderState
+import com.blockchain.nabu.datamanagers.TransferDirection
+import com.blockchain.nabu.datamanagers.CustodialOrderState
+import com.blockchain.nabu.datamanagers.TransactionState
+import com.blockchain.nabu.datamanagers.TransactionType
+import com.blockchain.nabu.datamanagers.custodialwalletimpl.OrderType
+import com.blockchain.nabu.datamanagers.custodialwalletimpl.PaymentMethodType
 import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
 import info.blockchain.balance.FiatValue
@@ -62,7 +68,52 @@ abstract class ActivitySummaryItem : Comparable<ActivitySummaryItem> {
     abstract val account: SingleAccount
 }
 
-data class CustodialActivitySummaryItem(
+data class TradeActivitySummaryItem(
+    override val exchangeRates: ExchangeRateDataManager,
+    override val txId: String,
+    override val timeStampMs: Long,
+    val sendingValue: Money,
+    val sendingAccount: SingleAccount,
+    val sendingAddress: String?,
+    val receivingAddress: String?,
+    val state: CustodialOrderState,
+    val direction: TransferDirection,
+    val receivingValue: Money,
+    val depositNetworkFee: Single<Money>,
+    val withdrawalNetworkFee: Money,
+    val currencyPair: CurrencyPair,
+    val fiatValue: FiatValue,
+    val fiatCurrency: String
+) : ActivitySummaryItem() {
+    override val account: SingleAccount
+        get() = sendingAccount
+
+    override val value: Money
+        get() = sendingValue
+
+    override fun totalFiatWhenExecuted(selectedFiat: String): Single<Money> = Single.just(fiatValue)
+}
+
+data class CustodialInterestActivitySummaryItem(
+    override val exchangeRates: ExchangeRateDataManager,
+    override val cryptoCurrency: CryptoCurrency,
+    override val txId: String,
+    override val timeStampMs: Long,
+    override val value: Money,
+    override val account: CryptoAccount,
+    val status: InterestState,
+    val type: TransactionSummary.TransactionType,
+    val confirmations: Int,
+    val accountRef: String,
+    val recipientAddress: String
+) : CryptoActivitySummaryItem() {
+    fun isPending(): Boolean =
+        status == InterestState.PENDING ||
+                status == InterestState.PROCESSING ||
+                status == InterestState.MANUAL_REVIEW
+}
+
+data class CustodialTradingActivitySummaryItem(
     override val exchangeRates: ExchangeRateDataManager,
     override val cryptoCurrency: CryptoCurrency,
     override val txId: String,
@@ -71,13 +122,16 @@ data class CustodialActivitySummaryItem(
     override val account: CryptoAccount,
     val fundedFiat: FiatValue,
     val status: OrderState,
+    val type: OrderType,
     val fee: FiatValue,
-    val paymentMethodId: String
+    val paymentMethodId: String,
+    val paymentMethodType: PaymentMethodType,
+    val depositPaymentId: String
 ) : CryptoActivitySummaryItem()
 
 abstract class NonCustodialActivitySummaryItem : CryptoActivitySummaryItem() {
 
-    abstract val direction: TransactionSummary.Direction
+    abstract val transactionType: TransactionSummary.TransactionType
     abstract val fee: Observable<CryptoValue>
 
     abstract val inputsMap: Map<String, CryptoValue>
@@ -87,21 +141,19 @@ abstract class NonCustodialActivitySummaryItem : CryptoActivitySummaryItem() {
     abstract val description: String?
 
     open val confirmations = 0
-    open val watchOnly: Boolean = false
     open val doubleSpend: Boolean = false
     open val isFeeTransaction = false
     open val isPending: Boolean = false
     open var note: String? = null
 
     override fun toString(): String = "cryptoCurrency = $cryptoCurrency" +
-            "direction  = $direction " +
+            "transactionType  = $transactionType " +
             "timeStamp  = $timeStampMs " +
             "total  = ${value.toStringWithSymbol()} " +
             "txId (hash)  = $txId " +
             "inputsMap  = $inputsMap " +
             "outputsMap  = $outputsMap " +
             "confirmations  = $confirmations " +
-            "watchOnly  = $watchOnly " +
             "doubleSpend  = $doubleSpend " +
             "isPending  = $isPending " +
             "note = $note"
@@ -112,14 +164,13 @@ abstract class NonCustodialActivitySummaryItem : CryptoActivitySummaryItem() {
         val that = other as NonCustodialActivitySummaryItem?
 
         return this.cryptoCurrency == that?.cryptoCurrency &&
-                this.direction == that.direction &&
+                this.transactionType == that.transactionType &&
                 this.timeStampMs == that.timeStampMs &&
                 this.value == that.value &&
                 this.txId == that.txId &&
                 this.inputsMap == that.inputsMap &&
                 this.outputsMap == that.outputsMap &&
                 this.confirmations == that.confirmations &&
-                this.watchOnly == that.watchOnly &&
                 this.doubleSpend == that.doubleSpend &&
                 this.isFeeTransaction == that.isFeeTransaction &&
                 this.isPending == that.isPending &&
@@ -129,7 +180,7 @@ abstract class NonCustodialActivitySummaryItem : CryptoActivitySummaryItem() {
     override fun hashCode(): Int {
         var result = 17
         result = 31 * result + cryptoCurrency.hashCode()
-        result = 31 * result + direction.hashCode()
+        result = 31 * result + transactionType.hashCode()
         result = 31 * result + JavaHashCode.hashCode(timeStampMs)
         result = 31 * result + value.hashCode()
         result = 31 * result + txId.hashCode()
@@ -137,7 +188,6 @@ abstract class NonCustodialActivitySummaryItem : CryptoActivitySummaryItem() {
         result = 31 * result + outputsMap.hashCode()
         result = 31 * result + JavaHashCode.hashCode(confirmations)
         result = 31 * result + JavaHashCode.hashCode(isFeeTransaction)
-        result = 31 * result + JavaHashCode.hashCode(watchOnly)
         result = 31 * result + JavaHashCode.hashCode(doubleSpend)
         result = 31 * result + (note?.hashCode() ?: 0)
         return result

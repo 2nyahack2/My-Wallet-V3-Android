@@ -11,7 +11,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import piuk.blockchain.androidcore.data.events.ActionEvent
 import piuk.blockchain.androidcore.data.events.SpottyNetworkConnectionEvent
 import piuk.blockchain.androidcore.data.rxjava.RxBus
-import piuk.blockchain.androidcore.utils.rxjava.IgnorableDefaultObserver
+import piuk.blockchain.androidcore.utils.extensions.emptySubscribe
 
 internal class ConnectionStateMonitor(
     private val context: Context,
@@ -36,7 +36,7 @@ internal class ConnectionStateMonitor(
     override fun onAvailable(network: Network) {
         // Sends max of one broadcast every 30s if network connection is spotty
         if (System.currentTimeMillis() - lastBroadcastTime > COOL_DOWN_INTERVAL) {
-            broadcastOnMainThread().subscribe(IgnorableDefaultObserver<Any>())
+            broadcastOnMainThread().emptySubscribe()
             lastBroadcastTime = System.currentTimeMillis()
         }
     }

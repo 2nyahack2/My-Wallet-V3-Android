@@ -2,13 +2,13 @@ package piuk.blockchain.android.ui.kyc.settings
 
 import androidx.annotation.VisibleForTesting
 import com.blockchain.exceptions.MetadataNotFoundException
-import com.blockchain.swap.nabu.models.nabu.KycState
-import com.blockchain.swap.nabu.models.nabu.Scope
-import com.blockchain.swap.nabu.models.nabu.UserState
-import com.blockchain.swap.nabu.NabuToken
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.KycTiers
-import com.blockchain.swap.nabu.service.TierService
+import com.blockchain.nabu.models.responses.nabu.KycState
+import com.blockchain.nabu.models.responses.nabu.Scope
+import com.blockchain.nabu.models.responses.nabu.UserState
+import com.blockchain.nabu.NabuToken
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.KycTiers
+import com.blockchain.nabu.service.TierService
 import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.rxkotlin.Singles
@@ -33,6 +33,8 @@ class KycStatusHelper(
             } else {
                 Single.just(KycTiers.default())
             }
+        }.onErrorReturn {
+            KycTiers.default()
         }
 
     fun shouldDisplayKyc(): Single<Boolean> = Singles.zip(

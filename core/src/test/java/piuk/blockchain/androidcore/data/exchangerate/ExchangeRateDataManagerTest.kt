@@ -8,7 +8,6 @@ import com.blockchain.testutils.rxInit
 import com.blockchain.testutils.usd
 import com.nhaarman.mockito_kotlin.whenever
 import info.blockchain.balance.CryptoCurrency
-import info.blockchain.utils.parseBigDecimal
 import io.reactivex.Single
 import org.amshove.kluent.`should equal`
 import org.amshove.kluent.mock
@@ -17,7 +16,6 @@ import org.junit.Rule
 import piuk.blockchain.androidcore.data.exchangerate.datastore.ExchangeRateDataStore
 import piuk.blockchain.androidcore.data.rxjava.RxBus
 import java.math.BigDecimal
-import java.util.Locale
 import kotlin.test.Test
 
 class ExchangeRateDataManagerTest {
@@ -114,8 +112,10 @@ class ExchangeRateDataManagerTest {
     @Test
     fun `toCrypto yields full precision of the currency - ETH`() {
         givenExchangeRate(CryptoCurrency.ETHER, "USD", 5610.83)
-        1000.82.usd().toCrypto(subject, CryptoCurrency.ETHER) `should equal`
-                "0.178372896701557524".parseBigDecimal(Locale.US).ether()
+        val expected = BigDecimal("0.178372896701557526").ether()
+
+        val result = BigDecimal(1000.82).usd().toCrypto(subject, CryptoCurrency.ETHER)
+        result `should equal` expected
     }
 
     @Test

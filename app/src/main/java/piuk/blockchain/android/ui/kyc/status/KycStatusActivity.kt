@@ -5,25 +5,26 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintSet
-import com.blockchain.activities.StartSwap
 import com.blockchain.extensions.px
 import com.blockchain.koin.scopedInject
 import com.blockchain.notifications.analytics.AnalyticsEvents
 import com.blockchain.notifications.analytics.logEvent
-import com.blockchain.swap.nabu.models.nabu.KycTierState
-import com.blockchain.ui.dialog.MaterialProgressDialog
-import org.koin.android.ext.android.inject
+import com.blockchain.nabu.models.responses.nabu.KycTierState
 import piuk.blockchain.android.R
 import piuk.blockchain.android.campaign.CampaignType
+import piuk.blockchain.android.coincore.AssetAction
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
+import piuk.blockchain.android.ui.transactionflow.DialogFlow
+import piuk.blockchain.android.ui.transactionflow.TransactionFlow
 import piuk.blockchain.androidcore.utils.helperfunctions.consume
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
 import piuk.blockchain.androidcoreui.ui.base.BaseMvpActivity
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
+import piuk.blockchain.androidcoreui.ui.customviews.toast
 import piuk.blockchain.androidcoreui.utils.extensions.getResolvedColor
 import piuk.blockchain.androidcoreui.utils.extensions.getResolvedDrawable
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.toast
-import piuk.blockchain.androidcoreui.utils.extensions.visible
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.visible
 import kotlinx.android.synthetic.main.activity_kyc_status.button_kyc_status_next as buttonNext
 import kotlinx.android.synthetic.main.activity_kyc_status.constraint_layout_kyc_status as constraintLayout
 import kotlinx.android.synthetic.main.activity_kyc_status.image_view_kyc_status as imageView
@@ -33,10 +34,9 @@ import kotlinx.android.synthetic.main.activity_kyc_status.text_view_verification
 import kotlinx.android.synthetic.main.activity_kyc_status.text_view_verification_subtitle as textViewSubtitle
 import kotlinx.android.synthetic.main.activity_kyc_status.toolbar_kyc as toolBar
 
-class KycStatusActivity : BaseMvpActivity<KycStatusView, KycStatusPresenter>(), KycStatusView {
+class KycStatusActivity : BaseMvpActivity<KycStatusView, KycStatusPresenter>(), KycStatusView, DialogFlow.FlowHost {
 
     private val presenter: KycStatusPresenter by scopedInject()
-    private val swapStarter: StartSwap by inject()
     private val campaignType by unsafeLazy { intent.getSerializableExtra(EXTRA_CAMPAIGN_TYPE) as CampaignType }
     private var progressDialog: MaterialProgressDialog? = null
 
@@ -51,7 +51,8 @@ class KycStatusActivity : BaseMvpActivity<KycStatusView, KycStatusPresenter>(), 
             CampaignType.Blockstack,
             CampaignType.SimpleBuy,
             CampaignType.Resubmission,
-            CampaignType.FiatFunds -> R.string.sunriver_splash_title
+            CampaignType.FiatFunds,
+            CampaignType.Interest -> R.string.sunriver_splash_title
         }
         setupToolbar(toolBar, title)
 
@@ -59,8 +60,18 @@ class KycStatusActivity : BaseMvpActivity<KycStatusView, KycStatusPresenter>(), 
     }
 
     override fun startExchange() {
-        swapStarter.startSwapActivity(this)
-        finish()
+        startSwapFlow()
+    }
+
+    private fun startSwapFlow() {
+        TransactionFlow(
+            action = AssetAction.Swap
+        ).apply {
+            startFlow(
+                fragmentManager = supportFragmentManager,
+                host = this@KycStatusActivity
+            )
+        }
     }
 
     override fun renderUi(kycState: KycTierState) {
@@ -95,7 +106,8 @@ class KycStatusActivity : BaseMvpActivity<KycStatusView, KycStatusPresenter>(), 
             CampaignType.Blockstack,
             CampaignType.SimpleBuy,
             CampaignType.Sunriver,
-            CampaignType.FiatFunds -> R.string.sunriver_status_message
+            CampaignType.FiatFunds,
+            CampaignType.Interest -> R.string.sunriver_status_message
         }
         textViewMessage.setText(message)
     }
@@ -198,5 +210,8 @@ class KycStatusActivity : BaseMvpActivity<KycStatusView, KycStatusPresenter>(), 
                 .apply { putExtra(EXTRA_CAMPAIGN_TYPE, campaignType) }
                 .run { context.startActivity(this) }
         }
+    }
+
+    override fun onFlowFinished() {
     }
 }

@@ -1,8 +1,8 @@
 package piuk.blockchain.android.ui.dashboard.announcements.rule
 
 import androidx.annotation.VisibleForTesting
-import com.blockchain.swap.nabu.datamanagers.featureflags.Feature
-import com.blockchain.swap.nabu.datamanagers.featureflags.KycFeatureEligibility
+import com.blockchain.nabu.datamanagers.featureflags.Feature
+import com.blockchain.nabu.datamanagers.featureflags.KycFeatureEligibility
 import io.reactivex.Single
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.dashboard.announcements.AnnouncementHost

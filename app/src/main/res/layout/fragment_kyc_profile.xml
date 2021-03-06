@@ -10,34 +10,28 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/text_view_profile_title"
-            style="@style/KycFlowTitle"
+            android:id="@+id/text_view_profile_message"
+            style="@style/Text.Light.14"
+            android:layout_marginEnd="@dimen/standard_margin"
+            android:layout_marginStart="@dimen/standard_margin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/kyc_profile_header"
+            android:text="@string/kyc_profile_message_1"
             app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="@dimen/standard_margin"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/text_view_profile_message"
-            style="@style/KycFlowMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/kyc_profile_message"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_view_profile_title" />
 
         <!-- First name -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/input_layout_kyc_first_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginRight="16dp"
+            android:layout_marginTop="@dimen/small_margin"
+            android:layout_marginEnd="@dimen/standard_margin"
+            android:layout_marginStart="@dimen/standard_margin"
             android:hint="@string/kyc_profile_first_name_hint"
+            style="@style/CommonDataInputAppearance"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/text_view_profile_message">
@@ -57,9 +51,10 @@
             android:id="@+id/input_layout_kyc_last_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginRight="16dp"
+            android:layout_marginTop="@dimen/small_margin"
+            android:layout_marginEnd="@dimen/standard_margin"
+            android:layout_marginStart="@dimen/standard_margin"
+            style="@style/CommonDataInputAppearance"
             android:hint="@string/kyc_profile_last_name_hint"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -80,9 +75,10 @@
             android:id="@+id/input_layout_kyc_date_of_birth"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginRight="16dp"
+            android:layout_marginTop="@dimen/small_margin"
+            android:layout_marginEnd="@dimen/standard_margin"
+            android:layout_marginStart="@dimen/standard_margin"
+            style="@style/CommonDataInputAppearance"
             android:hint="@string/kyc_profile_dob_hint"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

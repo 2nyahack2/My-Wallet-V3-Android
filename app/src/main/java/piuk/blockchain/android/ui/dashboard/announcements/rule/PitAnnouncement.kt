@@ -2,9 +2,7 @@ package piuk.blockchain.android.ui.dashboard.announcements.rule
 
 import androidx.annotation.VisibleForTesting
 import com.blockchain.notifications.analytics.Analytics
-import com.blockchain.remoteconfig.FeatureFlag
 import io.reactivex.Single
-import io.reactivex.rxkotlin.zipWith
 import piuk.blockchain.android.R
 import piuk.blockchain.android.thepit.PitAnalyticsEvent
 import piuk.blockchain.android.thepit.PitLinking
@@ -17,7 +15,6 @@ import piuk.blockchain.android.ui.dashboard.announcements.StandardAnnouncementCa
 class PitAnnouncement(
     private val pitLink: PitLinking,
     dismissRecorder: DismissRecorder,
-    private val featureFlag: FeatureFlag,
     private val analytics: Analytics
 ) : AnnouncementRule(dismissRecorder) {
 
@@ -29,8 +26,8 @@ class PitAnnouncement(
             return Single.just(false)
         }
 
-        return pitLink.isPitLinked().zipWith(featureFlag.enabled).map { (linked, enabled) ->
-            !linked && enabled
+        return pitLink.isPitLinked().map { linked ->
+            !linked
         }
     }
 
@@ -46,7 +43,7 @@ class PitAnnouncement(
                     host.dismissAnnouncementCard()
                 },
                 ctaFunction = {
-                analytics.logEvent(PitAnalyticsEvent.AnnouncementTappedEvent)
+                    analytics.logEvent(PitAnalyticsEvent.AnnouncementTappedEvent)
                     host.dismissAnnouncementCard()
                     host.startPitLinking()
                 },

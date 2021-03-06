@@ -17,6 +17,7 @@ dependencies {
     implementation Libraries.retrofitJacksonConverter
     implementation Libraries.retrofitRxJavaAdapter
     implementation Libraries.retrofitRxMoshiConverter
+    implementation Libraries.jacksonKotlin
 
     implementation Libraries.timber
 

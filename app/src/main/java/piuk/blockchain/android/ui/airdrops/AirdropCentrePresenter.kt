@@ -1,13 +1,13 @@
 package piuk.blockchain.android.ui.airdrops
 
 import com.blockchain.logging.CrashLogger
-import com.blockchain.swap.nabu.NabuToken
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.AirdropStatus
-import com.blockchain.swap.nabu.models.nabu.AirdropStatusList
-import com.blockchain.swap.nabu.models.nabu.CampaignState
-import com.blockchain.swap.nabu.models.nabu.CampaignTransactionState
-import com.blockchain.swap.nabu.models.nabu.UserCampaignState
+import com.blockchain.nabu.NabuToken
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.AirdropStatus
+import com.blockchain.nabu.models.responses.nabu.AirdropStatusList
+import com.blockchain.nabu.models.responses.nabu.CampaignState
+import com.blockchain.nabu.models.responses.nabu.CampaignTransactionState
+import com.blockchain.nabu.models.responses.nabu.UserCampaignState
 import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
 import info.blockchain.balance.FiatValue

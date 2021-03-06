@@ -28,7 +28,7 @@ import com.blockchain.notifications.NotificationTokenManager;
 import com.blockchain.notifications.analytics.Analytics;
 import com.blockchain.preferences.CurrencyPrefs;
 import com.blockchain.remoteconfig.FeatureFlag;
-import com.blockchain.swap.nabu.datamanagers.CustodialWalletManager;
+import com.blockchain.nabu.datamanagers.CustodialWalletManager;
 
 import piuk.blockchain.androidcore.data.api.EnvironmentConfig;
 import piuk.blockchain.androidcore.data.metadata.MetadataManager;
@@ -106,7 +106,6 @@ public class LauncherPresenterTest {
                 settingsDataManager,
                 notificationTokenManager,
                 environmentConfig,
-                featureFlag,
                 currencyPrefs,
                 analytics,
                 prerequisites,
@@ -132,12 +131,13 @@ public class LauncherPresenterTest {
         when(extras.containsKey(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(true);
         when(extras.getBoolean(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(true);
         when(prefsUtil.getValue(anyString(), anyString())).thenReturn("1234567890");
+        when(prefsUtil.getPinId()).thenReturn("1234567890");
         when(prefsUtil.isLoggedOut()).thenReturn(false);
         when(appUtil.isSane()).thenReturn(true);
         when(payloadDataManager.getWallet()).thenReturn(wallet);
         when(prerequisites.initMetadataAndRelatedPrerequisites()).thenReturn(Completable.complete());
         Settings mockSettings = mock(Settings.class);
-        when(prerequisites.initSettings(any(), any())).thenReturn(Observable.just(mockSettings));
+        when(prerequisites.initSettings(any(), any())).thenReturn(Single.just(mockSettings));
         when(wallet.isUpgraded()).thenReturn(true);
         when(accessState.isLoggedIn()).thenReturn(true);
         String guid = "GUID";
@@ -149,7 +149,7 @@ public class LauncherPresenterTest {
         // Act
         subject.onViewReady();
         // Assert
-        verify(launcherActivity).onStartMainActivity(null);
+        verify(launcherActivity).onStartMainActivity(null, false);
     }
 
     /**
@@ -164,6 +164,7 @@ public class LauncherPresenterTest {
         when(extras.containsKey(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(true);
         when(extras.getBoolean(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(true);
         when(prefsUtil.getValue(anyString(), anyString())).thenReturn("1234567890");
+        when(prefsUtil.getPinId()).thenReturn("1234567890");
         when(prefsUtil.isLoggedOut()).thenReturn(false);
         when(appUtil.isSane()).thenReturn(true);
         when(payloadDataManager.getWallet()).thenReturn(wallet);
@@ -173,7 +174,7 @@ public class LauncherPresenterTest {
         String sharedKey = "SHARED_KEY";
         when(prerequisites.initMetadataAndRelatedPrerequisites()).thenReturn(Completable.complete());
         Settings mockSettings = mock(Settings.class);
-        when(prerequisites.initSettings(any(), any())).thenReturn(Observable.error(new Throwable()));
+        when(prerequisites.initSettings(any(), any())).thenReturn(Single.error(new Throwable()));
         when(wallet.getGuid()).thenReturn(guid);
         when(wallet.getSharedKey()).thenReturn(sharedKey);
 
@@ -199,6 +200,7 @@ public class LauncherPresenterTest {
         when(extras.containsKey(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(true);
         when(extras.getBoolean(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(true);
         when(prefsUtil.getValue(anyString(), anyString())).thenReturn("1234567890");
+        when(prefsUtil.getPinId()).thenReturn("1234567890");
         when(prefsUtil.isLoggedOut()).thenReturn(false);
         when(appUtil.isSane()).thenReturn(true);
         when(payloadDataManager.getWallet()).thenReturn(wallet);
@@ -208,7 +210,7 @@ public class LauncherPresenterTest {
         String sharedKey = "SHARED_KEY";
         when(prerequisites.initMetadataAndRelatedPrerequisites()).thenReturn(Completable.complete());
         Settings mockSettings = mock(Settings.class);
-        when(prerequisites.initSettings(any(), any())).thenReturn(Observable.just(mockSettings));
+        when(prerequisites.initSettings(any(), any())).thenReturn(Single.just(mockSettings));
         when(wallet.getGuid()).thenReturn(guid);
         when(wallet.getSharedKey()).thenReturn(sharedKey);
         when(mockSettings.isEmailVerified()).thenReturn(true);
@@ -217,7 +219,7 @@ public class LauncherPresenterTest {
         subject.onViewReady();
         // Assert
         verify(prefsUtil).setValue(PersistentPrefs.KEY_SCHEME_URL, "bitcoin uri");
-        verify(launcherActivity).onStartMainActivity(null);
+        verify(launcherActivity).onStartMainActivity(null, false);
     }
 
     /**
@@ -231,6 +233,7 @@ public class LauncherPresenterTest {
         when(intent.getExtras()).thenReturn(extras);
         when(extras.containsKey(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(false);
         when(prefsUtil.getValue(anyString(), anyString())).thenReturn("1234567890");
+        when(prefsUtil.getPinId()).thenReturn("1234567890");
         when(prefsUtil.isLoggedOut()).thenReturn(false);
         when(appUtil.isSane()).thenReturn(true);
         when(payloadDataManager.getWallet()).thenReturn(wallet);
@@ -253,6 +256,7 @@ public class LauncherPresenterTest {
         when(intent.getExtras()).thenReturn(extras);
         when(extras.containsKey(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(false);
         when(prefsUtil.getValue(anyString(), anyString())).thenReturn("1234567890");
+        when(prefsUtil.getPinId()).thenReturn("1234567890");
         when(prefsUtil.isLoggedOut()).thenReturn(false);
         when(appUtil.isSane()).thenReturn(true);
         when(payloadDataManager.getWallet()).thenReturn(wallet);
@@ -262,7 +266,7 @@ public class LauncherPresenterTest {
         String sharedKey = "SHARED_KEY";
         when(prerequisites.initMetadataAndRelatedPrerequisites()).thenReturn(Completable.complete());
         Settings mockSettings = mock(Settings.class);
-        when(prerequisites.initSettings(any(), any())).thenReturn(Observable.just(mockSettings));
+        when(prerequisites.initSettings(any(), any())).thenReturn(Single.just(mockSettings));
         when(wallet.getGuid()).thenReturn(guid);
         when(wallet.getSharedKey()).thenReturn(sharedKey);
         when(mockSettings.isEmailVerified()).thenReturn(true);
@@ -271,7 +275,7 @@ public class LauncherPresenterTest {
         subject.onViewReady();
         // Assert
         verify(accessState).setLoggedIn(true);
-        verify(launcherActivity).onStartMainActivity(null);
+        verify(launcherActivity).onStartMainActivity(null, false);
     }
 
     /**
@@ -300,7 +304,7 @@ public class LauncherPresenterTest {
         when(intent.getExtras()).thenReturn(extras);
         when(extras.containsKey(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(false);
         when(prefsUtil.getValue(eq(PersistentPrefs.KEY_WALLET_GUID), anyString())).thenReturn("1234567890");
-        when(prefsUtil.getValue(eq(PersistentPrefs.KEY_PIN_IDENTIFIER), anyString())).thenReturn("");
+        when(prefsUtil.getPinId()).thenReturn("");
         // Act
         subject.onViewReady();
         // Assert
@@ -317,6 +321,7 @@ public class LauncherPresenterTest {
         when(intent.getExtras()).thenReturn(extras);
         when(extras.containsKey(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(false);
         when(prefsUtil.getValue(anyString(), anyString())).thenReturn("1234567890");
+        when(prefsUtil.getPinId()).thenReturn("1234567890");
         when(appUtil.isSane()).thenReturn(false);
         // Act
         subject.onViewReady();
@@ -336,6 +341,7 @@ public class LauncherPresenterTest {
         when(extras.containsKey(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(true);
         when(extras.getBoolean(AppUtil.INTENT_EXTRA_VERIFIED)).thenReturn(true);
         when(prefsUtil.getValue(anyString(), anyString())).thenReturn("1234567890");
+        when(prefsUtil.getPinId()).thenReturn("1234567890");
         when(prefsUtil.isLoggedOut()).thenReturn(false);
         when(appUtil.isSane()).thenReturn(true);
         when(payloadDataManager.getWallet()).thenReturn(wallet);

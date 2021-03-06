@@ -26,12 +26,12 @@ internal class Erc20ActivitySummaryItem(
 
     private val transfer: Erc20Transfer = feedTransfer.transfer
 
-    override val direction: TransactionSummary.Direction by unsafeLazy {
+    override val transactionType: TransactionSummary.TransactionType by unsafeLazy {
         when {
             transfer.isToAccount(accountHash)
-                && transfer.isFromAccount(accountHash) -> TransactionSummary.Direction.TRANSFERRED
-            transfer.isFromAccount(accountHash) -> TransactionSummary.Direction.SENT
-            else -> TransactionSummary.Direction.RECEIVED
+                && transfer.isFromAccount(accountHash) -> TransactionSummary.TransactionType.TRANSFERRED
+            transfer.isFromAccount(accountHash) -> TransactionSummary.TransactionType.SENT
+            else -> TransactionSummary.TransactionType.RECEIVED
         }
     }
 
@@ -59,5 +59,5 @@ internal class Erc20ActivitySummaryItem(
     override val confirmations: Int = (lastBlockNumber - transfer.blockNumber).toInt()
 
     override fun updateDescription(description: String): Completable =
-        ethDataManager.updateErc20TransactionNotes(txId, description)
+        ethDataManager.updateErc20TransactionNotes(txId, description, cryptoCurrency)
 }

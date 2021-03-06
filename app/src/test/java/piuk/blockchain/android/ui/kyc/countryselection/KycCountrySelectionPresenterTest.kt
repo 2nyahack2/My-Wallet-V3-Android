@@ -1,10 +1,10 @@
 package piuk.blockchain.android.ui.kyc.countryselection
 
 import com.blockchain.android.testutils.rxInit
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.NabuCountryResponse
-import com.blockchain.swap.nabu.models.nabu.NabuStateResponse
-import com.blockchain.swap.nabu.models.nabu.Scope
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.NabuCountryResponse
+import com.blockchain.nabu.models.responses.nabu.NabuStateResponse
+import com.blockchain.nabu.models.responses.nabu.Scope
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import io.reactivex.Single
@@ -140,7 +140,7 @@ class KycCountrySelectionPresenterTest {
         subject.onRegionSelected(countryDisplayModel)
         // Assert
         verify(nabuDataManager).getStatesList("US", Scope.None)
-        verify(view).continueFlow(countryCode)
+        verify(view).continueFlow(countryCode, "US-AL")
     }
 
     @Test
@@ -160,7 +160,7 @@ class KycCountrySelectionPresenterTest {
         subject.onRegionSelected(countryDisplayModel)
         // Assert
         verify(nabuDataManager).getCountriesList(Scope.None)
-        verify(view).continueFlow(countryCode)
+        verify(view).continueFlow(countryCode, null)
     }
 
     @Test

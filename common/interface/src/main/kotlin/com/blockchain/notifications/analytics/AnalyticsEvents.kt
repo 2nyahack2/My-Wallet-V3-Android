@@ -1,5 +1,6 @@
 package com.blockchain.notifications.analytics
 
+@Deprecated("Analytics events should be defined near point of use")
 enum class AnalyticsEvents(
     override val event: String,
     override val params: Map<String, String> = emptyMap()
@@ -31,6 +32,7 @@ enum class AnalyticsEvents(
     KycBlockstackStart("kyc_blockstack_start"),
     KycSimpleBuyStart("kyc_simple_buy_start"),
     KycFiatFundsStart("kyc_fiat_funds_start"),
+    KycInterestStart("kyc_interest_start"),
     KycMoreInfo("kyc_more_info"),
     KycTiers("kyc_tiers"),
     Lockbox("lockbox"),
@@ -45,12 +47,6 @@ enum class AnalyticsEvents(
     SwapInfoDialogViewHistory("swap_info_dialog_history_click"),
     SwapInfoDialogSwapLimits("swap_info_dialog_limits_click"),
     SwapInfoDialogSupport("swap_info_dialog_support_click"),
-    BitpayAdrressScanned("bitpay_url_scanned"),
-    BitpayUrlPasted("bitpay_url_pasted"),
-    BitpayPaymentExpired("bitpay_payment_expired"),
-    BitpayPaymentFailed("bitpay_payment_failure"),
-    BitpayPaymentSucceed("bitpay_payment_success"),
-    BitpayUrlDeeplink("bitpay_url_deeplink"),
     WalletCreation("wallet_creation"),
     WalletManualLogin("wallet_manual_login"),
     PITDEEPLINK("pit_deeplink"),
@@ -69,7 +65,8 @@ enum class AnalyticsEvents(
     WalletSignupCreated("wallet_signup_wallet_created"),
     WalletSignupPINFirst("wallet_signup_pin_first"),
     WalletSignupPINSecond("wallet_signup_pin_second"),
-    WalletSignupFirstLogIn("wallet_signup_login")
+    WalletSignupFirstLogIn("wallet_signup_login"),
+    SellTabInfo("sell_send_now_clicked")
 }
 
 fun kycTierStart(tier: Int): AnalyticsEvent = object : AnalyticsEvent {

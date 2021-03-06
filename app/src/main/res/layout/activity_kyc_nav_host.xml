@@ -27,18 +27,6 @@
         tools:title="@string/app_name" />
 
     <ProgressBar
-        android:id="@+id/progress_bar_kyc"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="10dp"
-        android:max="100"
-        android:progressDrawable="@drawable/progress_drawable_green"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar_kyc"
-        tools:progress="30" />
-
-    <ProgressBar
         android:id="@+id/progress_bar_loading_user"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -55,7 +43,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progress_bar_kyc">
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_kyc">
 
         <fragment
             android:id="@+id/nav_host"

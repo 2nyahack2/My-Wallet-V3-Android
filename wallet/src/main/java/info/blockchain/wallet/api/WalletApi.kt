@@ -119,7 +119,7 @@ class WalletApi(private val explorerInstance: WalletExplorerEndpoints, private v
         return explorerInstance.fetchEncryptedPayload(guid,
             "SID=$sessionId",
             "json",
-            false,
+            true,
             getApiCode())
     }
 

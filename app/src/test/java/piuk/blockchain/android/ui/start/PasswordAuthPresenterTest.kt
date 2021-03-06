@@ -1,44 +1,43 @@
 package piuk.blockchain.android.ui.start
 
 import com.blockchain.android.testutils.rxInit
+import com.blockchain.logging.CrashLogger
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.whenever
-
 import info.blockchain.wallet.exceptions.DecryptionException
 import info.blockchain.wallet.exceptions.HDWalletException
 import info.blockchain.wallet.payload.data.Wallet
-
-import org.json.JSONObject
-import org.junit.Before
-import org.junit.Test
-
 import io.reactivex.Completable
 import io.reactivex.Observable
-import okhttp3.ResponseBody
-import piuk.blockchain.androidcore.data.auth.AuthDataManager
-import piuk.blockchain.android.ui.launcher.LauncherActivity
-import piuk.blockchain.androidcore.data.payload.PayloadDataManager
-import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.android.util.AppUtil
-import piuk.blockchain.androidcore.utils.PrefsUtil
-import retrofit2.Response
-
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.amshove.kluent.any
 import org.amshove.kluent.mock
+import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.atLeastOnce
 import org.mockito.Mockito.verify
 import piuk.blockchain.android.R
+import piuk.blockchain.android.ui.launcher.LauncherActivity
+import piuk.blockchain.android.util.AppUtil
+import piuk.blockchain.androidcore.data.auth.AuthDataManager
+import piuk.blockchain.androidcore.data.payload.PayloadDataManager
 import piuk.blockchain.androidcore.utils.PersistentPrefs
+import piuk.blockchain.androidcore.utils.PrefsUtil
+import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
+import retrofit2.Response
 
 class TestAuthPresenter(
     override val appUtil: AppUtil,
     override val authDataManager: AuthDataManager,
     override val payloadDataManager: PayloadDataManager,
-    override val prefs: PersistentPrefs
+    override val prefs: PersistentPrefs,
+    override val crashLogger: CrashLogger
 ) : PasswordAuthPresenter<PasswordAuthView>() {
     override fun onAuthFailed() {
         super.onAuthFailed()
@@ -61,6 +60,7 @@ class PasswordAuthPresenterTest {
     private val payloadDataManager: PayloadDataManager = mock()
     private val wallet: Wallet = mock()
     private val prefsUtil: PrefsUtil = mock()
+    private val crashLogger: CrashLogger = mock()
 
     @get:Rule
     val initSchedulers = rxInit {
@@ -74,7 +74,8 @@ class PasswordAuthPresenterTest {
             appUtil,
             authDataManager,
             payloadDataManager,
-            prefsUtil
+            prefsUtil,
+            crashLogger
         )
         subject.attachView(view)
 
@@ -371,6 +372,40 @@ class PasswordAuthPresenterTest {
         verify(view).resetPasswordField()
     }
 
+    @Test
+    fun onContinueClickedInitialErrorReturned() {
+        // Arrange
+        whenever(authDataManager.getSessionId(anyString())).thenReturn(Observable.just("1234567890"))
+        val responseBody = INITIAL_ERROR_RESPONSE.toResponseBody("application/json".toMediaTypeOrNull())
+        val response = Response.error<ResponseBody>(500, responseBody)
+        whenever(authDataManager.getEncryptedPayload(anyString(), anyString()))
+            .thenReturn(Observable.just(response))
+
+        // Act
+        subject.verifyPassword(PASSWORD, GUID)
+
+        // Assert
+        verify(crashLogger).logState("initial_error", "This is an error")
+        verify(view).showErrorToastWithParameter(R.string.common_replaceable_value, "This is an error")
+    }
+
+    @Test
+    fun onContinueClickedInitialErrorReturnedMalformed() {
+        // Arrange
+        whenever(authDataManager.getSessionId(anyString())).thenReturn(Observable.just("1234567890"))
+        val responseBody = INITIAL_ERROR_RESPONSE_MALFORMED.toResponseBody("application/json".toMediaTypeOrNull())
+        val response = Response.error<ResponseBody>(500, responseBody)
+        whenever(authDataManager.getEncryptedPayload(anyString(), anyString()))
+            .thenReturn(Observable.just(response))
+
+        // Act
+        subject.verifyPassword(PASSWORD, GUID)
+
+        // Assert
+        verify(crashLogger).logState(eq("initial_error"), any())
+        verify(view).showToast(R.string.common_error, ToastCustom.TYPE_ERROR)
+    }
+
     /**
      * [AuthDataManager.startPollingAuthStatus] returns an error. Should
      * restart the app via AppUtil#clearCredentialsAndRestart()
@@ -491,6 +526,8 @@ class PasswordAuthPresenterTest {
         private const val KEY_AUTH_REQUIRED_JSON = "{\"authorization_required\": true}"
         private const val TWO_FA_RESPONSE = "{auth_type: 5}"
         private const val TWO_FA_PAYLOAD = "{\"payload\":\"{auth_type: 5}\"}"
+        private const val INITIAL_ERROR_RESPONSE = "{\"initial_error\":\"This is an error\"}"
+        private const val INITIAL_ERROR_RESPONSE_MALFORMED = "{{}]\"initial_error\":\"This is an error\"}]}}"
 
         private const val GUID = "1234567890"
         private const val PASSWORD = "PASSWORD"

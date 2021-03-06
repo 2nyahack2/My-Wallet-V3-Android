@@ -3,42 +3,34 @@ package piuk.blockchain.android.ui.auth
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentPagerAdapter
 import android.view.MotionEvent
 import android.view.Window
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
 import org.koin.android.ext.android.inject
-import piuk.blockchain.android.BuildConfig
 import piuk.blockchain.android.R
 import piuk.blockchain.android.data.coinswebsocket.service.CoinsWebSocketService
 import piuk.blockchain.android.databinding.ActivityPinEntryBinding
+import piuk.blockchain.android.ui.customviews.dialogs.OverlayDetection
 import piuk.blockchain.android.ui.swipetoreceive.SwipeToReceiveFragment
-import piuk.blockchain.android.util.OSUtil
-import piuk.blockchain.android.util.start
 import piuk.blockchain.androidcore.data.access.AccessState
-import piuk.blockchain.androidcore.utils.PersistentPrefs
 import piuk.blockchain.androidcore.utils.annotations.Thunk
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
-import piuk.blockchain.androidcoreui.ApplicationLifeCycle
 import piuk.blockchain.androidcoreui.ui.base.BaseAuthActivity
-import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.OverlayDetection
 
 class PinEntryActivity : BaseAuthActivity(), PinEntryFragment.OnPinEntryFragmentInteractionListener,
     ViewPager.OnPageChangeListener {
 
-    private val osUtil: OSUtil by inject()
-
+    private val coinsWebSocketService: CoinsWebSocketService by inject()
     private val overlayDetection: OverlayDetection by inject()
     private val loginState: AccessState by inject()
 
     @Thunk
     private lateinit var binding: ActivityPinEntryBinding
 
-    private var backPressed: Long = 0
     private val pinEntryFragment: PinEntryFragment by lazy {
         PinEntryFragment.newInstance(!shouldHideSwipeToReceive(), isAfterCreateWallet)
     }
@@ -48,7 +40,7 @@ class PinEntryActivity : BaseAuthActivity(), PinEntryFragment.OnPinEntryFragment
     }
 
     private val isCreatingNewPin: Boolean
-        get() = prefs.getValue(PersistentPrefs.KEY_PIN_IDENTIFIER, "").isEmpty()
+        get() = prefs.pinId.isEmpty()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,7 +74,7 @@ class PinEntryActivity : BaseAuthActivity(), PinEntryFragment.OnPinEntryFragment
     private fun shouldHideSwipeToReceive(): Boolean {
         return (intent.hasExtra(KEY_VALIDATING_PIN_FOR_RESULT) ||
                 isCreatingNewPin ||
-                !prefs.getValue(PersistentPrefs.KEY_SWIPE_TO_RECEIVE_ENABLED, true))
+                !prefs.offlineCacheEnabled)
     }
 
     private fun lockViewpager() {
@@ -102,17 +94,7 @@ class PinEntryActivity : BaseAuthActivity(), PinEntryFragment.OnPinEntryFragment
                 finishWithResultCanceled()
             }
             pinEntryFragment.allowExit() -> {
-                if (backPressed + BuildConfig.EXIT_APP_COOLDOWN_MILLIS > System.currentTimeMillis()) {
-                    loginState.logout()
-                    return
-                } else {
-                    ToastCustom.makeText(this,
-                        getString(R.string.exit_confirm),
-                        ToastCustom.LENGTH_SHORT,
-                        ToastCustom.TYPE_GENERAL)
-                }
-
-                backPressed = System.currentTimeMillis()
+                loginState.logout()
             }
         }
     }
@@ -146,9 +128,7 @@ class PinEntryActivity : BaseAuthActivity(), PinEntryFragment.OnPinEntryFragment
     }
 
     private fun startWebSocketService() {
-        if (ApplicationLifeCycle.getInstance().isForeground) {
-            CoinsWebSocketService::class.java.start(this, osUtil)
-        }
+        coinsWebSocketService.start()
     }
 
     private class SwipeToReceiveFragmentPagerAdapter internal constructor(

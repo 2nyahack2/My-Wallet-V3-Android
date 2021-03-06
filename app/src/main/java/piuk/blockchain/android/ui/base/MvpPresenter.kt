@@ -13,7 +13,7 @@ abstract class MvpPresenter<T : MvpView> {
     val compositeDisposable = CompositeDisposable()
 
     protected var view: T? = null
-        private set(value) { field = value }
+        private set
 
     fun attachView(view: T) {
         this.view = view
@@ -21,7 +21,7 @@ abstract class MvpPresenter<T : MvpView> {
     }
 
     fun detachView(view: T) {
-        assert(this.view === view)
+        require(this.view === view)
 
         onViewDetached()
         compositeDisposable.clear()

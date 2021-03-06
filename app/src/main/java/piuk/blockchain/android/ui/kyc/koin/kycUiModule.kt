@@ -3,11 +3,8 @@
 package piuk.blockchain.android.ui.kyc.koin
 
 import com.blockchain.koin.payloadScopeQualifier
-import piuk.blockchain.android.ui.kyc.splash.KycSplashPresenter
-import com.blockchain.swap.nabu.CurrentTier
-import com.blockchain.swap.nabu.EthEligibility
-import com.blockchain.swap.nabu.StartKyc
-
+import com.blockchain.nabu.CurrentTier
+import com.blockchain.nabu.EthEligibility
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import piuk.blockchain.android.ui.kyc.address.CurrentTierAdapter
@@ -23,11 +20,13 @@ import piuk.blockchain.android.ui.kyc.mobile.entry.KycMobileEntryPresenter
 import piuk.blockchain.android.ui.kyc.mobile.validation.KycMobileValidationPresenter
 import piuk.blockchain.android.ui.kyc.navhost.KycNavHostPresenter
 import piuk.blockchain.android.ui.kyc.navhost.KycStarter
+import piuk.blockchain.android.ui.kyc.navhost.StartKyc
 import piuk.blockchain.android.ui.kyc.profile.KycProfilePresenter
 import piuk.blockchain.android.ui.kyc.reentry.KycNavigator
 import piuk.blockchain.android.ui.kyc.reentry.ReentryDecision
 import piuk.blockchain.android.ui.kyc.reentry.ReentryDecisionKycNavigator
 import piuk.blockchain.android.ui.kyc.reentry.TiersReentryDecision
+import piuk.blockchain.android.ui.kyc.splash.KycSplashPresenter
 import piuk.blockchain.android.ui.kyc.status.KycStatusPresenter
 import piuk.blockchain.android.ui.kyc.tiersplash.KycTierSplashPresenter
 import piuk.blockchain.android.ui.kyc.veriffsplash.VeriffSplashPresenter

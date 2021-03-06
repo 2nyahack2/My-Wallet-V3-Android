@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/benefit_index"
+        style="@style/Text.Blue.Semibold.20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginTop="@dimen/standard_margin"
+        android:background="@drawable/bkgd_tx_circle"
+        android:backgroundTint="@color/blue_000"
+        android:gravity="center"
+        tools:text="1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/benefit_title"
+        style="@style/Text.Semibold.16"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/small_margin"
+        android:layout_marginEnd="24dp"
+        tools:text="@string/fiat_funds_no_kyc_step_1_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/benefit_index"
+        app:layout_constraintTop_toTopOf="@id/benefit_index" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/benefit_subtitle"
+        style="@style/Text.Light.12"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/small_margin"
+        android:layout_marginTop="@dimen/smallest_margin"
+        android:layout_marginEnd="24dp"
+        tools:text="@string/fiat_funds_no_kyc_step_1_description"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/benefit_index"
+        app:layout_constraintTop_toBottomOf="@id/benefit_title" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

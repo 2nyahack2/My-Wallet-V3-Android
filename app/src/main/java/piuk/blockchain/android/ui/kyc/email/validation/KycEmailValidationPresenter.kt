@@ -1,6 +1,6 @@
 package piuk.blockchain.android.ui.kyc.email.validation
 
-import com.blockchain.swap.nabu.NabuUserSync
+import com.blockchain.nabu.NabuUserSync
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers

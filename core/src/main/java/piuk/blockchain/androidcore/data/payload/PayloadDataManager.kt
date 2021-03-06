@@ -3,7 +3,7 @@ package piuk.blockchain.androidcore.data.payload
 import info.blockchain.api.data.Balance
 import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
-import info.blockchain.wallet.exceptions.ApiException
+import info.blockchain.wallet.bip44.HDWalletFactory
 import info.blockchain.wallet.exceptions.DecryptionException
 import info.blockchain.wallet.exceptions.HDWalletException
 import info.blockchain.wallet.multiaddress.TransactionSummary
@@ -12,6 +12,7 @@ import info.blockchain.wallet.payload.data.Account
 import info.blockchain.wallet.payload.data.LegacyAddress
 import info.blockchain.wallet.payload.data.Wallet
 import info.blockchain.wallet.payment.SpendableUnspentOutputs
+import info.blockchain.wallet.stx.STXAccount
 import info.blockchain.wallet.util.PrivateKeyFactory
 import io.reactivex.Completable
 import io.reactivex.Observable
@@ -21,18 +22,13 @@ import io.reactivex.schedulers.Schedulers
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.crypto.DeterministicKey
-import org.spongycastle.crypto.InvalidCipherTextException
 import piuk.blockchain.androidcore.data.api.EnvironmentConfig
 import piuk.blockchain.androidcore.data.metadata.MetadataCredentials
 import piuk.blockchain.androidcore.data.rxjava.RxBus
 import piuk.blockchain.androidcore.data.rxjava.RxPinning
 import piuk.blockchain.androidcore.utils.RefreshUpdater
 import piuk.blockchain.androidcore.utils.extensions.applySchedulers
-import piuk.blockchain.androidcore.utils.rxjava.IgnorableDefaultObserver
-import java.io.IOException
-import java.io.UnsupportedEncodingException
 import java.math.BigInteger
-import java.util.ArrayList
 import java.util.LinkedHashMap
 
 class PayloadDataManager(
@@ -45,6 +41,7 @@ class PayloadDataManager(
 
     private val rxPinning: RxPinning = RxPinning(rxBus)
     private val networkParameters = environmentConfig.bitcoinNetworkParameters
+
     val metadataCredentials: MetadataCredentials?
         get() = tempPassword?.let {
             MetadataCredentials(guid, sharedKey, it)
@@ -57,17 +54,17 @@ class PayloadDataManager(
     val accounts: List<Account>
         get() = wallet?.hdWallets?.get(0)?.accounts ?: emptyList()
 
+    val accountCount: Int
+        get() = wallet?.hdWallets?.get(0)?.accounts?.size ?: 0
+
     var legacyAddresses: List<LegacyAddress>
-        get() = wallet?.legacyAddressList ?: emptyList()
+        get() = wallet?.legacyAddressList?.filter { !it.isWatchOnly() } ?: emptyList()
         set(addresses) {
             wallet!!.legacyAddressList = addresses
         }
 
     val legacyAddressStringList: List<String>
         get() = wallet?.legacyAddressStringList ?: emptyList()
-
-    val watchOnlyAddressStringList: List<String>
-        get() = wallet?.watchOnlyAddressStringList ?: emptyList()
 
     val wallet: Wallet?
         get() = payloadManager.payload
@@ -81,6 +78,7 @@ class PayloadDataManager(
     val payloadChecksum: String?
         get() = payloadManager.payloadChecksum
 
+    // Can be null if the user is not currently logged in and has no pin set
     var tempPassword: String?
         get() = payloadManager.tempPassword
         set(password) {
@@ -92,6 +90,15 @@ class PayloadDataManager(
 
     val isDoubleEncrypted: Boolean
         get() = wallet!!.isDoubleEncryption
+
+    val stxAccount: STXAccount
+        get() {
+            val hdWallets = payloadManager.payload?.hdWallets
+                ?: throw IllegalStateException("Wallet not available")
+
+            return hdWallets[0].stxAccount
+                ?: throw IllegalStateException("Wallet not available")
+        }
 
     val isBackedUp: Boolean
         get() = (
@@ -153,6 +160,20 @@ class PayloadDataManager(
             password
         )
     }.applySchedulers()
+
+    /**
+     * Retrieves a  master key from a 12 word mnemonic
+     */
+    fun generateMasterKeyFromSeed(
+        recoveryPhrase: String,
+        networkParams: NetworkParameters
+    ): DeterministicKey = HDWalletFactory.restoreWallet(
+        networkParams,
+        HDWalletFactory.Language.US,
+        recoveryPhrase,
+        "",
+        1
+    ).masterKey
 
     /**
      * Creates a new HD wallet and Blockchain.info account.
@@ -392,16 +413,8 @@ class PayloadDataManager(
      * @param legacyAddress The [LegacyAddress] to generate an Elliptic Curve Key for
      * @param secondPassword An optional second password, necessary if the private key is ebcrypted
      * @return An Elliptic Curve Key object [ECKey]
-     * @throws UnsupportedEncodingException Thrown if the private key is formatted incorrectly
-     * @throws DecryptionException Thrown if the supplied password is wrong
-     * @throws InvalidCipherTextException Thrown if there's an issue decrypting the private key
      * @see LegacyAddress.isPrivateKeyEncrypted
      */
-    @Throws(
-        UnsupportedEncodingException::class,
-        DecryptionException::class,
-        InvalidCipherTextException::class
-    )
     fun getAddressECKey(legacyAddress: LegacyAddress, secondPassword: String?): ECKey? =
         payloadManager.getAddressECKey(legacyAddress, secondPassword)
 
@@ -418,26 +431,17 @@ class PayloadDataManager(
         }.applySchedulers()
 
     /**
-     * Sets a private key for an associated [LegacyAddress] which is already in the [ ] as a watch only address
+     * Add a private key for a [LegacyAddress]
      *
      * @param key An [ECKey]
      * @param secondPassword An optional double encryption password
      * @return An [Observable] representing a successful save
      */
-    fun setKeyForLegacyAddress(key: ECKey, secondPassword: String?): Observable<LegacyAddress> =
+    fun addLegacyAddressFromKey(key: ECKey, secondPassword: String?): Single<LegacyAddress> =
         rxPinning.call<LegacyAddress> {
             payloadService.setKeyForLegacyAddress(key, secondPassword)
         }.applySchedulers()
-
-    /**
-     * Allows you to add a [LegacyAddress] to the [Wallet]
-     *
-     * @param legacyAddress The new address
-     * @return A [Completable] object representing a successful save
-     */
-    fun addLegacyAddress(legacyAddress: LegacyAddress): Completable =
-        rxPinning.call { payloadService.addLegacyAddress(legacyAddress) }
-            .applySchedulers()
+        .singleOrError()
 
     /**
      * Allows you to propagate changes to a [LegacyAddress] through the [Wallet]
@@ -457,13 +461,19 @@ class PayloadDataManager(
      * @return An [ECKey]
      * @see PrivateKeyFactory
      */
-    fun getKeyFromImportedData(format: String, data: String): Observable<ECKey> =
-        Observable.fromCallable { privateKeyFactory.getKey(format, data) }
-            .applySchedulers()
+    fun getKeyFromImportedData(keyFormat: String, keyData: String): Single<ECKey> =
+        Single.fromCallable {
+            privateKeyFactory.getKey(keyFormat, keyData)
+        }.applySchedulers()
+
+    fun getBip38KeyFromImportedData(keyData: String, keyPassword: String): Single<ECKey> =
+        Single.fromCallable {
+            privateKeyFactory.getBip38Key(networkParameters, keyData, keyPassword)
+        }.applySchedulers()
 
     /**
      * Returns the balance of an address. If the address isn't found in the address map object, the
-     * method will return [CryptoValue.ZeroBtc] instead of a null object.
+     * method will return CryptoValue.Zero(Btc) instead of a null object.
      *
      * @param address The address whose balance you wish to query
      * @return A [CryptoValue] representing the total funds in the address
@@ -516,7 +526,6 @@ class PayloadDataManager(
      * @param spentAmount The spent amount as a long
      * @throws Exception Thrown if the address isn't found
      */
-    @Throws(Exception::class)
     fun subtractAmountFromAddressBalance(address: String, spentAmount: Long) {
         payloadManager.subtractAmountFromAddressBalance(address, BigInteger.valueOf(spentAmount))
     }
@@ -577,11 +586,6 @@ class PayloadDataManager(
             ?: throw NullPointerException("Account not found for XPub")
     }
 
-    @Throws(
-        IOException::class,
-        ApiException::class
-    )
-
     fun getAccountTransactions(xpub: String?, limit: Int, offset: Int):
         Single<List<TransactionSummary>> =
             Single.fromCallable {
@@ -603,9 +607,7 @@ class PayloadDataManager(
      * @param account The [Account] that you wish to send funds from
      * @param unspentOutputBundle A [SpendableUnspentOutputs] bundle for a given Account
      * @return A list of [ECKey] objects
-     * @throws Exception Will be thrown if there are issues with the private keys
      */
-    @Throws(Exception::class)
     fun getHDKeysForSigning(
         account: Account,
         unspentOutputBundle: SpendableUnspentOutputs
@@ -617,66 +619,16 @@ class PayloadDataManager(
     // HELPER METHODS
     // /////////////////////////////////////////////////////////////////////////
 
-    /**
-     * Returns the index for an [Account], assuming that the supplied position was gotten from
-     * a list of only those Accounts which are active.
-     *
-     * @param position The position of the [Account] that you want to select from a list of
-     * active Accounts
-     * @return The position of the [Account] within the full list of Accounts
-     */
-    fun getPositionOfAccountFromActiveList(position: Int): Int {
-        val accounts = accounts
-        var adjustedPosition = 0
-        for (i in accounts.indices) {
-            val account = accounts[i]
-            if (!account.isArchived) {
-                if (position == adjustedPosition) {
-                    return i
-                }
-                adjustedPosition++
-            }
-        }
-
-        return 0
-    }
-
-    /**
-     * Returns the index for an [Account] in a list of active-only Accounts, where the
-     * supplied `accountIndex` is the position of the Account in the full list of both active
-     * and archived Accounts.
-     *
-     * @param accountIndex The position of an [Account] in the full list of Accounts
-     * @return The Account's position within a list of active-only Accounts. Will be -1 if you
-     * attempt to find the position of an archived Account
-     */
-    fun getPositionOfAccountInActiveList(accountIndex: Int): Int {
-        // Filter accounts by active
-        val activeAccounts = ArrayList<Account>()
-        val accounts = accounts
-        for (i in accounts.indices) {
-            val account = accounts[i]
-            if (!account.isArchived) {
-                activeAccounts.add(account)
-            }
-        }
-
-        // Find corrected position
-        return activeAccounts.indexOf(accounts[accountIndex])
+    fun setDefaultIndex(defaultIndex: Int) {
+        wallet!!.hdWallets[0].defaultAccountIdx = defaultIndex
     }
 
     fun validateSecondPassword(secondPassword: String?): Boolean =
         payloadManager.validateSecondPassword(secondPassword)
 
-    @Deprecated(
-        "This seems to be always called with bitcoin network parameters, just use other overload")
-    @Throws(Exception::class)
-    fun decryptHDWallet(networkParameters: NetworkParameters, secondPassword: String?) {
+    fun decryptHDWallet(secondPassword: String?) {
         payloadManager.payload!!.decryptHDWallet(networkParameters, 0, secondPassword)
     }
-
-    @Throws(Exception::class)
-    fun decryptHDWallet(secondPassword: String?) {
-        decryptHDWallet(networkParameters, secondPassword)
-    }
 }
+
+private fun LegacyAddress.isWatchOnly() = privateKey == null

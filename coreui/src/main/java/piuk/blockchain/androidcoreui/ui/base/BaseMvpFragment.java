@@ -5,6 +5,7 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+@Deprecated
 public abstract class BaseMvpFragment<VIEW extends View, PRESENTER extends BasePresenter<VIEW>>
         extends Fragment {
 

@@ -2,13 +2,16 @@ package info.blockchain.wallet.ethereum;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.web3j.crypto.RawTransaction;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.LinkedList;
 
+import info.blockchain.balance.CryptoCurrency;
 import info.blockchain.wallet.MockedResponseTest;
 import info.blockchain.wallet.api.PersistentUrls;
 import info.blockchain.wallet.bip44.HDWallet;
@@ -19,8 +22,26 @@ import static com.blockchain.testutils.GetStringFromResourceKt.getStringFromReso
 
 
 public class EthereumWalletTest extends MockedResponseTest {
+    private final String ethereumLabel = "My Ether Wallet";
+    private final String paxLabel = "My USD PAX Wallet";
+    private final String usdtLabel = "My Tether Wallet";
+    private final String dgldLabel = "My Wrapped-DGLD Wallet";
+    private final HashMap<CryptoCurrency, String> allLabels = new HashMap();
+    private final HashMap<CryptoCurrency, String> erc20Labels = new HashMap();
 
-    EthereumWallet subject;
+    private EthereumWallet subject;
+
+    @Before
+    public void setup() {
+        allLabels.put(CryptoCurrency.ETHER, ethereumLabel);
+        allLabels.put(CryptoCurrency.PAX, paxLabel);
+        allLabels.put(CryptoCurrency.USDT, usdtLabel);
+        allLabels.put(CryptoCurrency.DGLD, dgldLabel);
+
+        erc20Labels.put(CryptoCurrency.PAX, paxLabel);
+        erc20Labels.put(CryptoCurrency.USDT, usdtLabel);
+        erc20Labels.put(CryptoCurrency.DGLD, dgldLabel);
+    }
 
     private HDWallet getWallet(String seedHex) throws Exception {
         return HDWalletFactory
@@ -56,7 +77,7 @@ public class EthereumWalletTest extends MockedResponseTest {
         mockInterceptor.setResponseList(responseList);
 
         //Act
-        subject = new EthereumWallet(wallet.getMasterKey(), "My Ether Wallet", "My USD PAX Wallet", "My Tether Wallet");
+        subject = new EthereumWallet(wallet.getMasterKey(), allLabels);
 
         //Assert
         Assert.assertFalse(subject.hasSeen());
@@ -82,7 +103,7 @@ public class EthereumWalletTest extends MockedResponseTest {
         mockInterceptor.setResponseList(responseList);
 
         //Act
-        subject = new EthereumWallet(wallet.getMasterKey(), "My Ether Wallet", "My USD PAX Wallet", "My Tether Wallet");
+        subject = new EthereumWallet(wallet.getMasterKey(), allLabels);
 
         //Assert
         Assert.assertFalse(subject.hasSeen());
@@ -108,7 +129,7 @@ public class EthereumWalletTest extends MockedResponseTest {
         mockInterceptor.setResponseList(responseList);
 
         //Act
-        subject = new EthereumWallet(wallet.getMasterKey(), "My Ether Wallet", "My USD PAX Wallet", "My Tether Wallet");
+        subject = new EthereumWallet(wallet.getMasterKey(), allLabels);
 
         //Assert
         Assert.assertFalse(subject.hasSeen());
@@ -127,7 +148,7 @@ public class EthereumWalletTest extends MockedResponseTest {
         //Arrange
         HDWallet wallet = getWallet3();
 
-        EthereumWallet eth = new EthereumWallet(wallet.getMasterKey(), "label", "My USD PAX Wallet", "My Tether Wallet");
+        EthereumWallet eth = new EthereumWallet(wallet.getMasterKey(), allLabels);
         eth.setHasSeen(true);
 
         //Act
@@ -156,7 +177,7 @@ public class EthereumWalletTest extends MockedResponseTest {
         HDWallet wallet = getWallet3();
 
         //Act
-        subject = new EthereumWallet(wallet.getMasterKey(), "My Ether Wallet", "My USD PAX Wallet", "My Tether Wallet");
+        subject = new EthereumWallet(wallet.getMasterKey(), allLabels);
 
         //Assert
         Erc20TokenData tokenData = subject.getErc20TokenData(Erc20TokenData.PAX_CONTRACT_NAME);
@@ -170,7 +191,7 @@ public class EthereumWalletTest extends MockedResponseTest {
         subject = EthereumWallet.fromJson(json);
 
         //Act
-        boolean wasUpdated = subject.updateErc20Tokens("My USD PAX Wallet", "My Tether Wallet");
+        boolean wasUpdated = subject.updateErc20Tokens(erc20Labels);
 
         //Assert
         Assert.assertTrue(wasUpdated);
@@ -184,7 +205,7 @@ public class EthereumWalletTest extends MockedResponseTest {
         //Arrange
         HDWallet wallet = getWallet3();
 
-        EthereumWallet eth = new EthereumWallet(wallet.getMasterKey(), "label", "My USD PAX Wallet", "My Tether Wallet");
+        EthereumWallet eth = new EthereumWallet(wallet.getMasterKey(), allLabels);
         eth.getErc20TokenData(Erc20TokenData.PAX_CONTRACT_NAME)
             .putTxNote("one", "two");
 
@@ -208,7 +229,7 @@ public class EthereumWalletTest extends MockedResponseTest {
         responseList.add(Pair.of(404, "{\"message\":\"Not Found\"}"));
         mockInterceptor.setResponseList(responseList);
 
-        subject = new EthereumWallet(wallet.getMasterKey(), "My Ether Wallet", "My USD PAX Wallet", "My Tether Wallet");
+        subject = new EthereumWallet(wallet.getMasterKey(), allLabels);
         RawTransaction tx = createEtherTransaction();
 
         //Act

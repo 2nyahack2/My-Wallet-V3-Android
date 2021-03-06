@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.AppCompatCheckBox
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/confirm_details_checkbox"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/standard_margin"
+    android:layout_marginEnd="@dimen/standard_margin"
+    android:background="@color/white"
+    android:button="@drawable/checkbox_selector_blue"
+    android:paddingStart="@dimen/very_small_margin"
+    android:paddingTop="@dimen/very_small_margin"
+    android:paddingBottom="@dimen/very_small_margin"
+    tools:text="@string/send_confirmation_interest_holding_period_2" />

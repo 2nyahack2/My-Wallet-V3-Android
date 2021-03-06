@@ -8,6 +8,7 @@ apply from: '../quality/jacocoApp.gradle'
 apply from: '../quality/ktlint.gradle'
 apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'kotlinx-serialization'
 
 
 buildProperties {
@@ -43,31 +44,22 @@ android {
         // Flag to hide or show the Contacts feature
         buildConfigBoolean "LOG_KOIN_STARTUP", false
         buildConfigBoolean "SKIP_VERIFF_KYC", false
-        buildConfigLong "EXIT_APP_COOLDOWN_MILLIS", 2 * 1000
 
         buildConfigString "SHAPE_SHIFT_API_KEY", buildProperties.secrets['shapeShiftApiKey']
+
+        manifestPlaceholders = [
+                FABRIC_API_KEY: buildProperties.secrets['fabricApiKey'].string
+        ]
+
         resConfigs 'en',
-                'cs',
                 'de',
                 'es',
                 'fr',
-                'id',
                 'it',
-                'ja',
-                'ko',
-                'ms',
-                'nl',
-                'pl',
                 'pt',
                 'pt-rBR',
-                'ro',
                 'ru',
-                'sv',
-                'th',
-                'tr',
-                'uk',
-                'vi',
-                'zh-rCN'
+                'tr'
     }
     buildTypes {
         release {
@@ -108,6 +100,7 @@ android {
         envProd {
             dimension "environment"
             manifestPlaceholders = [
+                    BACKUP_API_KEY: buildProperties.secrets['prodGoogleBackupApiKey'].string,
                     DYNAMIC_LINK_HOST  : buildProperties.secrets['prodDynamicLink'].string,
                     DYNAMIC_LINK_HOST_2: buildProperties.secrets['prodDynamicLink2'].string
             ]
@@ -126,10 +119,13 @@ android {
             buildConfigField "String", "ENVIRONMENT", '"env_prod"'
             buildConfigField "String", "VERSION_NAME_SUFFIX", "\"" + versionNameSuffix + "\""
             buildConfigField "String", "COMMIT_HASH", "\"\""
+            buildConfigString "SIFT_ACCOUNT_ID", buildProperties.secrets['prodSiftAccount']
+            buildConfigString "SIFT_BEACON_KEY", buildProperties.secrets['prodSiftBeaconId']
         }
         envDev {
             dimension "environment"
             manifestPlaceholders = [
+                    BACKUP_API_KEY: buildProperties.secrets['devGoogleBackupApiKey'].string,
                     DYNAMIC_LINK_HOST  : buildProperties.secrets['devDynamicLink'].string,
                     DYNAMIC_LINK_HOST_2: buildProperties.secrets['devDynamicLink2'].string
             ]
@@ -147,14 +143,18 @@ android {
             buildConfigString "COINS_WEBSOCKET_URL", buildProperties.secrets['devCoinsWebsocket']
             buildConfigField "String", "ENVIRONMENT", '"env_dev"'
             buildConfigField "String", "COMMIT_HASH", "\"${getGitCommitHash()}\""
-            versionNameSuffix '-dev'
             buildConfigField "String", "VERSION_NAME_SUFFIX", "\"" + versionNameSuffix + "\""
+            buildConfigString "SIFT_ACCOUNT_ID", buildProperties.secrets['devSiftAccount']
+            buildConfigString "SIFT_BEACON_KEY", buildProperties.secrets['devSiftBeaconId']
+
+            versionNameSuffix '-dev'
             applicationId "piuk.blockchain.android.dev"
             resValue "string", "app_name", "BlockDev"
         }
         envStaging {
             dimension "environment"
             manifestPlaceholders = [
+                    BACKUP_API_KEY: buildProperties.secrets['stagingGoogleBackupApiKey'].string,
                     DYNAMIC_LINK_HOST  : buildProperties.secrets['stagingDynamicLink'].string,
                     DYNAMIC_LINK_HOST_2: buildProperties.secrets['stagingDynamicLink2'].string
             ]
@@ -172,8 +172,11 @@ android {
             buildConfigString "COINS_WEBSOCKET_URL", buildProperties.secrets['stagingCoinsWebsocket']
             buildConfigField "String", "ENVIRONMENT", '"env_staging"'
             buildConfigField "String", "COMMIT_HASH", "\"${getGitCommitHash()}\""
-            versionNameSuffix '-staging'
             buildConfigField "String", "VERSION_NAME_SUFFIX", "\"" + versionNameSuffix + "\""
+            buildConfigString "SIFT_ACCOUNT_ID", buildProperties.secrets['stagingSiftAccount']
+            buildConfigString "SIFT_BEACON_KEY", buildProperties.secrets['stagingSiftBeaconId']
+
+            versionNameSuffix '-staging'
             applicationId "piuk.blockchain.android.staging"
             resValue "string", "app_name", "BlockStaging"
         }
@@ -195,6 +198,8 @@ android {
             buildConfigString "PIT_LINKING_URL", buildProperties.secrets['testnetPitDoLink']
             buildConfigString "PIT_LAUNCHING_URL", buildProperties.secrets['testnetPitLaunch']
             buildConfigString "COINS_WEBSOCKET_URL", buildProperties.secrets['testnetCoinsWebsocket']
+            buildConfigString "SIFT_ACCOUNT_ID", buildProperties.secrets['stagingSiftAccount']
+            buildConfigString "SIFT_BEACON_KEY", buildProperties.secrets['stagingSiftBeaconId']
             buildConfigField "String", "ENVIRONMENT", '"env_testnet"'
             buildConfigField "String", "COMMIT_HASH", "\"${getGitCommitHash()}\""
             versionNameSuffix '-testnet'
@@ -216,6 +221,13 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
         exclude 'META-INF/rxjava.properties'
         exclude 'jni/**'
         exclude 'solidity/**'
@@ -254,9 +266,8 @@ dependencies {
     implementation project(':coreui')
     implementation project(':notifications')
     implementation project(':nabu')
-    implementation project(':swap')
     implementation project(':sunriver')
-    implementation project(':lockbox')
+    implementation project(':core')
 
     api project(':coreui')
     api project(':notifications')
@@ -268,14 +279,14 @@ dependencies {
     implementation Libraries.koinAndroid
 
     // Views
-    implementation project(":zxing")
     implementation Libraries.countryPicker
     implementation Libraries.bottomNav
     implementation Libraries.circleIndicator
     implementation Libraries.charts
-    implementation Libraries.gson
     implementation Libraries.sparkline
     implementation Libraries.cardForm
+    implementation Libraries.zxing
+    implementation Libraries.sift
 
     // Google core
     implementation Libraries.googlePlayCore
@@ -291,8 +302,11 @@ dependencies {
         exclude group: 'com.android.support'
     }
     implementation Libraries.googlePlaces
+    implementation Libraries.biometricsApi
 
     implementation Libraries.gson
+    implementation Libraries.kotlinJson
+
     // Utils
     implementation Libraries.libPhoneNumber
     implementation Libraries.yearclass

@@ -15,14 +15,14 @@
     <item>第十二字</item>
   </string-array>
   <string-array name="xlm_memo_types_all">
-    <item>\@ string / xlm_memo_text</item>
-    <item>\@ string / xlm_memo_id</item>
-    <item>\@ string / xlm_memo_hash</item>
-    <item>\@ string / xlm_memo_return</item>
+    <item>@string/xlm_memo_text</item>
+    <item>@string/xlm_memo_id</item>
+    <item>@string/xlm_memo_hash</item>
+    <item>@string/xlm_memo_return</item>
   </string-array>
   <string-array name="xlm_memo_types_manual">
-    <item>\@ string / xlm_memo_text</item>
-    <item>\@ string / xlm_memo_id</item>
+    <item>@string/xlm_memo_text</item>
+    <item>@string/xlm_memo_id</item>
   </string-array>
   <plurals name="transfer_label_plural">
     <item quantity="other">%d导入的地址</item>
@@ -45,11 +45,11 @@
   <string name="toolbar_cmd_receive_crypto">接收</string>
   <string name="toolbar_cmd_activity">活动</string>
   <string name="toolbar_cmd_view_activity">查看活动</string>
-  <string name="toolbar_cmd_swap">Swap</string>
+  <string name="common_swap">Swap</string>
   <string name="cancel">取消</string>
   <string name="btn_ok">好</string>
-  <string name="yes">是</string>
-  <string name="no">没有</string>
+  <string name="common_yes">是</string>
+  <string name="common_no">没有</string>
   <string name="polite_no">不用了，谢谢</string>
   <string name="done">完成</string>
   <string name="btn_close">关</string>
@@ -161,7 +161,7 @@
   <string name="btn_continue">继续</string>
   <string name="btn_forgot_password">忘记密码？”</string>
   <string name="SEND">发送</string>
-  <string name="total">总</string>
+  <string name="common_total">总</string>
   <string name="max_available">使用总支出余额：</string>
   <string name="bitpay_remaining_time">剩余时间</string>
   <string name="bitpay_invoice_expired">BitPay发票已过期</string>
@@ -187,8 +187,8 @@
   <string name="weak_password">所选密码太弱，无法保护您的资金。我们强烈
 建议您选择其他。您想定义一个新密码吗？ 
 </string>
-  <string name="from">从</string>
-  <string name="to">至</string>
+  <string name="common_from">从</string>
+  <string name="common_to">至</string>
   <string name="confirm_details">确认付款</string>
   <string name="fee">费用</string>
   <string name="exit_confirm">再次按返回按钮退出</string>
@@ -349,17 +349,6 @@
 比特币地址%1$s 。请扫描二维码。 
 </string>
   <string name="invalid_private_key">私钥无效</string>
-  <string name="watch_only_import_warning">您将要导入一个非消费性地址， 
-地址（或公共密钥脚本） 
-没有对应私钥的情况下存储在钱包中。这个
-意味着仅当您将私钥存储在其他位置时，才能使用这些资金。如果你
-做
-没有存储私钥，请勿指示任何人将您的比特币发送给
-不可消费
-地址。 
-
-仅建议高级用户使用这些选项。继续？ 
-</string>
   <string name="scan_private_key">扫描私钥</string>
   <string name="private_key_successfully_imported">私钥已成功导入。</string>
   <string name="private_key_not_matching_address">注意：扫描的私钥不
@@ -429,15 +418,6 @@
   <string name="settings_field_cant_be_empty">字段不能为空。</string>
   <string name="settings_error_updating">更新设置时出错，请重试</string>
   <string name="request_camera_permission">需要访问相机。</string>
-  <string name="request_camera_permission_title">摄像头访问</string>
-  <string name="request_location_permission">需要位置访问权限。</string>
-  <string name="request_write_storage_permission">需要写入外部存储。</string>
-  <string name="request_write_and_camera_storage_permission_description">写外部存储
-和相机需要上传KYC文档。 
-</string>
-  <string name="request_write_and_camera_storage_permission_title">写存储和相机
-权限
-</string>
   <string name="not_specified">未标明</string>
   <string name="update_failed">更新失败。</string>
   <string name="verify_mobile">验证手机</string>
@@ -638,7 +618,7 @@
 启动器中的图标，可以更快地接收比特币。 
 </string>
   <string name="shortcut_settings_enable">启动器快捷方式</string>
-  <string name="confirm">确认</string>
+  <string name="common_confirm">确认</string>
   <string name="swipe_receive_hint">滑动即可接收</string>
   <string name="swipe_receive_preference_summary">向左滑动时显示一个接收地址
  PIN屏幕，使收款速度更快。 
@@ -826,7 +806,7 @@
 由于市场活动。订单开始后，我们将无法停止
 </string>
   <string name="send_to">发给</string>
-  <string name="receive">接收</string>
+  <string name="common_receive">接收</string>
   <string name="fees">费用</string>
   <string name="value">值</string>
   <string name="status">状态</string>
@@ -905,7 +885,7 @@
   <string name="swap_intro_title">Swap</string>
   <string name="swap_intro_title_page_one">欢迎使用 Swap！</string>
   <string name="swap_intro_title_page_two">实时汇率</string>
-  <string name="swap_intro_title_page_three">100％链接</string>
+  <string name="swap_intro_title_page_three">100%％链接</string>
   <string name="swap_intro_title_page_four">掌控您的密钥</string>
   <string name="swap_intro_title_page_five">更好地管理风险</string>
   <string name="swap_intro_description_page_one">在不离开钱包的情况下将一种加密货币交换为另一种加密货币的最简单方法。</string>
@@ -1123,8 +1103,6 @@
   <string name="buy_sell_unverified_email_verify_message1">我们发送了一个验证链接到</string>
   <string name="buy_sell_unverified_email_verify_message2">单击它并返回此处以继续您的交易。</string>
   <string name="buy_sell_unverified_email_verify_open_email">开启电子邮件</string>
-  <string name="buy_sell_unverified_email_verify_agree_coinify_terms">同意Coinify <a href="ignored">条款</a></string>
-  <string name="coinify">协整</string>
   <string name="buy_sell_verified_email_title">电子邮件已验证！</string>
   <string name="buy_sell_verified_email_message">我们的合作伙伴%1$s将处理您的比特币交易。通过单击同意并继续，您将创建一个具有%1$s的帐户。</string>
   <string name="buy_sell_identification_verification">识别验证</string>
@@ -1231,7 +1209,7 @@
   <string name="kyc_email_title">验证您的电子邮件</string>
   <string name="kyc_email_message">我们需要验证您的电子邮件地址，以增加安全性。</string>
   <string name="kyc_email_hint_focused">你的邮件</string>
-  <string name="kyc_email_hint_unfocused">\@ string / kyc_email_hint_focused</string>
+  <string name="kyc_email_hint_unfocused">@string/kyc_email_hint_focused</string>
   <string name="kyc_email_error_saving_email">保存电子邮件时出错，请重试</string>
   <string name="kyc_email_send_verification">发送电子邮件</string>
   <string name="kyc_email_validation_header">检查你的收件箱。</string>
@@ -1256,7 +1234,7 @@
   <string name="kyc_onfido_splash_verification_error">验证ID出错，请重试</string>
   <string name="kyc_veriff_splash_country_supported_header">支持我的国家吗？</string>
   <string name="kyc_veriff_splash_country_supported_subheader">目前，并非所有国家都支持。在继续之前，请检查我们最新的<annotation link="country_list">国家</annotation>列表&lt;/annotation&gt; 。</string>
-  <string name="kyc_veriff_splash_title">\@ string / kyc_documents_needed</string>
+  <string name="kyc_veriff_splash_title">@string/kyc_documents_needed</string>
   <string name="kyc_veriff_splash_error_silver">银色验证</string>
   <string name="kyc_veriff_splash_header">让我们确认是你</string>
   <string name="kyc_veriff_splash_subtitle">您需要以下ID类型之一才能继续。</string>
@@ -1278,11 +1256,11 @@
   <string name="kyc_complete_device_verified">设备验证</string>
   <string name="kyc_complete_id_uploaded">ID已上传</string>
   <string name="kyc_complete_video_uploaded">视频已上传</string>
-  <string name="kyc_help_dialog_need_some_help">\@ string / need_some_help</string>
+  <string name="kyc_help_dialog_need_some_help">@string/need_some_help</string>
   <string name="kyc_help_dialog_need_some_help_body">我们的区块链支持团队已编写了帮助指南，解释了为什么我们需要验证您的身份。</string>
   <string name="kyc_help_dialog_read_now">现在读</string>
   <string name="kyc_help_dialog_read_now_url">https://blockchain.zendesk.com/hc/zh-CN/categories/360001135512-Identity-Verification</string>
-  <string name="kyc_help_dialog_contact_support">\@ string / contact_support</string>
+  <string name="kyc_help_dialog_contact_support">@string/contact_support</string>
   <string name="kyc_help_dialog_contact_support_url">https://blockchain.zendesk.com/hc/zh-CN/requests/new?ticket_form_id=360000186571</string>
   <string name="kyc_settings_identity_verification">身份验证</string>
   <string name="kyc_settings_status_none">未验证</string>
@@ -1294,7 +1272,7 @@
   <string name="kyc_settings_gold_level_in_review">黄金级-审核中</string>
   <string name="kyc_settings_gold_level_approved">金级-已批准</string>
   <string name="kyc_settings_silver_level_approved">银级-已批准</string>
-  <string name="kyc_settings_tier_status_failed">\@ string / kyc_settings_status_rejected</string>
+  <string name="kyc_settings_tier_status_failed">@string/kyc_settings_status_rejected</string>
   <string name="kyc_status_error">提取KYC状态时出错</string>
   <string name="kyc_status_title_in_progress">正在进行验证</string>
   <string name="kyc_status_title_approved">帐户已批准</string>
@@ -1318,10 +1296,10 @@
   <string name="kyc_drop_off_card_description">从您上次停下来的地方取走并完成身份验证。</string>
   <string name="kyc_drop_off_card_button">继续验证</string>
   <string name="kyc_documents_needed">所需文件</string>
-  <string name="kyc_resubmission_card_title">\@ string / kyc_documents_needed</string>
+  <string name="kyc_resubmission_card_title">@string/kyc_documents_needed</string>
   <string name="kyc_resubmission_card_description">您提供的文档有一些问题。请尝试再次上传文档，以继续进行验证。</string>
   <string name="kyc_resubmission_card_button">上传文件</string>
-  <string name="kyc_resubmission_splash_title">\@ string / kyc_resubmission_card_title</string>
+  <string name="kyc_resubmission_splash_title">@string/kyc_resubmission_card_title</string>
   <string name="kyc_resubmission_splash_description_1">我们无法验证您的身份，需要您重新上传所需的文档。</string>
   <string name="kyc_resubmission_splash_description_2">发生这种情况的主要原因：</string>
   <string name="kyc_resubmission_splash_description_3">所需的照片丢失。</string>
@@ -1509,7 +1487,7 @@
   <string name="tx_title_receive">收到%1s</string>
   <string name="tx_title_sell">出售%1s</string>
   <string name="tx_title_buy">购买%1s</string>
-  <string name="tx_title_swap">交换%1s</string>
+  <string name="tx_title_swap">交换%1s → %2$s</string>
   <string name="tx_title_transfer">转移%1s</string>
   <string name="tx_title_fee">费用%1s</string>
   <string name="transaction_detail_value_at_time_swapped">交换后的值： \u0020</string>
@@ -1543,7 +1521,6 @@
   <string name="estimated_amount">美东时间。量</string>
   <string name="buying_fee">购买费用</string>
   <string name="purchase_bank_note">收到您的资金后，我们将开始您的%1$s购买订单。请注意，您的最终金额可能会因应市场活动而改变。可能需要付费。</string>
-  <string name="purchase_card_note">我们将在2个工作日内从您的付款方式中扣款。您的最终金额可能会因市场活动而变化。</string>
   <string name="complete_payment">完成支付</string>
   <string name="card_payment">信用卡支付</string>
   <string name="buy_now">立即购买</string>
@@ -1590,7 +1567,7 @@
   <string name="billing_address_state">州</string>
   <string name="billing_address_country">国家</string>
   <string name="currency_not_supported_title">不支持您的货币</string>
-  <string name="currency_not_supported_1">目前，我们不支持使用%1s购买加密</string>
+  <string name="currency_not_supported" formatted="false">目前，我们不支持使用%1s购买加密%1s</string>
   <string name="activity_no_activity_title">您没有活动</string>
   <string name="activity_no_activity_text">您的所有交易都将显示在这里。</string>
   <string name="activity_custodial_pending_value">银行转账</string>
@@ -1654,4 +1631,452 @@
   <string name="activity_details_historic_received">收到时的价值</string>
   <string name="activity_details_historic_transferred">转让时的价值</string>
   <string name="activity_details_historic_value_load_fail">无法加载历史价值信息</string>
+  <string name="received_usdt">收到系绳</string>
+  <string name="watch_only_not_supported">导入非消耗性地址（地址或公钥脚本） 
+不支持相应的私钥）。请再试一次
+地址和私钥。 
+</string>
+  <string name="linked_banks">关联银行</string>
+  <string name="tx_title_deposit">存款%1s</string>
+  <string name="tx_title_withdraw">提现%1s</string>
+  <string name="usdt_to_field_helper_no_dropdown_1">输入TETHER / ETH地址</string>
+  <string name="usdt_to_field_helper_1">输入TETHER / ETH地址或选择</string>
+  <string name="usdt_invalid_address_1">无效的TETHER地址</string>
+  <string name="usdt_wallet_name">我的系绳钱包</string>
+  <string name="bank_transfer">银行转帐</string>
+  <string name="instantly_buy_crypto_with_card">立即使用任何Visa或Mastercard购买加密货币。</string>
+  <string name="send_funds_directly_from_your_bank">将资金从您的银行直接发送到您的区块链钱包。我们收到手动转帐后，请使用该现金购买加密货币。</string>
+  <string name="by_depositing_funds_terms_and_conds">将资金存入该帐户，即表示您同意我们的银行合作伙伴<annotation link="modular_terms_and_conditions">条款</annotation> 。</string>
+  <string name="add_bank_with_currency">添加%1s银行</string>
+  <string name="deposit_currency">存款%1s</string>
+  <string name="currency_bank_transfer">银行转帐</string>
+  <string name="link_transfer_instructions">请将%1s从您的个人银行转移到Blockchain.com。这样可以安全地关联您的银行帐户。</string>
+  <string name="payment">付款</string>
+  <string name="buy_now_1">购买%1s</string>
+  <string name="simple_buy_transfer_details_error">加载转移详细信息时出了点问题。 
+
+请稍后再试。</string>
+  <string name="algo_default_account_label">我的Algorand钱包</string>
+  <string name="usdt_default_account_label">我的系绳钱包</string>
+  <string name="add_bank_title">添加%1s银行</string>
+  <string name="order_error_subtitle">不用担心您的钱很安全。请重试或联系我们的Suppport团队寻求帮助。</string>
+  <string name="currency_not_supported_1" formatted="false">目前，我们不支持使用%1s购买加密%1s</string>
+  <string name="checkout_funds_label">资金</string>
+  <string name="checkout_funds_transfer_label">我的%1s钱包</string>
+  <string name="transfer_wallets_empty_title">没有加密发送</string>
+  <string name="transfer_wallets_empty_details">看起来您的钱包是空的，我们可以帮助您购买加密货币</string>
+  <string name="transfer_wallets_load_error">加载钱包时出错，请稍后再试</string>
+  <string name="remove_bank">删除银行</string>
+  <string name="pounds">磅</string>
+  <string name="euros">欧元</string>
+  <string name="deposit_cash">存入现金</string>
+  <string name="send_me_instructions">给我发指令</string>
+  <string name="bank_transfer_only">仅银行转帐</string>
+  <string name="bank_transfer_only_subtitle">仅使用您的名字从银行帐户发送资金。如果没有，您的存款可能会被延迟或拒绝。</string>
+  <string name="processing_time">处理时间</string>
+  <string name="processing_time_subtitle_eur">我们会在收到款项后立即将款项存入您的EUR钱包。 SEPA转移通常需要大约1个工作日才能到达。</string>
+  <string name="processing_time_subtitle_gbp">我们会在收到款项后立即将款项存入您的GBP钱包。在英国快速付款网络中，这可能需要几个小时。</string>
+  <string name="deposit_limits">存款限额</string>
+  <string name="deposit_limits_subtitle">请注意，如果您存入的资金超过每日提款限额，您将无法一次提取所有资金。</string>
+  <string name="unable_to_load_bank_details">我们无法加载我们的银行存款详细信息。</string>
+  <string name="most_popular">最受欢迎</string>
+  <string name="fiat_funds_detail_deposit_title">存款</string>
+  <string name="fiat_funds_detail_withdraw_title">退出</string>
+  <string name="fiat_funds_detail_deposit_details">从您的银行添加现金</string>
+  <string name="fiat_funds_detail_activity_title">活动</string>
+  <string name="fiat_funds_detail_activity_details">查看所有交易</string>
+  <string name="fiat_funds_no_kyc_announcement_title">将现金存入钱包</string>
+  <string name="fiat_funds_no_kyc_announcement_description">验证您的身份以将现金存入电子钱包并购买加密货币。</string>
+  <string name="fiat_funds_no_kyc_sheet_description">验证您的身份以将现金存入电子钱包。买卖加密货币。随时提款。</string>
+  <string name="fiat_funds_no_kyc_step_1_title">验证您的身份</string>
+  <string name="fiat_funds_no_kyc_step_1_description">我们需要确保确实是您通过上传ID来防止欺诈。</string>
+  <string name="fiat_funds_no_kyc_step_2_title">存入现金</string>
+  <string name="fiat_funds_no_kyc_step_2_description">从您的银行转移现金，并启用您的现金余额。</string>
+  <string name="fiat_funds_no_kyc_step_3_title">用现金购买加密货币</string>
+  <string name="fiat_funds_no_kyc_step_3_description">使用您的现金钱包作为购买BTC，ETH，XLM等的付款方式。</string>
+  <string name="fiat_funds_no_kyc_positive_action">验证我的身份</string>
+  <string name="fiat_funds_no_kyc_negative_action">现在不要</string>
+  <string name="fiat_funds_no_kyc_step_1_label">1个</string>
+  <string name="fiat_funds_no_kyc_step_2_label">2</string>
+  <string name="fiat_funds_no_kyc_step_3_label">3</string>
+  <string name="fiat_funds_kyc_announcement_title">链接银行购买加密货币</string>
+  <string name="fiat_funds_kyc_announcement_description">将现金存入您的Blockchain.com钱包。随时存款和取款。</string>
+  <string name="fiat_funds_kyc_announcement_action">连结银行</string>
+  <string name="transfer_wallet_buy_crypto">购买加密</string>
+  <string name="transfer_send_crypto">发送加密</string>
+  <string name="transfer_second_pswd_title">第二密码</string>
+  <string name="transfer_second_pswd_desc">请输入您的第二个密码，然后您就可以继续发送了。</string>
+  <string name="transfer_second_pswd_hint">第二密码</string>
+  <string name="algorand_announcement_title">向Algorand打招呼！</string>
+  <string name="algorand_announcement_description">在钱包中购买并持有ALGO。出售和提现即将到来。</string>
+  <string name="algorand_announcement_action">购买Algorand</string>
+  <string name="currency_wallet">我的%1s钱包</string>
+  <string name="tether_announcement_title">对系绳问好！</string>
+  <string name="tether_announcement_description">USDT是世界上最大的稳定币。从您的应用购买和交换。 Web钱包提供完整的发送和接收功能。</string>
+  <string name="tether_announcement_action">立即购买系绳</string>
+  <string name="dashboard_asset_item_label_title">请注意。</string>
+  <string name="algorand_asset_label">目前无法使用从交易钱包中提取ALGO的功能，但即将推出。</string>
+  <string name="usdt_asset_label">Web钱包提供完整的发送和接收功能。</string>
+  <string name="send_state_no_funds">没有资金</string>
+  <string name="send_state_not_supported">此帐户不支持发送</string>
+  <string name="send_state_not_enough_gas">ETH余额低，无法支付网络费用</string>
+  <string name="send_state_send_in_flight">由于待处理的交易而无法使用。</string>
+  <string name="common_send">发送</string>
+  <string name="common_receive">接收</string>
+  <string name="common_swap">交换</string>
+  <string name="common_from">从</string>
+  <string name="common_to">至</string>
+  <string name="common_yes">是</string>
+  <string name="common_no">没有</string>
+  <string name="common_ok">好</string>
+  <string name="common_cancel">取消</string>
+  <string name="common_total">总</string>
+  <string name="common_deposit">存款</string>
+  <string name="common_transfer">转让</string>
+  <string name="common_error">出问题了，请重试</string>
+  <string name="common_company_name">Blockchain.com</string>
+  <string name="common_confirm">确认</string>
+  <string name="toolbar_cmd_transfer">转让</string>
+  <string name="notification_2fa_summary">2FA通知</string>
+  <string name="notification_2fa_description">与两因素身份验证有关的通知</string>
+  <string name="notification_payments_summary">付款通知</string>
+  <string name="notification_payments_description">与付款有关的通知</string>
+  <string name="enable_cloud_backup">启用云备份</string>
+  <string name="enable_cloud_backup_summary">将加密的备份存储在您的Google云端硬盘帐户中， 
+如果可供使用的话。如果您丢失了此设备，则可以恢复钱包。 
+</string>
+  <string name="tx_title_interest">%1$s赚取%1$s利息</string>
+  <string name="dashboard_asset_actions_send_dsc">将%1$s转移到任何电子钱包</string>
+  <string name="dashboard_asset_actions_receive_dsc">接受或分享您的%1$s地址</string>
+  <string name="dashboard_asset_actions_swap_dsc">将%1$s换成另一个加密货币</string>
+  <string name="dashboard_asset_actions_deposit_dsc">将%1$s添加到您的兴趣钱包</string>
+  <string name="dashboard_asset_actions_summary_title">兴趣摘要</string>
+  <string name="dashboard_asset_actions_summary_dsc">查看您的应计%1$s利息</string>
+  <string name="dashboard_asset_actions_interest_dsc_failed">无法加载兴趣详情</string>
+  <string name="asset_details_chart_load_failed_toast">无法加载图表详细信息，请重试</string>
+  <string name="asset_details_load_failed_toast">无法加载钱包详细信息，请重试</string>
+  <string name="asset_details_exchange_load_failed_toast">汇率信息失败，请重试</string>
+  <string name="dashboard_asset_actions_tx_in_progress">已经有交易在进行中，请等待直到交易完成</string>
+  <string name="cloud_backup_card_title">介绍云备份</string>
+  <string name="cloud_backup_card_body">您现在可以将您的钱包安全地备份到云中。您可以选择退出钱包设置中的备份。</string>
+  <string name="cloud_backup_card_cta">学到更多</string>
+  <string name="basic_transfer_lock_warn" formatted="false">您可以提取的余额为%1s 。余额%2s将在7天内提取。</string>
+  <string name="basic_transfer_lock_learn_more"><annotation link="balance_lock">了解更多</annotation> 。</string>
+  <string name="basic_transfer_error_insufficient_funds_title">不充足的资金</string>
+  <string name="basic_transfer_error_insufficient_funds">您的帐户资金不足，无法完成此交易。</string>
+  <string name="basic_transfer_error_locked_funds">您的密码将可在7天内撤回。 <annotation link="balance_lock">了解更多</annotation> 。</string>
+  <string name="erc20_need_more_eth_error_body_1">您将需要ETH来发送您的%1$s</string>
+  <string name="purchase_card_note_1">您的最终金额可能会因市场活动而改变。最初的保留期为7天，将适用于您的资金。</string>
+  <string name="select_deposit_source_title">从转移</string>
+  <string name="activity_state_cleared">已清除</string>
+  <string name="activity_state_rejected">拒绝</string>
+  <string name="activity_state_refunded">已退款</string>
+  <string name="activity_details_label_manual_review">人工审核</string>
+  <string name="activity_details_label_processing">处理中</string>
+  <string name="activity_details_title_deposit">存款</string>
+  <string name="activity_details_title_interest_earned">利息</string>
+  <string name="activity_details_title_withdraw">退出</string>
+  <string name="transfer_receive_crypto">接收加密</string>
+  <string name="send_select_target_title">目的地</string>
+  <string name="send_enter_amount_from">发件人： %1$s</string>
+  <string name="send_enter_amount_to">至： %1$s</string>
+  <string name="send_enter_amount_title">发送%1$s</string>
+  <string name="send_enter_amount_available">可用的</string>
+  <string name="send_enter_amount_max">发送最大值</string>
+  <string name="send_enter_amount_deposit_max">转移上限</string>
+  <string name="send_enter_amount_min_deposit">最低转移%1$s</string>
+  <string name="send_confirmation_title">发送%1$s</string>
+  <string name="send_confirmation_fee">费用-常规</string>
+  <string name="send_confirmation_regular_estimation">（ETA 60分钟）</string>
+  <string name="send_confirmation_fee_loading">载入中...</string>
+  <string name="send_confirmation_fee_error">错误加载费</string>
+  <string name="send_confirmation_add_note_hint">添加便条</string>
+  <string name="send_confirmation_add_note_success">注意已成功添加</string>
+  <string name="send_confirmation_cta_button">发送%1$s</string>
+  <string name="send_confirmation_deposit_cta_button">确认转账</string>
+  <string name="send_confirmation_interest_tos_pp">我已阅读并同意<annotation link="interest_tos">服务条款</annotation>和<annotation link="interest_pp">隐私政策</annotation> 。</string>
+  <string name="send_confirmation_interest_holding_period_1">接受此即表示您同意转让</string>
+  <string name="send_confirmation_interest_holding_period_2">（ %1$s ）从您的比特币钱包到您的兴趣帐户。最初的保留期为7天，将适用于您的资金。</string>
+  <string name="send_confirmation_progress_title">转移%1$s</string>
+  <string name="send_confirmation_progress_message">我们正在转移您的%1$s 。</string>
+  <string name="send_confirmation_success_title">%1$s转移%1$s</string>
+  <string name="send_confirmation_success_message">您的%1$s已成功转移。</string>
+  <string name="send_progress_sending_title">正在发送%1$s</string>
+  <string name="send_progress_sending_subtitle">我们正在发送您的交易。</string>
+  <string name="send_progress_complete_title">%1$s发送%1$s</string>
+  <string name="send_progress_complete_subtitle">您的%1$s已成功发送。</string>
+  <string name="send_progress_error_title">糟糕！出了些问题。</string>
+  <string name="send_progress_error_subtitle">不用担心您的钱很安全。请重试或联系我们的支持团队以寻求帮助。</string>
+  <string name="send_enter_asset_address_hint">%1s地址</string>
+  <string name="send_warn_internal_send_only">仅内部发送</string>
+  <string name="send_scan_qr_code">扫描二维码</string>
+  <string name="send_error_not_valid_asset_address">不是有效的%1s地址</string>
+  <string name="send_error_address_is_eth_contract">地址不是用户地址</string>
+  <string name="send_enter_amount_error_insufficient_funds">您的钱包中没有%1$s 。</string>
+  <string name="send_enter_amount_error_invalid_amount">发送0.00000001 %1$s或更多。</string>
+  <string name="send_enter_invalid_password">密码错误。</string>
+  <string name="send_enter_unexpected_error">发生意外的错误。请再试一遍。</string>
+  <string name="send_enter_insufficient_gas">您没有足够的ETH来处理此交易。</string>
+  <string name="send_select_a_wallet_title">或选择一个钱包</string>
+  <string name="send_internal_transfer_message">目前，您只能将%1$s从%2$s贸易钱包转移到保险柜钱包。将%1$s放入保管箱钱包后，您可以转移到外部地址。</string>
+  <string name="purchase_funds_note">您的最终金额可能会因市场活动而改变。</string>
+  <string name="common_linked_learn_more">
+    <annotation link="learn_more_link">了解更多信息。 </annotation>
+  </string>
+  <string name="interest_announcement_title">今天就对您的加密货币感兴趣！</string>
+  <string name="interest_announcement_description">转移加密货币并开始赚取BTC，ETH等的利息。</string>
+  <string name="interest_announcement_action">学到更多</string>
+  <string name="purchase_card_note_2">您的加密货币将可在以下时间内提取</string>
+  <string name="purchase_card_note_2_1">7天。</string>
+  <string name="buy_any_crypto">购买加密</string>
+  <string name="select_send_sheet_title">从发送</string>
+  <string name="select_send_source_title">从发送</string>
+  <string name="currency_funds_wallet">我的%1s钱包</string>
+  <string name="transfer_receive_empty_title">无法加载您的钱包</string>
+  <string name="transfer_receive_empty_details">看来您的网际网路连线有问题。请检查并重试</string>
+  <string name="transfer_receive_empty_cta">点按即可刷新</string>
+  <string name="us_dollars">美元</string>
+  <string name="fiat_funds_detail_withdraw_details">兑现到您的银行</string>
+  <string name="withdraw_currency">提现%1$s</string>
+  <string name="withdraw_title">退出</string>
+  <string name="withdraw_to">撤回</string>
+  <string name="add_a_bank">添加银行</string>
+  <string name="transfer_send_crypto_title">发送加密</string>
+  <string name="transfer_send_crypto_label">选择您要发送的电子钱包。</string>
+  <string name="transfer_receive_crypto_title">接收加密</string>
+  <string name="transfer_receive_crypto_label">选择一个钱包以接收加密货币。</string>
+  <string name="withdraw_amount">提现%1$s</string>
+  <string name="withdrawal_amount">%1$s提款</string>
+  <string name="withdrawing_amount">提现%1$s</string>
+  <string name="withdrawing_amount_message">我们正在完成您的提款。</string>
+  <string name="withdrawal_success_message">成功！我们现在正在从您的%1$s电子钱包中提取现金。资金应在1-3个工作日内存入您的银行。</string>
+  <string name="sell_enter_amount_max">卖出最高</string>
+  <string name="sell_enter_amount_min_error">%1$s</string>
+  <string name="sell_enter_amount_max_error">最多%1$s</string>
+  <string name="send_enter_amount_min_send">最少需要发送%1$s</string>
+  <string name="sell_confirmation_cta_button">出售%1$s</string>
+  <string name="sell_confirmation_progress_title">出售%1$s</string>
+  <string name="sell_confirmation_progress_message">我们现在完成您的出售。</string>
+  <string name="sell_confirmation_success_message">现在，您可以在%1$s电子钱包中使用现金了。</string>
+  <string name="send_state_locked_funds">您的资金将在7天内可用</string>
+  <string name="sell_progress_complete_title">已售出%1$s</string>
+  <string name="earn_interest">赚取利息</string>
+  <string name="interest_summary_total">赚取的总利息</string>
+  <string name="interest_summary_total_fail">无法加载总利息</string>
+  <string name="interest_summary_next_payment">下次利息支付</string>
+  <string name="interest_summary_accrued">本月应计利息</string>
+  <string name="interest_summary_accrued_fail">无法加载应计利息</string>
+  <string name="interest_summary_hold_period">初始保留期</string>
+  <string name="interest_summary_hold_period_days">%1$d天</string>
+  <string name="interest_summary_hold_period_fail">无法加载保留期详细信息</string>
+  <string name="interest_summary_rate">利率</string>
+  <string name="interest_summary_rate_fail">无法加载利率</string>
+  <string name="interest_dashboard_title">利息账户</string>
+  <string name="interest_dashboard_item_balance_title">%1$s余额</string>
+  <string name="interest_dashboard_item_accrued_title">赚取的总利息</string>
+  <string name="interest_dashboard_item_action_earn">赚取利息</string>
+  <string name="interest_dashboard_item_action_view">视图</string>
+  <string name="interest_dashboard_item_rate_1">赚取高达</string>
+  <string name="interest_dashboard_item_rate_2">每年在您的%1$s</string>
+  <string name="interest_dashboard_verify_title">在您的加密货币上赚取利息</string>
+  <string name="interest_dashboard_verify_label">当您将加密货币转移到您的利息帐户时，即刻赚取高达12％的收益。</string>
+  <string name="interest_dashboard_verify_point_one_title">验证您的身份</string>
+  <string name="interest_dashboard_verify_point_one_label">为了防止身份盗用或欺诈，我们需要通过上传ID来确保您确实是您。</string>
+  <string name="interest_dashboard_verify_point_two_title">购买加密</string>
+  <string name="interest_dashboard_verify_point_two_label">使用您的银行，借记卡或信用卡为任何加密货币购买提供资金。</string>
+  <string name="interest_dashboard_verify_point_three_title">赚取利息</string>
+  <string name="interest_dashboard_verify_point_three_label">转入您的利息帐户并获得每月利息支付。</string>
+  <string name="interest_summary_disclaimer_label">使用网络钱包提取资金</string>
+  <string name="buy">购买</string>
+  <string name="sell">卖</string>
+  <string name="buy_and_sell">买卖</string>
+  <string name="buy_with_cash">用现金或卡购买。</string>
+  <string name="select_crypto_you_want">选择您要购买的加密货币。</string>
+  <string name="sell_intro_kyc_title_1">验证您的身份</string>
+  <string name="sell_intro_kyc_subtitle_1">为了防止身份盗用或欺诈，我们需要通过上传ID来确保您确实是您。</string>
+  <string name="sell_intro_kyc_title_2">购买加密</string>
+  <string name="sell_intro_kyc_subtitle_2">使用您的银行，借记卡或信用卡为任何加密货币购买提供资金。</string>
+  <string name="sell_intro_kyc_title_3">随时出售</string>
+  <string name="sell_intro_kyc_subtitle_3">立即以现金出售您的加密货币。将现金存放在钱包中或提取到关联的银行。</string>
+  <string name="sell_crypto">出售加密货币</string>
+  <string name="sell_crypto_subtitle">验证您的身份以出售现金加密货币。</string>
+  <string name="sell_for_cash">以现金出售加密货币</string>
+  <string name="select_wallet_to_sell">选择要出售的钱包。</string>
+  <string name="common_to_coloned">至：</string>
+  <string name="common_from_coloned">从：</string>
+  <string name="common_sell">卖</string>
+  <string name="sell_quote_price">%1$s价格</string>
+  <string name="convert_your_crypto_to_cash">将您的加密货币转换为现金</string>
+  <string name="scan_mismatch_transaction_target">扫描的代码不是%1$s QR码。</string>
+  <string name="scan_failed">无法识别QR码，请重试。</string>
+  <string name="could_not_save_card">我们无法保存您的卡。请联系支持。</string>
+  <string name="could_not_activate_card">我们无法激活您的卡。请联系支持。</string>
+  <string name="card_still_pending">我们等待了两分钟，没有收到银行卡提供商的更新。您的卡可能仍会在以后获得批准。如有任何疑问，请联系支持。</string>
+  <string name="card_link_failed">卡无法链接。如果您认为这是错误的，请重试或联系支持人员。</string>
+  <string name="tx_view_locked_funds">这些资金将可以立即出售到%1$s菲亚特钱包中，但是您最多只能在7天内从Blockchain.com上发送或提取这些资金。</string>
+  <string name="unable_to_verify_id">无法验证您的ID</string>
+  <string name="unable_to_verify_id_description">我们无法验证您的身份。发生这种情况可能有几个原因。</string>
+  <string name="invalid_id">无效的ID</string>
+  <string name="invalid_id_description">上传的图像或文档不符合要求。</string>
+  <string name="information_missmatch">信息不匹配</string>
+  <string name="information_missmatch_description">所有信息必须与您的法律文件上显示的完全一样。注意：请勿使用昵称。</string>
+  <string name="blocked_by_local_laws">被当地法律封锁</string>
+  <string name="blocked_by_local_laws_description">在Blockchain.com，我们努力遵守所有当地法律。根据您所在的位置，我们目前不允许购买或出售数字货币。</string>
+  <string name="error_contact_support">如果您认为这是错误的操作或想要对帐户进行人工审核，请与支持人员联系。</string>
+  <string name="common_empty_title">无法加载您的钱包</string>
+  <string name="common_empty_details">看来您的网际网路连线有问题。请检查并重试</string>
+  <string name="common_empty_cta">点按即可刷新</string>
+  <string name="email_request_subject_usdt_1">系绳付款请求</string>
+  <string name="email_request_body_usdt_1">请将USDT发送到Tether地址%1$s 。</string>
+  <string name="send_error_tx_in_flight">交易已在进行中</string>
+  <string name="send_error_tx_option_invalid">发生了错误</string>
+  <string name="send_to_exchange_xlm_title">要发送给交易所吗？</string>
+  <string name="send_to_exchange_xlm_blurb">添加备忘录，以免造成资金损失。</string>
+  <string name="send_to_exchange_xlm_link">
+    <annotation link="send_memo_link">了解有关余额要求的更多信息。 </annotation>
+  </string>
+  <string name="send_confirm_memo_text_hint">添加记事（最多28个字符）</string>
+  <string name="send_confirm_memo_id_hint">添加一个ID</string>
+  <string name="send_invalid_option_dsc_memo">无效的说明/备注</string>
+  <string name="interest_error_title">无法加载兴趣详细信息</string>
+  <string name="interest_error_desc">加载兴趣帐户详细信息时发生错误。 
+请检查您的互联网连接，然后重试；如果问题仍然存在，请与支持人员联系。</string>
+  <string name="sell_is_coming_soon">买卖即将到来</string>
+  <string name="sell_is_coming_soon_description">目前，我们不支持在您所在地区购买或出售加密货币。完成后，我们会向您发送更新。</string>
+  <string name="error_scan_failed_general">扫描失败。请再试一次。</string>
+  <string name="error_scan_failed_bitpay">无法检索BitPay发票。它过期了吗？</string>
+  <string name="backup_before_send_later_cta">继续而不备份</string>
+  <plurals name="backup_before_send_later_label">
+    <item quantity="other">您有%1$d发送但没有备份剩余</item>
+  </plurals>
+  <string name="backup_before_send_now_label">您必须先备份，然后再发送</string>
+  <plurals name="lock_days">
+    <item quantity="other">%d天。</item>
+  </plurals>
+  <string name="card_info_title">不接受虚拟卡</string>
+  <string name="card_info_description">目前，我们不支持使用虚拟信用卡和借记卡购买加密货币。您必须使用实体卡的编号，日期和安全码。</string>
+  <string name="send_confirmation_tx_fee">手续费</string>
+  <string name="send_confirmation_insufficient_fee">没有足够的资金支付优先费，请调整您的发送金额。</string>
+  <string name="send_confirmation_fee_learn_more"><annotation link="send_tx_fees">了解更多</annotation>有关网络费用的信息。</string>
+  <string name="send_state_locked_funds_1">您有待处理的交易。</string>
+  <string name="sell_info_title">想要从您的其他电子钱包中出售？</string>
+  <string name="sell_info_blurb_1">将电子钱包中的加密货币发送到您的</string>
+  <string name="sell_info_blurb_2">交易钱包。</string>
+  <string name="sell_info_blurb_3">发送完成后，以现金出售该加密货币。</string>
+  <string name="sell_info_action">立即发送→</string>
+  <string name="tx_view_locked_funds_1">这些资金将可以立即出售到%1$s菲亚特钱包中，但是您最多只能在%2$s从Blockchain.com上发送或提取这些资金%2$s</string>
+  <string name="common_pending">待定</string>
+  <string name="confirm_status_msg_insufficient_funds">您的帐户资金不足，无法处理此交易</string>
+  <string name="confirm_status_msg_insufficient_gas">@string/send_enter_insufficient_gas</string>
+  <string name="confirm_status_msg_option_invalid">请确保您已同意我们的条款。</string>
+  <string name="confirm_status_msg_invoice_expired">@string/bitpay_invoice_expired</string>
+  <string name="confirm_status_msg_unexpected_error">@string/send_enter_unexpected_error</string>
+  <string name="common_free">自由</string>
+  <string name="two_fa_new_request">正在请求新密码…</string>
+  <string name="transfer_funds_title">从导入地址转移？</string>
+  <string name="transfer_funds_description">备份短语不会备份导入的地址。为了获得这些资金，我们
+建议将这些余额转移到您的Blockchain.com非托管钱包。
+</string>
+  <string name="two_factor_resend_sms">重新发送短信（%1$d）</string>
+  <string name="two_factor_retries_exceeded">重试次数过多，请等待60秒，然后重试</string>
+  <string name="fee_options_label">%1$s （ %2$s ）</string>
+  <string name="fee_options_sat_byte_min_error">至少需要1个sat /字节</string>
+  <string name="fee_options_invalid_amount">无效费用</string>
+  <string name="sell_announcement_title">以现金出售您的加密货币</string>
+  <string name="sell_announcement_description">从您的交易钱包直接销售到现金钱包。</string>
+  <string name="sell_announcement_action">现在卖</string>
+  <string name="generic_limit">限度</string>
+  <string name="select_account_sheet_empty">您没有合格的电子钱包来执行此操作。</string>
+  <string name="activity_details_swap_for">对于</string>
+  <string name="swap_enter_amount_min_swap">最低需要%1$s掉期</string>
+  <string name="too_many_pending_orders_error_message">您的%1$s电子钱包进行中的交换次数过多。请选择其他钱包。</string>
+  <string name="swap_confirmation_title">掉期%1$s</string>
+  <string name="swap_confirmation_cta_button">将%1$s交换为%2$s</string>
+  <string name="swap_confirmation_disclaimer">由于市场活动，您发送和接收的金额可能会略有变化。一旦订单开始，我们将无法停止。</string>
+  <string name="swap_confirmation_progress_message">我们正在完成您的交换。</string>
+  <string name="swap_confirmation_success_message">您的%1$s现在可以在电子钱包中使用。</string>
+  <string name="swap_progress_title">将%1$s换成%1$s %2$s</string>
+  <string name="swap_progress_complete_title">交换完成</string>
+  <string name="swap_enter_amount_title">掉期%1$s</string>
+  <string name="swap_enter_amount_source">掉期： %1$s</string>
+  <string name="swap_enter_amount_target">收到： %1$s</string>
+  <string name="swap_enter_amount_max">交换最大</string>
+  <string name="swap_enter_amount_silver_limit">点击此处升级您的个人资料并交换该金额。</string>
+  <string name="swap_enter_amount_over_limit">您今天最多可以交换%1$s 。</string>
+  <string name="swap_select_target_subtitle">确认要从中进行交换的钱包，然后选择要接收到的钱包。</string>
+  <string name="swap_select_target_title">新掉期</string>
+  <string name="tx_confirmation_network_fee">%1$s网络费用</string>
+  <string name="tx_confirmation_fee_learn_more_1">网络</string>
+  <string name="tx_confirmation_fee_learn_more_2">费用由%1$s网络设置。</string>
+  <string name="tx_confirmation_fee_learn_more_3"><annotation link="send_tx_fees">了解有关费用的更多信息</annotation> 。</string>
+  <string name="tx_confirmation_free_fee_learn_more_1">使用时的网络费用</string>
+  <string name="tx_confirmation_free_fee_learn_more_2">交易钱包</string>
+  <string name="tx_confirmation_free_fee_learn_more_3">免费的！ <annotation link="send_tx_fees">了解有关费用的更多信息</annotation> 。</string>
+  <string name="interest_item_issue_region">在您所在的地区不可用</string>
+  <string name="interest_item_issue_kyc">您需要经过金牌验证才能开始赚取利息</string>
+  <string name="interest_item_issue_other">当前不可用，请稍后再检查</string>
+  <string name="swap_header_title">交换您的加密货币</string>
+  <string name="swap_header_label">立即将您的加密货币兑换成我们为您的钱包提供的任何货币。</string>
+  <string name="swap_kyc_title">验证您的ID。今天交换。</string>
+  <string name="swap_kyc_desc">随时验证您的身份以交换加密货币。在几分钟内套用和交换。</string>
+  <string name="swap_kyc_cta">现在申请</string>
+  <string name="swap_kyc_1_title">选择你的国家</string>
+  <string name="swap_kyc_1_label">Blockchain.com需要根据当地法律来了解您所在的国家。</string>
+  <string name="swap_kyc_2_title">验证您的身份</string>
+  <string name="swap_kyc_2_label">我们需要确保确实是您通过上传ID来防止欺诈。</string>
+  <string name="swap_kyc_3_title">开始交换</string>
+  <string name="swap_kyc_3_label">验证完毕后，请返回“交换”并交换您的加密货币。</string>
+  <string name="swap_cta">新掉期</string>
+  <string name="swap_account_select">交换</string>
+  <string name="swap_account_select_subtitle">您想从哪个钱包交换？</string>
+  <string name="select_target_account_for_swap">您想放入哪个钱包？</string>
+  <string name="swap_low_fees">费用低</string>
+  <string name="swap_kyc_upsell_title">您已接近掉期限制。升级到交换更大的金额。</string>
+  <string name="swap_kyc_upsell_desc">验证您的身份以增加每天可以交换的金额。</string>
+  <string name="swap_kyc_upsell_1_title">上传您的ID</string>
+  <string name="swap_kyc_upsell_1_desc">我们需要确保确实是您通过上传ID来防止欺诈。</string>
+  <string name="swap_kyc_upsell_2_title">上载自拍</string>
+  <string name="swap_kyc_upsell_2_desc">这是为了确保您是人。禁止使用机器人。</string>
+  <string name="swap_kyc_upsell_3_title">每天最多可兑换25,000美元</string>
+  <string name="swap_kyc_upsell_3_desc">验证完毕后，请返回“交换”并交换您的加密货币。</string>
+  <string name="trending_label">趋向</string>
+  <string name="trending_swap">掉期%1$s</string>
+  <string name="trending_empty">为您的交易钱包注资，以较低的费用查看趋势掉期。</string>
+  <string name="trending_receive">收到%1$s</string>
+  <string name="show_more_accounts">展示更多</string>
+  <string name="select_a_wallet">选择一个钱包</string>
+  <string name="pending_swap_info_message">您有1个交换未决。一旦清除，就可以进行新的交换。</string>
+  <string name="deposit_fee">网络费用</string>
+  <string name="current_unit_price">%1$s = %2$s</string>
+  <string name="exchange_rate">汇率</string>
+  <string name="in_progress">进行中</string>
+  <string name="swap_direction">%1$s - &gt; %2$s</string>
+  <string name="security_locked_funds_explanation">为了您的安全起见，首次购买卡必须遵守%1$s天的持有期限，然后才能发送或提取已购买的加密货币。保全解除后，我们会通知您。 
+
+同时，您可以在Blockchain.com中出售现金，掉期交易。</string>
+  <string name="recover_funds_warning_message_1">如果有访问权限，则应始终配对或登录
+到您的电子钱包ID和密码。收回资金可能会创建一个新的电子钱包ID。你会
+想继续吗？
+</string>
+  <string name="received_dgld">收到包裹的DGLD</string>
+  <string name="email_request_body_dgld">请将wDGLD发送到Wrapped-DGLD地址%1$s 。</string>
+  <string name="wdgld_available_card_title">立即交易wDGLD</string>
+  <string name="wdgld_available_card_body">在ERC-20令牌化版本的DGLD中包装了数字黄金（wDGLD），将黄金支持的令牌与以太坊的功能和灵活性结合在一起。</string>
+  <string name="wdgld_available_card_cta">立即交易wDGLD</string>
+  <string name="dgld_default_account_label">我的包裹式DGLD钱包</string>
+  <string name="swap_faster">快点</string>
+  <string name="swap_trading_sheet_title">快点。便宜点更好
+使用您的交易钱包交换加密货币。</string>
+  <string name="swap_trading_sheet_subtitle">当您从任何交易钱包交换加密货币时，可以获得更低的费用并使交易速度加倍。</string>
+  <string name="swap_trading_fees_title">掉期相同，费用更低</string>
+  <string name="swap_trading_fees_subtitle">您通过交换加密链外链支付零网络费用</string>
+  <string name="swap_trading_speed_title">掉秒</string>
+  <string name="swap_trading_speed_subtitle">提高速度意味着您的掉期交易可以在数秒而不是数分钟内完成</string>
+  <string name="scan_qr">扫描二维码</string>
+  <string name="qr_activity_hint_any_asset">扫描CryptoCurrency地址或BitPay发票</string>
+  <string name="qr_activity_hint_asset_address">确保仅扫描%1$s QR码</string>
+  <string name="qr_activity_hint_bitpay">扫描BitPay发票</string>
+  <string name="qr_activity_hint_import_wallet">扫描钱包私钥</string>
+  <string name="qr_activity_hint_pairing_code">扫描网络配对QR码</string>
+  <string name="qr_activity_hint_new_web_login">登录网络</string>
 </resources>

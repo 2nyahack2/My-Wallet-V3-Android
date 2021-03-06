@@ -1,7 +1,6 @@
 package com.blockchain.sunriver
 
 import com.blockchain.testutils.lumens
-import com.blockchain.transactions.Memo
 import org.amshove.kluent.`should equal to`
 import org.amshove.kluent.`should equal`
 import org.amshove.kluent.`should throw`

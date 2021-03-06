@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/withdraw_title"
+        style="@style/Text.Semibold.20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/standard_margin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Withdraw GBP" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/available"
+        style="@style/Text.Light.12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/standard_margin"
+        android:text="@string/available"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/withdraw_title" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/fiat_balance"
+        style="@style/Text.Semibold.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/available"
+        tools:text="£12,310.32 GBP" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/withdraw_icon"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="30dp"
+        android:background="@drawable/funds_arrow_background"
+        android:rotation="135"
+        app:layout_constraintBottom_toBottomOf="@+id/currency_symbol"
+        app:layout_constraintStart_toStartOf="@+id/currency_symbol"
+        app:layout_constraintTop_toTopOf="@+id/currency_symbol"
+        app:srcCompat="@drawable/ic_tx_receive"
+        app:tint="@color/green_500" />
+
+    <piuk.blockchain.android.ui.customviews.FiatCurrencySymbolView
+        android:id="@+id/currency_symbol"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/large_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/available"
+        tools:src="@drawable/ic_funds_gbp" />
+
+    <piuk.blockchain.android.ui.customviews.SingleCurrencyInputView
+        android:id="@+id/input_amount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/small_margin"
+        android:layout_marginTop="@dimen/medium_margin"
+        android:layout_marginEnd="@dimen/small_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fiat_balance"
+        app:layout_goneMarginEnd="@dimen/small_margin"
+        tools:layout_height="20dp" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/withdraw_to"
+        style="@style/Text.Semibold.12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginTop="@dimen/standard_margin"
+        android:text="@string/withdraw_to"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/input_amount" />
+
+    <View
+        style="@style/Separator"
+        android:layout_width="0dp"
+        android:layout_marginStart="@dimen/tiny_margin"
+        app:layout_constraintBottom_toBottomOf="@+id/withdraw_to"
+        app:layout_constraintStart_toEndOf="@+id/withdraw_to"
+        app:layout_constraintTop_toTopOf="@+id/withdraw_to" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bank_details_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginTop="@dimen/tiny_margin"
+        android:layout_marginEnd="@dimen/standard_margin"
+        android:layout_marginBottom="50dp"
+        android:background="@drawable/payment_method_background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/withdraw_to">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/bank_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/small_margin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_add_payment_method" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/undefined_bank_text"
+            style="@style/Text.Semibold.16"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/small_margin"
+            android:text="@string/add_a_bank"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/bank_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="gone" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/bank_title"
+            style="@style/Text.Semibold.16"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/small_margin"
+            android:layout_marginEnd="@dimen/standard_margin"
+            android:ellipsize="end"
+            android:singleLine="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/banks_arrow"
+            app:layout_constraintStart_toEndOf="@+id/bank_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Bank of America 8278" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/banks_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/standard_margin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_arrow_down"
+            app:tint="@color/grey_600" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_continue"
+        style="@style/CtaButton.Blue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/standard_margin"
+        android:text="@string/btn_continue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

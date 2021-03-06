@@ -1,7 +1,7 @@
 package piuk.blockchain.android.ui.kyc.mobile.entry
 
 import com.blockchain.android.testutils.rxInit
-import com.blockchain.swap.nabu.NabuUserSync
+import com.blockchain.nabu.NabuUserSync
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argThat
 import com.nhaarman.mockito_kotlin.mock

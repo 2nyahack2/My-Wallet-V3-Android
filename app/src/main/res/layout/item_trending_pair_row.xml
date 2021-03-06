@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/trending_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:paddingStart="@dimen/standard_margin"
+    android:paddingTop="@dimen/small_margin"
+    android:paddingEnd="@dimen/standard_margin"
+    android:paddingBottom="@dimen/small_margin">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/trending_title"
+        style="@style/Text.Semibold.16"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@id/trending_icon_in"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Swap Bitcoin" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/trending_subtitle"
+        style="@style/Text.Light.14"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@id/trending_icon_in"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/trending_title"
+        tools:text="Receive Bitcoin" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/trending_icon_in"
+        android:layout_width="@dimen/large_margin"
+        android:layout_height="@dimen/large_margin"
+        android:translationX="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/trending_icon_type"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/vector_bitcoin_colored" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/trending_icon_out"
+        android:layout_width="@dimen/large_margin"
+        android:layout_height="@dimen/large_margin"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/vector_eth_colored" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/trending_icon_type"
+        android:layout_width="@dimen/standard_margin"
+        android:layout_height="@dimen/standard_margin"
+        android:translationX="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/trending_icon_out"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ic_swap_light_blue" />
+</androidx.constraintlayout.widget.ConstraintLayout>

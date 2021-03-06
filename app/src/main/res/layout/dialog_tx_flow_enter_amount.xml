@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/amount_sheet_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/tiny_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/vector_sheet_indicator_small" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/amount_sheet_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/small_margin"
+        android:background="@android:color/transparent"
+        android:padding="@dimen/tiny_margin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/amount_sheet_title"
+        app:srcCompat="@drawable/ic_arrow_back_blue" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/amount_sheet_title"
+        style="@style/Text.Semibold.20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginTop="@dimen/very_small_margin"
+        android:layout_marginEnd="@dimen/standard_margin"
+        android:text="@string/send_enter_amount_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/amount_sheet_back"
+        app:layout_constraintTop_toBottomOf="@id/amount_sheet_indicator" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/amount_sheet_from"
+        style="@style/Text.Light.12"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginTop="@dimen/standard_margin"
+        android:layout_marginEnd="@dimen/tiny_margin"
+        android:maxLines="1"
+        app:layout_constraintEnd_toStartOf="@id/amount_sheet_asset_icon"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/amount_sheet_title"
+        tools:text="From: Loaded account" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/amount_sheet_target_icon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="@dimen/standard_margin"
+        app:layout_constraintBottom_toBottomOf="@id/amount_sheet_from"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/amount_sheet_to"
+        tools:src="@drawable/vector_eth_colored" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/amount_sheet_asset_icon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        app:layout_constraintBottom_toBottomOf="@id/amount_sheet_from"
+        app:layout_constraintEnd_toEndOf="@+id/amount_sheet_asset_direction"
+        android:layout_marginEnd="@dimen/small_margin"
+        app:layout_constraintTop_toTopOf="@id/amount_sheet_to"
+        tools:src="@drawable/vector_bitcoin_colored" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/amount_sheet_asset_direction"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@drawable/bkgd_tx_circle"
+        app:layout_constraintBottom_toBottomOf="@id/amount_sheet_from"
+        app:layout_goneMarginEnd="@dimen/standard_margin"
+        app:layout_constraintEnd_toEndOf="@+id/amount_sheet_target_icon"
+        android:layout_marginEnd="@dimen/standard_margin"
+        app:layout_constraintTop_toTopOf="@id/amount_sheet_to"
+        tools:srcCompat="@drawable/ic_tx_sent" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/amount_sheet_to"
+        style="@style/Text.Semibold.14"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginEnd="@dimen/tiny_margin"
+        android:ellipsize="end"
+        android:maxLines="1"
+        app:layout_constraintEnd_toStartOf="@id/amount_sheet_asset_icon"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/amount_sheet_from"
+        tools:text="To: Empty account" />
+
+    <View
+        android:id="@+id/amount_sheet_separator"
+        style="@style/SeparatorWithoutMargins"
+        android:layout_marginTop="@dimen/very_small_margin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/amount_sheet_to" />
+
+    <piuk.blockchain.android.ui.customviews.FiatCryptoInputView
+        android:id="@+id/amount_sheet_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/standard_margin"
+        android:layout_marginBottom="@dimen/standard_margin"
+        app:layout_constraintBottom_toTopOf="@id/amount_sheet_max_available_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/amount_sheet_separator" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/amount_sheet_max_available_label"
+        style="@style/Text.Light.12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginTop="@dimen/small_margin"
+        android:layout_marginEnd="@dimen/small_margin"
+        android:text="@string/send_enter_amount_available"
+        app:layout_constraintBottom_toTopOf="@id/amount_sheet_max_available"
+        app:layout_constraintEnd_toStartOf="@+id/amount_sheet_use_max"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/amount_sheet_max_available" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/amount_sheet_max_available"
+        style="@style/Text.Semibold.12"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/tiny_margin"
+        android:ellipsize="end"
+        app:layout_constraintBottom_toBottomOf="@id/amount_sheet_use_max"
+        app:layout_constraintEnd_toStartOf="@+id/amount_sheet_use_max"
+        app:layout_constraintStart_toStartOf="@id/amount_sheet_max_available_label"
+        app:layout_constraintTop_toBottomOf="@id/amount_sheet_max_available_label"
+        tools:text="Max: 1.00000 BTC" />
+
+    <Button
+        android:id="@+id/amount_sheet_use_max"
+        style="@style/CtaButton.White.Slim"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/small_margin"
+        android:layout_marginTop="@dimen/small_margin"
+        android:layout_marginEnd="@dimen/standard_margin"
+        android:layout_marginBottom="@dimen/very_small_margin"
+        android:text="@string/send_enter_amount_max"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@id/amount_sheet_cta_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/amount_sheet_max_available"
+        app:layout_constraintTop_toBottomOf="@id/amount_sheet_input"
+        app:layout_constraintVertical_bias="1" />
+
+    <Button
+        android:id="@+id/amount_sheet_cta_button"
+        style="@style/CtaButton.Blue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/standard_margin"
+        android:contentDescription="@string/next"
+        android:text="@string/next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="1" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

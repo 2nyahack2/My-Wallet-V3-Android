@@ -1,12 +1,10 @@
 package com.blockchain.ui.urllinks
 
-import info.blockchain.balance.CryptoCurrency
-
 const val URL_BLOCKCHAIN_SUPPORT_PORTAL =
     "https://support.blockchain.com/"
 
-const val URL_BLOCKCHAIN_PAX_FAQ =
-    "https://support.blockchain.com/hc/en-us/sections/360004368351-USD-Pax-FAQ"
+const val URL_BLOCKCHAIN_SUPPORT_CLOUD_BACKUP_INFO =
+    "https://support.blockchain.com/hc/en-us/articles/360046143432"
 
 const val URL_BLOCKCHAIN_PAX_NEEDS_ETH_FAQ =
     "https://support.blockchain.com/hc/en-us/articles/360027492092-Why-do-I-need-ETH-to-send-my-PAX-"
@@ -37,6 +35,7 @@ const val URL_THE_PIT_LAUNCH_SUPPORT = "https://exchange-support.blockchain.com/
 
 const val URL_COINIFY_POLICY = "https://coinify.com/legal"
 const val URL_TOS_POLICY = "https://blockchain.com/terms"
+const val URL_BACKUP_INFO = "https://support.blockchain.com/hc/en-us/articles/209564506-Make-a-Wallet-Backup"
 const val URL_PRIVACY_POLICY = "https://blockchain.com/privacy"
 const val URL_CONTACT_SUPPORT = "https://support.blockchain.com/hc/requests/new"
 const val URL_LEARN_MORE_REJECTED =
@@ -51,16 +50,19 @@ const val STX_STACKS_LEARN_MORE =
 const val MODULAR_TERMS_AND_CONDITIONS =
     "https://exchange.blockchain.com/legal#modulr"
 
-fun makeBlockExplorerUrl(
-    cryptoCurrency: CryptoCurrency,
-    transactionHash: String
-) = when (cryptoCurrency) {
-    CryptoCurrency.BTC -> "https://www.blockchain.com/btc/tx/"
-    CryptoCurrency.BCH -> "https://www.blockchain.com/bch/tx/"
-    CryptoCurrency.XLM -> "https://stellarchain.io/tx/"
-    CryptoCurrency.ETHER,
-    CryptoCurrency.PAX,
-    CryptoCurrency.USDT -> "https://www.blockchain.com/eth/tx/"
-    CryptoCurrency.ALGO -> "https://algoexplorer.io/tx/"
-    CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
-} + transactionHash
+const val INTEREST_TERMS_OF_SERVICE = "https://www.blockchain.com/legal/borrow-terms"
+const val INTEREST_PRIVACY_POLICY = "https://blockchain.com/legal/privacy"
+
+const val URL_SUPPORT_BALANCE_LOCKED = "https://support.blockchain.com/hc/en-us/articles/360048200392"
+
+const val URL_XLM_MIN_BALANCE =
+    "https://support.blockchain.com/hc/en-us/articles/360019105471-" +
+        "Why-do-Stellar-addresses-have-a-minimum-balance-requirement-"
+
+const val URL_TX_FEES = "https://support.blockchain.com/hc/en-us/articles/360000939903-Transaction-fees"
+
+const val YODLEE_LEARN_MORE = "https://www.yodlee.com/legal/yodlee-security"
+const val URL_YODLEE_SUPPORT_LEARN_MORE = "https://support.blockchain.com/hc/en-us/articles/360053570252 "
+
+const val APP_STORE_URI = "market://details?id="
+const val APP_STORE_URL = "https://play.google.com/store/apps/details?id="

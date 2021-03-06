@@ -1,9 +1,9 @@
 package piuk.blockchain.android.ui.activity
 
 import com.blockchain.notifications.analytics.Analytics
-import com.blockchain.notifications.analytics.SimpleBuyAnalytics
+import piuk.blockchain.android.simplebuy.SimpleBuyAnalytics
 import com.blockchain.preferences.SimpleBuyPrefs
-import com.blockchain.swap.nabu.datamanagers.CustodialWalletManager
+import com.blockchain.nabu.datamanagers.CustodialWalletManager
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable

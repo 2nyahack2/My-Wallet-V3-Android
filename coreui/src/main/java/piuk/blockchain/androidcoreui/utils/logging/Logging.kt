@@ -7,6 +7,7 @@ import com.blockchain.logging.EventLogger
 import com.google.firebase.analytics.FirebaseAnalytics
 import piuk.blockchain.androidcoreui.BuildConfig
 
+@Deprecated("Use com.blockchain.notifications.analytics.Analytics instead")
 class InjectableLogging(context: Context) : EventLogger {
     private var analytics: FirebaseAnalytics = FirebaseAnalytics.getInstance(context)
 
@@ -19,6 +20,7 @@ class InjectableLogging(context: Context) : EventLogger {
     }
 }
 
+@Deprecated("Use com.blockchain.notifications.analytics.Analytics instead")
 object Logging {
     private val shouldLog = BuildConfig.USE_CRASHLYTICS
     private lateinit var analytics: FirebaseAnalytics

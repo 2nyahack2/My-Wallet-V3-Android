@@ -10,9 +10,6 @@ internal class XlmAsyncAccountListAdapter(
     private val xlmDataManager: XlmDataManager
 ) : AccountList {
 
-    override fun defaultAccountReference(): AccountReference =
-        throw NotImplementedError("XLM Needs to be accessed via Rx")
-
     override fun defaultAccount(): Single<AccountReference> =
         xlmDataManager.defaultAccountReference()
 

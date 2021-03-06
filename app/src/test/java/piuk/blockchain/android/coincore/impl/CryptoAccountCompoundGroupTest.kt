@@ -11,7 +11,6 @@ import org.junit.Rule
 import org.junit.Test
 import piuk.blockchain.android.coincore.AssetAction
 import piuk.blockchain.android.coincore.CryptoAccount
-import kotlin.test.assertEquals
 
 class CryptoAccountCompoundGroupTest {
 
@@ -26,7 +25,7 @@ class CryptoAccountCompoundGroupTest {
     fun `group with single account returns single account balance`() {
         // Arrange
         val account: CryptoAccount = mock {
-            on { balance } itReturns Single.just(100.bitcoin() as Money)
+            on { accountBalance } itReturns Single.just(100.bitcoin() as Money)
         }
 
         val subject = CryptoAccountNonCustodialGroup(
@@ -36,7 +35,7 @@ class CryptoAccountCompoundGroupTest {
         )
 
         // Act
-        subject.balance.test()
+        subject.accountBalance.test()
             .assertComplete()
             .assertValue(100.bitcoin())
     }
@@ -45,11 +44,11 @@ class CryptoAccountCompoundGroupTest {
     fun `group with two accounts returns the sum of the account balance`() {
         // Arrange
         val account1: CryptoAccount = mock {
-            on { balance } itReturns Single.just(100.bitcoin() as Money)
+            on { accountBalance } itReturns Single.just(100.bitcoin() as Money)
         }
 
         val account2: CryptoAccount = mock {
-            on { balance } itReturns Single.just(150.bitcoin() as Money)
+            on { accountBalance } itReturns Single.just(150.bitcoin() as Money)
         }
 
         val subject = CryptoAccountNonCustodialGroup(
@@ -59,7 +58,7 @@ class CryptoAccountCompoundGroupTest {
         )
 
         // Act
-        subject.balance.test()
+        subject.accountBalance.test()
             .assertComplete()
             .assertValue(250.bitcoin())
     }
@@ -70,7 +69,7 @@ class CryptoAccountCompoundGroupTest {
         val accountActions = setOf(AssetAction.Send, AssetAction.Receive)
 
         val account: CryptoAccount = mock {
-            on { actions } itReturns accountActions
+            on { actions } itReturns Single.just(accountActions)
         }
 
         val subject = CryptoAccountNonCustodialGroup(
@@ -80,31 +79,35 @@ class CryptoAccountCompoundGroupTest {
         )
 
         // Act
-        val r = subject.actions
+        val r = subject.actions.test()
 
         // Assert
-        assertEquals(r, accountActions)
+        r.assertValue(setOf(AssetAction.Send, AssetAction.Receive))
     }
 
     @Test
-    fun `group with three accounts returns the intersection of possible actions`() {
+    fun `group with three accounts returns the union of possible actions`() {
         // Arrange
-        val accountActions1 = setOf(
+        val accountActions1 = Single.just(setOf(
             AssetAction.Send,
             AssetAction.Receive
-        )
+        ))
 
-        val accountActions2 = setOf(
+        val accountActions2 = Single.just(setOf(
             AssetAction.Send,
             AssetAction.Swap
-        )
+        ))
 
-        val accountActions3 = setOf(
+        val accountActions3 = Single.just(setOf(
             AssetAction.Send,
             AssetAction.Receive
-        )
+        ))
 
-        val expectedResult = setOf(AssetAction.Send)
+        val expectedResult = setOf(
+            AssetAction.Send,
+            AssetAction.Swap,
+            AssetAction.Receive
+        )
 
         val account1: CryptoAccount = mock {
             on { actions } itReturns accountActions1
@@ -125,9 +128,9 @@ class CryptoAccountCompoundGroupTest {
         )
 
         // Act
-        val r = subject.actions
+        val r = subject.actions.test()
 
         // Assert
-        assertEquals(r, expectedResult)
+        r.assertValue(expectedResult)
     }
 }

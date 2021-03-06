@@ -31,7 +31,7 @@
         android:layout_marginEnd="@dimen/standard_margin"
         android:ellipsize="end"
         android:singleLine="true"
-        android:text="@string/add_credit_or_debit_card"
+        android:text="@string/add_credit_or_debit_card_1"
         app:layout_constraintStart_toEndOf="@+id/payment_method_icon"
         app:layout_constraintTop_toTopOf="@+id/payment_method_icon" />
 

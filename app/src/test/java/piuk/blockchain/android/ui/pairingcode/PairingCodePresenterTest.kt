@@ -11,19 +11,13 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.ResponseBody
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mockito
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import piuk.blockchain.android.BlockchainTestApplication
 import piuk.blockchain.android.R
-import piuk.blockchain.android.data.datamanagers.QrCodeDataManager
+import piuk.blockchain.android.scan.QrCodeDataManager
 import piuk.blockchain.android.util.StringUtils
 import piuk.blockchain.androidcore.data.auth.AuthDataManager
 import piuk.blockchain.androidcore.data.payload.PayloadDataManager
 
-@Config(sdk = [23], application = BlockchainTestApplication::class)
-@RunWith(RobolectricTestRunner::class)
 class PairingCodePresenterTest {
 
     private lateinit var subject: PairingCodePresenter
@@ -50,7 +44,8 @@ class PairingCodePresenterTest {
     @Test
     fun generatePairingQr() {
         // Arrange
-        val bitmap = Bitmap.createBitmap(50, 50, Bitmap.Config.RGB_565)
+        val mockBitmap: Bitmap = mock()
+
         whenever(mockPayloadDataManager.wallet!!.guid).thenReturn("asdf")
         whenever(mockPayloadDataManager.wallet!!.sharedKey).thenReturn("ghjk")
         whenever(mockPayloadDataManager.tempPassword).thenReturn("zxcv")
@@ -62,7 +57,8 @@ class PairingCodePresenterTest {
                 any(),
                 any()
             )
-        ).thenReturn(Observable.just(bitmap))
+        ).thenReturn(Observable.just(mockBitmap))
+
         val body = ResponseBody.create(("application/text").toMediaTypeOrNull(), "asdasdasd")
         whenever(mockAuthDataManager.getPairingEncryptionPassword(any()))
             .thenReturn(Observable.just(body))
@@ -72,7 +68,7 @@ class PairingCodePresenterTest {
         verify(mockAuthDataManager).getPairingEncryptionPassword(any())
         verify(mockQrCodeDataManager).generatePairingCode(any(), any(), any(), any(), any())
         verify(mockActivity).showProgressSpinner()
-        verify(mockActivity).onQrLoaded(bitmap)
+        verify(mockActivity).onQrLoaded(mockBitmap)
         verify(mockActivity).hideProgressSpinner()
         verifyNoMoreInteractions(mockActivity)
     }

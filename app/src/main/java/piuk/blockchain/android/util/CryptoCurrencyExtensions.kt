@@ -1,6 +1,7 @@
 package piuk.blockchain.android.util
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.widget.ImageView
 import androidx.annotation.ColorInt
@@ -9,6 +10,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import com.blockchain.wallet.DefaultLabels
 import info.blockchain.balance.CryptoCurrency
 import piuk.blockchain.android.R
@@ -24,10 +26,23 @@ fun CryptoCurrency.colorRes(): Int =
         CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
         CryptoCurrency.ALGO -> R.color.color_algo_logo
         CryptoCurrency.USDT -> R.color.color_usdt_logo
+        CryptoCurrency.DGLD -> R.color.color_dgld_logo
     }
 
 @ColorInt
-fun CryptoCurrency.getColor(context: Context) = ContextCompat.getColor(context, colorRes())
+fun CryptoCurrency.chartLineColour(context: Context) =
+    ContextCompat.getColor(context,
+        when (this) {
+            CryptoCurrency.BTC -> R.color.color_bitcoin_logo
+            CryptoCurrency.ETHER -> R.color.color_ether_logo
+            CryptoCurrency.BCH -> R.color.color_bitcoin_cash_logo
+            CryptoCurrency.XLM -> R.color.color_stellar_logo
+            CryptoCurrency.PAX -> R.color.color_pax_logo
+            CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
+            CryptoCurrency.ALGO -> R.color.color_algo_logo
+            CryptoCurrency.USDT -> R.color.color_usdt_logo
+            CryptoCurrency.DGLD -> R.color.dgld_chart
+        })
 
 @DrawableRes
 fun CryptoCurrency.drawableResFilled(): Int =
@@ -40,6 +55,7 @@ fun CryptoCurrency.drawableResFilled(): Int =
         CryptoCurrency.STX -> R.drawable.ic_logo_stx
         CryptoCurrency.ALGO -> R.drawable.vector_algo_colored
         CryptoCurrency.USDT -> R.drawable.vector_usdt_colored
+        CryptoCurrency.DGLD -> R.drawable.vector_dgld_colored
     }
 
 @DrawableRes
@@ -53,6 +69,7 @@ fun CryptoCurrency.coinIconWhite(): Int =
         CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
         CryptoCurrency.ALGO -> R.drawable.vector_algo_white
         CryptoCurrency.USDT -> R.drawable.vector_usdt_white
+        CryptoCurrency.DGLD -> R.drawable.vector_dgld_white
     }
 
 @DrawableRes
@@ -66,6 +83,7 @@ fun CryptoCurrency.maskedAsset(): Int =
         CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
         CryptoCurrency.ALGO -> R.drawable.ic_algo_circled_mask
         CryptoCurrency.USDT -> R.drawable.ic_usdt_circled_mask
+        CryptoCurrency.DGLD -> R.drawable.ic_dgld_circled_mask
     }
 
 fun ImageView.setImageDrawable(@DrawableRes res: Int) {
@@ -86,7 +104,8 @@ fun CryptoCurrency.errorIcon(): Int =
         CryptoCurrency.PAX -> R.drawable.vector_pax_error
         CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
         CryptoCurrency.ALGO -> R.drawable.vector_algo_error
-        CryptoCurrency.USDT -> R.drawable.vecctor_usdt_error
+        CryptoCurrency.USDT -> R.drawable.vector_usdt_error
+        CryptoCurrency.DGLD -> R.drawable.vector_dgld_error
     }
 
 @StringRes
@@ -100,6 +119,7 @@ fun CryptoCurrency.assetName() =
         CryptoCurrency.STX -> R.string.stacks_1
         CryptoCurrency.ALGO -> R.string.algorand
         CryptoCurrency.USDT -> R.string.usdt
+        CryptoCurrency.DGLD -> R.string.dgld
     }
 
 @ColorRes
@@ -112,6 +132,7 @@ fun CryptoCurrency.assetTint() =
         CryptoCurrency.XLM -> R.color.xlm_bkgd
         CryptoCurrency.ALGO -> R.color.algo_bkgd
         CryptoCurrency.USDT -> R.color.usdt_bkgd
+        CryptoCurrency.DGLD -> R.color.dgld_bkgd
         else -> {
             android.R.color.transparent // STX left, do nothing
         }
@@ -127,14 +148,43 @@ fun CryptoCurrency.assetFilter() =
         CryptoCurrency.XLM -> R.color.xlm
         CryptoCurrency.ALGO -> R.color.algo
         CryptoCurrency.USDT -> R.color.usdt
+        CryptoCurrency.DGLD -> R.color.black
         else -> {
             android.R.color.transparent // STX left, do nothing
         }
     }
 
+fun CryptoCurrency.makeBlockExplorerUrl(
+    transactionHash: String
+) = when (this) {
+    CryptoCurrency.BTC -> "https://www.blockchain.com/btc/tx/"
+    CryptoCurrency.BCH -> "https://www.blockchain.com/bch/tx/"
+    CryptoCurrency.XLM -> "https://stellarchain.io/tx/"
+    CryptoCurrency.ETHER,
+    CryptoCurrency.PAX,
+    CryptoCurrency.USDT,
+    CryptoCurrency.DGLD -> "https://www.blockchain.com/eth/tx/"
+    CryptoCurrency.ALGO -> "https://algoexplorer.io/tx/"
+    CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
+} + transactionHash
+
+fun CryptoCurrency.getDecimalPlaces(): Int =
+    when (this) {
+        CryptoCurrency.BTC,
+        CryptoCurrency.ETHER,
+        CryptoCurrency.BCH,
+        CryptoCurrency.PAX,
+        CryptoCurrency.ALGO,
+        CryptoCurrency.USDT,
+        CryptoCurrency.DGLD -> 2
+        CryptoCurrency.XLM -> 4
+        CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
+    }
+
 fun ImageView.setAssetIconColours(cryptoCurrency: CryptoCurrency, context: Context) {
     setBackgroundResource(R.drawable.bkgd_tx_circle)
-    background.setTint(ContextCompat.getColor(context, cryptoCurrency.assetTint()))
+    ViewCompat.setBackgroundTintList(this,
+        ColorStateList.valueOf(ContextCompat.getColor(context, cryptoCurrency.assetTint())))
     setColorFilter(ContextCompat.getColor(context, cryptoCurrency.assetFilter()))
 }
 
@@ -153,6 +203,7 @@ internal class ResourceDefaultLabels(
                 CryptoCurrency.STX -> TODO("STUB: STX NOT IMPLEMENTED")
                 CryptoCurrency.ALGO -> R.string.algo_default_account_label
                 CryptoCurrency.USDT -> R.string.usdt_default_account_label
+                CryptoCurrency.DGLD -> R.string.dgld_default_account_label
             }
         )
 
@@ -175,4 +226,11 @@ internal class ResourceDefaultLabels(
 
     override fun getDefaultCustodialFiatWalletLabel(fiatCurrency: String): String =
         resources.getString(R.string.currency_wallet, fiatCurrency)
+}
+
+class AssetResourceFactory(
+    private val resources: Resources
+) {
+    fun assetName(asset: CryptoCurrency): String =
+        resources.getString(asset.assetName())
 }

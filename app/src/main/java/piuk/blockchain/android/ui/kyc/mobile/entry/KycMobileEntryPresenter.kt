@@ -1,7 +1,7 @@
 package piuk.blockchain.android.ui.kyc.mobile.entry
 
 import piuk.blockchain.android.ui.kyc.mobile.entry.models.PhoneDisplayModel
-import com.blockchain.swap.nabu.NabuUserSync
+import com.blockchain.nabu.NabuUserSync
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy

@@ -60,7 +60,7 @@ class XlmSecretAccessTest {
         val keyPair = deriveXlmAccountKeyPair(seed, 21)
         searchForPublic(public = keyPair.accountId)
             .assertNoValues()
-            .assertComplete()
+            .assertError(NoSuchElementException::class.java)
     }
 }
 
@@ -76,11 +76,12 @@ private fun assertPrivateForPublic(public: String, expectedPrivate: String) {
 private fun searchForPublic(public: String): TestObserver<HorizonKeyPair.Private> {
     val mockSeed = mockSeed()
     val seedAccess: SeedAccess = mock {
-        on { seedForcePrompt } `it returns` Maybe.just(mockSeed)
+        on { seed(null) } `it returns` Maybe.just(mockSeed)
     }
     return XlmSecretAccess(seedAccess)
         .getPrivate(
-            HorizonKeyPair.Public(public)
+            HorizonKeyPair.Public(public),
+            null
         ).test()
 }
 

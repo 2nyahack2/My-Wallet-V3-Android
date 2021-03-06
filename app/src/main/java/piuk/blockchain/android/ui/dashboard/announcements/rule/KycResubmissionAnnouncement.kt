@@ -1,7 +1,7 @@
 package piuk.blockchain.android.ui.dashboard.announcements.rule
 
 import androidx.annotation.VisibleForTesting
-import com.blockchain.swap.nabu.status.KycTiersQueries
+import com.blockchain.nabu.status.KycTiersQueries
 import piuk.blockchain.android.campaign.CampaignType
 import io.reactivex.Single
 import piuk.blockchain.android.R

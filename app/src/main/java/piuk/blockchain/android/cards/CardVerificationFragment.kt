@@ -7,11 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.blockchain.koin.scopedInject
-import com.blockchain.notifications.analytics.SimpleBuyAnalytics
+import piuk.blockchain.android.simplebuy.SimpleBuyAnalytics
 import kotlinx.android.synthetic.main.fragment_card_verification.*
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.base.mvi.MviFragment
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
+import piuk.blockchain.android.util.inflate
 
 class CardVerificationFragment : MviFragment<CardModel, CardIntent, CardState>(), AddCardFlowFragment {
     override fun onCreateView(
@@ -40,7 +40,7 @@ class CardVerificationFragment : MviFragment<CardModel, CardIntent, CardState>()
         newState.cardRequestStatus?.let {
             when (it) {
                 is CardRequestStatus.Loading -> renderLoadingState()
-                is CardRequestStatus.Error -> renderErrorState()
+                is CardRequestStatus.Error -> renderErrorState(it.type)
                 is CardRequestStatus.Success -> navigator.exitWithSuccess(it.card)
             }
         }
@@ -67,12 +67,17 @@ class CardVerificationFragment : MviFragment<CardModel, CardIntent, CardState>()
         subtitle.text = getString(R.string.linking_card_subtitle)
     }
 
-    private fun renderErrorState() {
+    private fun renderErrorState(error: CardError) {
         progress.visibility = View.GONE
         icon.visibility = View.VISIBLE
         ok_btn.visibility = View.VISIBLE
         title.text = getString(R.string.linking_card_error_title)
-        subtitle.text = getString(R.string.card_error_subtitle)
+        subtitle.text = when (error) {
+            CardError.CREATION_FAILED -> getString(R.string.could_not_save_card)
+            CardError.ACTIVATION_FAIL -> getString(R.string.could_not_activate_card)
+            CardError.PENDING_AFTER_POLL -> getString(R.string.card_still_pending)
+            CardError.LINK_FAILED -> getString(R.string.card_link_failed)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

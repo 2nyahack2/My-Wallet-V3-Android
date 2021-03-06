@@ -6,10 +6,15 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import com.blockchain.koin.scopedInject
 import piuk.blockchain.android.R
-import piuk.blockchain.android.ui.fingerprint.FingerprintDialog
-import piuk.blockchain.android.ui.fingerprint.FingerprintStage
+import piuk.blockchain.android.data.biometrics.BiometricAuthError
+import piuk.blockchain.android.data.biometrics.BiometricAuthLockout
+import piuk.blockchain.android.data.biometrics.BiometricAuthLockoutPermanent
+import piuk.blockchain.android.data.biometrics.BiometricAuthOther
+import piuk.blockchain.android.data.biometrics.BiometricKeysInvalidated
+import piuk.blockchain.android.data.biometrics.BiometricsCallback
+import piuk.blockchain.android.data.biometrics.BiometricsController
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
 import piuk.blockchain.androidcoreui.ui.base.BaseMvpActivity
-import com.blockchain.ui.dialog.MaterialProgressDialog
 
 internal class OnboardingActivity : BaseMvpActivity<OnboardingView, OnboardingPresenter>(),
     OnboardingView,
@@ -17,6 +22,7 @@ internal class OnboardingActivity : BaseMvpActivity<OnboardingView, OnboardingPr
     EmailPromptFragment.OnFragmentInteractionListener {
 
     private val onboardingPresenter: OnboardingPresenter by scopedInject()
+    private val biometricsController: BiometricsController by scopedInject()
     private var emailLaunched = false
 
     private var progressDialog: MaterialProgressDialog? = null
@@ -77,29 +83,43 @@ internal class OnboardingActivity : BaseMvpActivity<OnboardingView, OnboardingPr
 
     override fun showFingerprintDialog(pincode: String) {
         if (!isFinishing) {
-            val dialog = FingerprintDialog.newInstance(
-                pincode,
-                FingerprintStage.REGISTER_FINGERPRINT
-            )
-
-            dialog.setAuthCallback(object : FingerprintDialog.FingerprintAuthCallback {
-                override fun onAuthenticated(data: String?) {
-                    dialog.dismissAllowingStateLoss()
-                    presenter?.setFingerprintUnlockEnabled(true)
-                    if (showEmail) {
-                        showEmailPrompt()
-                    } else {
-                        finish()
+            biometricsController.init(
+                this, BiometricsController.BiometricsType.TYPE_REGISTER, object : BiometricsCallback {
+                    override fun onAuthSuccess(data: String) {
+                        presenter?.setFingerprintUnlockEnabled(true)
+                        if (showEmail) {
+                            showEmailPrompt()
+                        } else {
+                            finish()
+                        }
                     }
-                }
 
-                override fun onCanceled() {
-                    dialog.dismissAllowingStateLoss()
-                    presenter?.setFingerprintUnlockEnabled(true)
-                }
-            })
+                    override fun onAuthFailed(error: BiometricAuthError) {
+                        presenter?.setFingerprintUnlockEnabled(false)
+                        when (error) {
+                            is BiometricAuthLockout -> BiometricsController.showAuthLockoutDialog(
+                                this@OnboardingActivity
+                            )
+                            is BiometricAuthLockoutPermanent -> BiometricsController.showPermanentAuthLockoutDialog(
+                                this@OnboardingActivity
+                            )
+                            is BiometricKeysInvalidated -> BiometricsController.showInfoInvalidatedKeysDialog(
+                                this@OnboardingActivity
+                            )
+                            is BiometricAuthOther ->
+                                BiometricsController.showBiometricsGenericError(this@OnboardingActivity, error.error)
+                            else -> {
+                                // do nothing - this is handled by the Biometric Prompt framework
+                            }
+                        }
+                    }
 
-            dialog.show(supportFragmentManager, FingerprintDialog.TAG)
+                    override fun onAuthCancelled() {
+                        presenter?.setFingerprintUnlockEnabled(false)
+                    }
+                })
+
+            biometricsController.authenticateForRegistration()
         }
     }
 
@@ -109,7 +129,7 @@ internal class OnboardingActivity : BaseMvpActivity<OnboardingView, OnboardingPr
                 .setTitle(R.string.app_name)
                 .setMessage(R.string.fingerprint_no_fingerprints_added)
                 .setCancelable(true)
-                .setPositiveButton(R.string.yes) { _, _ ->
+                .setPositiveButton(R.string.common_yes) { _, _ ->
                     startActivityForResult(
                         Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS),
                         0

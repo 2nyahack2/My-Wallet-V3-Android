@@ -1,6 +1,6 @@
 package piuk.blockchain.android.campaign
 
-import com.blockchain.swap.nabu.models.nabu.CampaignData
+import com.blockchain.nabu.models.responses.nabu.CampaignData
 import io.reactivex.Completable
 import io.reactivex.Single
 

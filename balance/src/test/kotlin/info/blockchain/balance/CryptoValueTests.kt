@@ -10,47 +10,42 @@ class CryptoValueTests {
 
     @Test
     fun `zero btc`() {
-        CryptoValue.ZeroBtc `should equal` CryptoValue(CryptoCurrency.BTC, BigInteger.ZERO)
-    }
-
-    @Test
-    fun `zero btc function`() {
-        CryptoValue.zero(CryptoCurrency.BTC) `should be` CryptoValue.ZeroBtc
+        CryptoValue.zero(CryptoCurrency.BTC) `should equal` CryptoValue(CryptoCurrency.BTC, BigInteger.ZERO)
     }
 
     @Test
     fun `zero bch`() {
-        CryptoValue.ZeroBch `should equal` CryptoValue(CryptoCurrency.BCH, BigInteger.ZERO)
+        CryptoValue.zero(CryptoCurrency.BCH) `should equal` CryptoValue(CryptoCurrency.BCH, BigInteger.ZERO)
     }
 
     @Test
     fun `zero bch function`() {
-        CryptoValue.zero(CryptoCurrency.BCH) `should be` CryptoValue.ZeroBch
+        CryptoValue.zero(CryptoCurrency.BCH) `should equal` CryptoValue.ZeroBch
     }
 
     @Test
     fun `zero eth`() {
-        CryptoValue.ZeroEth `should equal` CryptoValue(CryptoCurrency.ETHER, BigInteger.ZERO)
-    }
-
-    @Test
-    fun `zero eth function`() {
-        CryptoValue.zero(CryptoCurrency.ETHER) `should be` CryptoValue.ZeroEth
+        CryptoValue.zero(CryptoCurrency.ETHER) `should equal` CryptoValue(CryptoCurrency.ETHER, BigInteger.ZERO)
     }
 
     @Test
     fun `zero pax function`() {
-        CryptoValue.zero(CryptoCurrency.PAX) `should be` CryptoValue.ZeroPax
+        CryptoValue.zero(CryptoCurrency.PAX) `should equal` CryptoValue(CryptoCurrency.PAX, BigInteger.ZERO)
     }
 
     @Test
     fun `toBigDecimal BTC`() {
-        CryptoValue.bitcoinFromSatoshis(12345678901L).toBigDecimal() `should equal` BigDecimal("123.45678901")
+        CryptoValue.fromMinor(
+            CryptoCurrency.BTC, 12345678901.toBigInteger()
+        ).toBigDecimal() `should equal` BigDecimal("123.45678901")
     }
 
     @Test
     fun `toBigDecimal BCH`() {
-        CryptoValue.bitcoinCashFromSatoshis(234L).toBigDecimal() `should equal` BigDecimal("0.00000234")
+        CryptoValue.fromMinor(
+            CryptoCurrency.BCH,
+            234.toBigInteger()
+        ).toBigDecimal() `should equal` BigDecimal("0.00000234")
     }
 
     @Test
@@ -76,32 +71,32 @@ class CryptoValueTests {
 
     @Test
     fun `zero is not positive`() {
-        CryptoValue.ZeroBtc.isPositive `should be` false
+        CryptoValue.zero(CryptoCurrency.BTC).isPositive `should be` false
     }
 
     @Test
     fun `1 Satoshi is positive`() {
-        CryptoValue.bitcoinFromSatoshis(1).isPositive `should be` true
+        CryptoValue.fromMinor(CryptoCurrency.BTC, 1.toBigInteger()).isPositive `should be` true
     }
 
     @Test
     fun `2 Satoshis is positive`() {
-        CryptoValue.bitcoinFromSatoshis(2).isPositive `should be` true
+        CryptoValue.fromMinor(CryptoCurrency.BTC, 2.toBigInteger()).isPositive `should be` true
     }
 
     @Test
     fun `-1 Satoshi is not positive`() {
-        CryptoValue.bitcoinFromSatoshis(-1).isPositive `should be` false
+        CryptoValue.fromMinor(CryptoCurrency.BTC, (-1).toBigInteger()).isPositive `should be` false
     }
 
     @Test
     fun `zero isZero`() {
-        CryptoValue.ZeroBtc.isZero `should be` true
+        CryptoValue.zero(CryptoCurrency.BTC).isZero `should be` true
     }
 
     @Test
     fun `1 satoshi is not isZero`() {
-        CryptoValue.bitcoinFromSatoshis(1).isZero `should be` false
+        CryptoValue.fromMinor(CryptoCurrency.BTC, 1.toBigInteger()).isZero `should be` false
     }
 
     @Test
@@ -121,12 +116,13 @@ class CryptoValueTests {
 
     @Test
     fun `amount is the total minor part of the currency`() {
-        2L.ether().toBigInteger() `should equal` 2e18.toBigDecimal().toBigIntegerExact()
+        CryptoValue.fromMajor(CryptoCurrency.ETHER, 2L.toBigDecimal())
+            .toBigInteger() `should equal` 2e18.toBigDecimal().toBigIntegerExact()
     }
 
     @Test
     fun `amount when created from satoshis`() {
-        CryptoValue.bitcoinFromSatoshis(4567L).apply {
+        CryptoValue.fromMinor(CryptoCurrency.BTC, 4567L.toBigInteger()).apply {
             currency `should equal` CryptoCurrency.BTC
             toBigInteger() `should equal` 4567.toBigInteger()
         }
@@ -142,17 +138,9 @@ class CryptoValueTests {
 
     @Test
     fun `amount of Cash when created from satoshis`() {
-        CryptoValue.bitcoinCashFromSatoshis(45678L).apply {
+        CryptoValue.fromMinor(CryptoCurrency.BCH, 45678.toBigInteger()).apply {
             currency `should equal` CryptoCurrency.BCH
             toBigInteger() `should equal` 45678.toBigInteger()
-        }
-    }
-
-    @Test
-    fun `amount of Cash when created from satoshis big integer`() {
-        CryptoValue.fromMinor(CryptoCurrency.BCH, 1234L.toBigInteger()).apply {
-            currency `should equal` CryptoCurrency.BCH
-            toBigInteger() `should equal` 1234.toBigInteger()
         }
     }
 }

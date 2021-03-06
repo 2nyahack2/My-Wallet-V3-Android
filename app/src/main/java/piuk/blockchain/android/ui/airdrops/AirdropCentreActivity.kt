@@ -16,8 +16,8 @@ import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.base.MvpActivity
 import piuk.blockchain.android.ui.base.SlidingModalBottomDialog
 import piuk.blockchain.android.util.setCoinIcon
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.setOnClickListenerDebounced
+import piuk.blockchain.android.util.inflate
+import piuk.blockchain.android.util.setOnClickListenerDebounced
 import java.text.DateFormat
 import kotlin.math.max
 import piuk.blockchain.android.ui.airdrops.AirdropStatusSheet as AirdropStatusSheet

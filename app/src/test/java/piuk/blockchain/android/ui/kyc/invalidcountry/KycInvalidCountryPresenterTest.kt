@@ -1,8 +1,10 @@
 package piuk.blockchain.android.ui.kyc.invalidcountry
 
 import com.blockchain.android.testutils.rxInit
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.tokenresponse.NabuOfflineTokenResponse
+import com.blockchain.metadata.MetadataRepository
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.metadata.NabuCredentialsMetadata
+import com.blockchain.nabu.models.responses.tokenresponse.NabuOfflineTokenResponse
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
@@ -13,14 +15,14 @@ import org.amshove.kluent.mock
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import piuk.blockchain.android.ui.kyc.countryselection.util.CountryDisplayModel
-import piuk.blockchain.androidcore.data.metadata.MetadataManager
 
 class KycInvalidCountryPresenterTest {
 
     private lateinit var subject: KycInvalidCountryPresenter
     private val nabuDataManager: NabuDataManager = mock()
-    private val metadataManager: MetadataManager = mock()
+    private val metadataRepo: MetadataRepository = mock()
     private val view: KycInvalidCountryView = mock()
 
     @get:Rule
@@ -31,7 +33,7 @@ class KycInvalidCountryPresenterTest {
 
     @Before
     fun setUp() {
-        subject = KycInvalidCountryPresenter(nabuDataManager, metadataManager)
+        subject = KycInvalidCountryPresenter(nabuDataManager, metadataRepo)
         subject.initView(view)
     }
 
@@ -81,14 +83,20 @@ class KycInvalidCountryPresenterTest {
         verify(view).finishPage()
     }
 
+    private fun <T> any(type: Class<T>): T = Mockito.any<T>(type)
+
     private fun givenSuccessfulUserCreation() {
         val jwt = "JWT"
         whenever(nabuDataManager.requestJwt()).thenReturn(Single.just(jwt))
         val offlineToken = NabuOfflineTokenResponse("", "")
         whenever(nabuDataManager.getAuthToken(jwt))
             .thenReturn(Single.just(offlineToken))
-        whenever(metadataManager.saveToMetadata(any(), any()))
-            .thenReturn(Completable.complete())
+        whenever(
+            metadataRepo.saveMetadata(
+                any(),
+                eq(NabuCredentialsMetadata::class.java),
+                eq(NabuCredentialsMetadata.USER_CREDENTIALS_METADATA_NODE))
+        ).thenReturn(Completable.complete())
     }
 
     private fun givenSuccessfulRecordCountryRequest() {

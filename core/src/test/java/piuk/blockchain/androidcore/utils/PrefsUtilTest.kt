@@ -1,6 +1,7 @@
 package piuk.blockchain.androidcore.utils
 
 import android.content.SharedPreferences
+import com.blockchain.logging.CrashLogger
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
@@ -9,18 +10,19 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import junit.framework.Assert.assertEquals
 import org.junit.After
-import org.junit.Test
-
 import org.junit.Before
+import org.junit.Test
 
 class PrefsUtilTest {
 
     private val store: SharedPreferences = mock()
+    private val backupStore: SharedPreferences = mock()
     private val editor: SharedPreferences.Editor = mock()
     private val idGenerator: DeviceIdGenerator = mock()
     private val uuidGenerator: UUIDGenerator = mock()
+    private val crashLogger: CrashLogger = mock()
 
-    private val subject: PrefsUtil = PrefsUtil(store, idGenerator, uuidGenerator)
+    private val subject: PrefsUtil = PrefsUtil(store, backupStore, idGenerator, uuidGenerator, crashLogger)
 
     @Before
     fun setUpSharedPrefs() {

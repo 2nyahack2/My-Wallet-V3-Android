@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/account_list_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/tiny_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/vector_sheet_indicator_small" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/account_list_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/account_list_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/account_list_title"
+        app:srcCompat="@drawable/ic_arrow_back_blue"
+        tools:visibility="visible" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/account_list_title"
+        style="@style/Text.Semibold.20"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginTop="@dimen/small_margin"
+        android:layout_marginEnd="@dimen/standard_margin"
+        android:text="@string/select_account_sheet_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/account_list_back"
+        app:layout_constraintTop_toBottomOf="@id/account_list_indicator"
+        tools:text="Select a Wallet" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/account_list_subtitle"
+        style="@style/Text.Light.14"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_margin"
+        android:layout_marginTop="@dimen/tiny_margin"
+        android:layout_marginEnd="@dimen/standard_margin"
+        android:text="@string/select_account_sheet_title"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/account_list_back"
+        app:layout_constraintTop_toBottomOf="@id/account_list_title"
+        tools:text="Descriptive subtitle"
+        tools:visibility="visible" />
+
+    <View
+        android:id="@+id/account_list_separator"
+        style="@style/SeparatorWithoutMargins"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/tiny_margin"
+        app:layout_constraintTop_toBottomOf="@id/account_list_subtitle" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/account_list_empty"
+        style="@style/Text.Semibold.16"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/standard_margin"
+        android:text="@string/select_account_sheet_empty"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/account_list"
+        app:layout_constraintTop_toBottomOf="@id/account_list_separator"
+        app:layout_goneMarginBottom="@dimen/standard_margin"
+        tools:visibility="visible" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/standard_margin"
+        app:layout_constraintBottom_toTopOf="@+id/account_list"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/account_list_separator"
+        app:layout_goneMarginBottom="@dimen/standard_margin" />
+
+    <piuk.blockchain.android.ui.customviews.account.AccountList
+        android:id="@+id/account_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constrainedHeight="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/account_list_separator" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

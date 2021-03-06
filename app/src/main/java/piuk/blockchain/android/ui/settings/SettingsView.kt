@@ -1,13 +1,13 @@
 package piuk.blockchain.android.ui.settings
 
 import androidx.annotation.StringRes
-import com.blockchain.swap.nabu.datamanagers.LinkedBank
-import com.blockchain.swap.nabu.datamanagers.PaymentMethod
-import com.blockchain.swap.nabu.models.nabu.KycTiers
+import com.blockchain.nabu.datamanagers.PaymentMethod
+import com.blockchain.nabu.models.data.Bank
+import com.blockchain.nabu.models.data.LinkBankTransfer
+import com.blockchain.nabu.models.responses.nabu.KycTiers
 import piuk.blockchain.androidcoreui.ui.base.View
-import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
 
-internal interface SettingsView : View {
+interface SettingsView : View {
 
     fun setUpUi()
 
@@ -19,21 +19,27 @@ internal interface SettingsView : View {
 
     fun showNoFingerprintsAddedDialog()
 
-    fun showProgressDialog(@StringRes message: Int)
+    fun showProgress()
 
-    fun hideProgressDialog()
+    fun hideProgress()
 
-    fun showToast(@StringRes message: Int, @ToastCustom.ToastType toastType: String)
+    fun showError(@StringRes message: Int)
 
     fun setGuidSummary(summary: String)
 
     fun setKycState(kycTiers: KycTiers)
 
-    fun setEmailSummary(summary: String)
+    fun setEmailSummary(email: String, isVerified: Boolean)
+    fun setEmailUnknown()
 
-    fun setSmsSummary(summary: String)
+    fun setSmsSummary(summary: String, isVerified: Boolean)
+    fun setSmsUnknown()
 
     fun setFiatSummary(summary: String)
+
+    fun showEmailDialog(currentEmail: String, emailVerified: Boolean)
+
+    fun showDialogTwoFA(authType: Int, smsVerified: Boolean)
 
     fun setEmailNotificationsVisibility(visible: Boolean)
 
@@ -51,7 +57,9 @@ internal interface SettingsView : View {
 
     fun updateCards(cards: List<PaymentMethod.Card>)
 
-    fun updateBanks(banks: List<LinkedBank>)
+    fun updateLinkableBanks(linkableBanks: Set<LinkableBank>, linkedBanksCount: Int)
+
+    fun updateLinkedBanks(banks: Set<Bank>)
 
     fun cardsEnabled(enabled: Boolean)
 
@@ -62,6 +70,8 @@ internal interface SettingsView : View {
     fun showDialogEmailVerification()
 
     fun showDialogVerifySms()
+
+    fun showDialogMobile(authType: Int, isSmsVerified: Boolean, smsNumber: String)
 
     fun showDialogSmsVerified()
 
@@ -77,5 +87,5 @@ internal interface SettingsView : View {
 
     fun launchKycFlow()
 
-    fun isPitEnabled(enabled: Boolean)
+    fun linkBankWithPartner(linkBankTransfer: LinkBankTransfer)
 }

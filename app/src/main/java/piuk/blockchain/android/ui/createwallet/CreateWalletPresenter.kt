@@ -1,25 +1,24 @@
 package piuk.blockchain.android.ui.createwallet
 
-import android.annotation.SuppressLint
 import android.app.LauncherActivity
-import android.content.Intent
 import com.blockchain.notifications.analytics.Analytics
 import com.blockchain.notifications.analytics.AnalyticsEvents
+import com.blockchain.preferences.WalletStatus
 import info.blockchain.wallet.util.FormatsUtil
 import info.blockchain.wallet.util.PasswordUtil
+import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.rxkotlin.subscribeBy
 import piuk.blockchain.android.R
-import piuk.blockchain.android.ui.recover.RecoverFundsActivity
 import piuk.blockchain.android.util.AppUtil
-import piuk.blockchain.android.util.extensions.addToCompositeDisposable
 import piuk.blockchain.androidcore.data.access.AccessState
+import piuk.blockchain.androidcore.data.api.EnvironmentConfig
 import piuk.blockchain.androidcore.data.payload.PayloadDataManager
 import piuk.blockchain.androidcore.utils.PersistentPrefs
 import piuk.blockchain.androidcore.utils.PrngFixer
 import piuk.blockchain.androidcoreui.ui.base.BasePresenter
-import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
 import piuk.blockchain.androidcoreui.utils.logging.Logging
-import piuk.blockchain.androidcoreui.utils.logging.recoverWalletEvent
 import timber.log.Timber
+import kotlin.math.roundToInt
 
 class CreateWalletPresenter(
     private val payloadDataManager: PayloadDataManager,
@@ -27,33 +26,19 @@ class CreateWalletPresenter(
     private val appUtil: AppUtil,
     private val accessState: AccessState,
     private val prngFixer: PrngFixer,
-    private val analytics: Analytics
+    private val analytics: Analytics,
+    private val walletPrefs: WalletStatus,
+    private val environmentConfig: EnvironmentConfig
 ) : BasePresenter<CreateWalletView>() {
 
-    var recoveryPhrase: String = ""
     var passwordStrength = 0
 
     override fun onViewReady() {
         // No-op
     }
 
-    fun parseExtras(intent: Intent) {
-        analytics.logEventOnce(AnalyticsEvents.WalletSignupClickCreate)
-        val mnemonic = intent.getStringExtra(RecoverFundsActivity.RECOVERY_PHRASE)
-
-        if (mnemonic != null) recoveryPhrase = mnemonic
-
-        if (recoveryPhrase.isNotEmpty()) {
-            view.setTitleText(R.string.recover_funds)
-            view.setNextText(R.string.dialog_continue)
-        } else {
-            view.setTitleText(R.string.new_account_title)
-            view.setNextText(R.string.new_account_cta_text)
-        }
-    }
-
     fun calculateEntropy(password: String) {
-        passwordStrength = Math.round(PasswordUtil.getStrength(password)).toInt()
+        passwordStrength = PasswordUtil.getStrength(password).roundToInt()
         view.setEntropyStrength(passwordStrength)
 
         when (passwordStrength) {
@@ -64,54 +49,47 @@ class CreateWalletPresenter(
         }
     }
 
-    fun validateCredentials(email: String, password1: String, password2: String) {
+    fun validateCredentials(email: String, password1: String, password2: String): Boolean =
         when {
-            !FormatsUtil.isValidEmailAddress(email) -> view.showToast(
-                R.string.invalid_email,
-                ToastCustom.TYPE_ERROR
-            )
-            password1.length < 4 -> view.showToast(
-                R.string.invalid_password_too_short,
-                ToastCustom.TYPE_ERROR
-            )
-            password1.length > 255 -> view.showToast(
-                R.string.invalid_password,
-                ToastCustom.TYPE_ERROR
-            )
-            password1 != password2 -> view.showToast(
-                R.string.password_mismatch_error,
-                ToastCustom.TYPE_ERROR
-            )
-            passwordStrength < 50 -> view.showWeakPasswordDialog(
-                email,
-                password1)
-            else -> createOrRecoverWallet(email, password1)
+            !FormatsUtil.isValidEmailAddress(email) -> {
+                view.showError(R.string.invalid_email); false
+            }
+            password1.length < 4 -> {
+                view.showError(R.string.invalid_password_too_short); false
+            }
+            password1.length > 255 -> {
+                view.showError(R.string.invalid_password); false
+            }
+            password1 != password2 -> {
+                view.showError(R.string.password_mismatch_error); false
+            }
+            !passwordStrength.isStrongEnough() -> {
+                view.warnWeakPassword(email, password1); false
+            }
+            else -> true
         }
-    }
 
-    fun createOrRecoverWallet(email: String, password: String) {
-        analytics.logEventOnce(AnalyticsEvents.WalletSignupCreated)
+    fun createOrRestoreWallet(email: String, password: String, recoveryPhrase: String) =
         when {
-            !recoveryPhrase.isEmpty() -> recoverWallet(email, password)
+            recoveryPhrase.isNotEmpty() -> recoverWallet(email, password, recoveryPhrase)
             else -> createWallet(email, password)
         }
-    }
 
-    @SuppressLint("CheckResult")
     private fun createWallet(email: String, password: String) {
+        analytics.logEventOnce(AnalyticsEvents.WalletSignupCreated)
         prngFixer.applyPRNGFixes()
 
-        payloadDataManager.createHdWallet(password, view.getDefaultAccountName(), email)
+        compositeDisposable += payloadDataManager.createHdWallet(password, view.getDefaultAccountName(), email)
             .doOnNext {
                 accessState.isNewlyCreated = true
                 prefs.setValue(PersistentPrefs.KEY_WALLET_GUID, payloadDataManager.wallet!!.guid)
                 appUtil.sharedKey = payloadDataManager.wallet!!.sharedKey
             }
-            .addToCompositeDisposable(this)
             .doOnSubscribe { view.showProgressDialog(R.string.creating_wallet) }
             .doOnTerminate { view.dismissProgressDialog() }
             .subscribe(
                 {
+                    walletPrefs.setNewUser()
                     prefs.setValue(PersistentPrefs.KEY_EMAIL, email)
                     view.startPinEntryActivity()
                     Logging.logSignUp(true)
@@ -119,16 +97,15 @@ class CreateWalletPresenter(
                 },
                 {
                     Timber.e(it)
-                    view.showToast(R.string.hd_error, ToastCustom.TYPE_ERROR)
+                    view.showError(R.string.hd_error)
                     appUtil.clearCredentialsAndRestart(LauncherActivity::class.java)
                     Logging.logSignUp(false)
                 }
             )
     }
 
-    @SuppressLint("CheckResult")
-    private fun recoverWallet(email: String, password: String) {
-        payloadDataManager.restoreHdWallet(
+    private fun recoverWallet(email: String, password: String, recoveryPhrase: String) {
+        compositeDisposable += payloadDataManager.restoreHdWallet(
             recoveryPhrase,
             view.getDefaultAccountName(),
             email,
@@ -138,25 +115,31 @@ class CreateWalletPresenter(
             accessState.isRestored = true
             prefs.setValue(PersistentPrefs.KEY_WALLET_GUID, payloadDataManager.wallet!!.guid)
             appUtil.sharedKey = payloadDataManager.wallet!!.sharedKey
-        }.addToCompositeDisposable(this)
-            .doOnSubscribe { view.showProgressDialog(R.string.restoring_wallet) }
-            .doOnTerminate { view.dismissProgressDialog() }
-            .subscribe(
-                {
-                    prefs.setValue(PersistentPrefs.KEY_EMAIL, email)
-                    prefs.setValue(PersistentPrefs.KEY_ONBOARDING_COMPLETE, true)
-                    view.startPinEntryActivity()
-                    Logging.logEvent(recoverWalletEvent(true))
-                },
-                {
-                    Timber.e(it)
-                    view.showToast(R.string.restore_failed, ToastCustom.TYPE_ERROR)
-                    Logging.logEvent(recoverWalletEvent(false))
-                }
-            )
+        }.doOnSubscribe {
+            view.showProgressDialog(R.string.restoring_wallet)
+        }.doOnTerminate {
+            view.dismissProgressDialog()
+        }.subscribeBy(
+            onComplete = {
+                prefs.setValue(PersistentPrefs.KEY_EMAIL, email)
+                prefs.setValue(PersistentPrefs.KEY_ONBOARDING_COMPLETE, true)
+                view.startPinEntryActivity()
+                analytics.logEvent(WalletCreationEvent.RecoverWalletEvent(true))
+            },
+            onError = {
+                Timber.e(it)
+                view.showError(R.string.restore_failed)
+                analytics.logEvent(WalletCreationEvent.RecoverWalletEvent(false))
+            }
+        )
     }
 
     fun logEventEmailClicked() = analytics.logEventOnce(AnalyticsEvents.WalletSignupClickEmail)
     fun logEventPasswordOneClicked() = analytics.logEventOnce(AnalyticsEvents.WalletSignupClickPasswordFirst)
     fun logEventPasswordTwoClicked() = analytics.logEventOnce(AnalyticsEvents.WalletSignupClickPasswordSecond)
+
+    private fun Int.isStrongEnough(): Boolean {
+        val limit = if (environmentConfig.isRunningInDebugMode()) 1 else 50
+        return this >= limit
+    }
 }

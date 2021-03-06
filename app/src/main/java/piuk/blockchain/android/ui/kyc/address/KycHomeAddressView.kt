@@ -24,7 +24,7 @@ interface KycHomeAddressView : View {
 
     fun finishPage()
 
-    fun continueToOnfidoSplash(countryCode: String)
+    fun continueToVeriffSplash(countryCode: String)
 
     fun continueToTier2MoreInfoNeeded(countryCode: String)
 

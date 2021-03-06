@@ -8,12 +8,10 @@ data class CryptoBalanceMap(
     private val cryptoCurrency: CryptoCurrency,
     private val xpubs: Set<String>,
     private val legacy: Set<String>,
-    private val watchOnlyLegacy: Set<String>,
     private val balances: Map<String, BigInteger>
 ) {
-    val totalSpendable = CryptoValue(cryptoCurrency, (xpubs + legacy - watchOnlyLegacy).sum(balances))
-    val totalSpendableLegacy = CryptoValue(cryptoCurrency, (legacy - watchOnlyLegacy).sum(balances))
-    val totalWatchOnly = CryptoValue(cryptoCurrency, watchOnlyLegacy.sum(balances))
+    val totalSpendable = CryptoValue(cryptoCurrency, (xpubs + legacy).sum(balances))
+    val totalSpendableLegacy = CryptoValue(cryptoCurrency, (legacy).sum(balances))
 
     fun subtractAmountFromAddress(address: String, cryptoValue: CryptoValue): CryptoBalanceMap {
         val value =
@@ -35,7 +33,6 @@ data class CryptoBalanceMap(
                 cryptoCurrency,
                 emptySet(),
                 emptySet(),
-                emptySet(),
                 emptyMap()
             )
     }
@@ -45,16 +42,14 @@ fun calculateCryptoBalanceMap(
     cryptoCurrency: CryptoCurrency,
     balanceQuery: BalanceQuery,
     xpubs: Set<String>,
-    legacy: Set<String>,
-    watchOnlyLegacy: Set<String>
+    legacy: Set<String>
 ): CryptoBalanceMap {
 
     return CryptoBalanceMap(
         cryptoCurrency,
         xpubs,
         legacy,
-        watchOnlyLegacy,
-        balanceQuery.getBalancesFor(xpubs + legacy + watchOnlyLegacy)
+        balanceQuery.getBalancesFor(xpubs + legacy)
     )
 }
 

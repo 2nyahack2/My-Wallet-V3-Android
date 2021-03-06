@@ -5,20 +5,19 @@ import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.view.View
 import com.blockchain.koin.scopedInject
-import com.blockchain.notifications.analytics.SimpleBuyAnalytics
-import com.blockchain.notifications.analytics.linkBankEventWithCurrency
-import com.blockchain.notifications.analytics.linkBankFieldCopied
+import piuk.blockchain.android.simplebuy.SimpleBuyAnalytics
+import piuk.blockchain.android.simplebuy.linkBankEventWithCurrency
+import piuk.blockchain.android.simplebuy.linkBankFieldCopied
 import com.blockchain.preferences.CurrencyPrefs
-import com.blockchain.swap.nabu.datamanagers.CustodialWalletManager
+import com.blockchain.nabu.datamanagers.CustodialWalletManager
 import com.blockchain.ui.urllinks.MODULAR_TERMS_AND_CONDITIONS
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.bank_details_error_layout.view.*
-import kotlinx.android.synthetic.main.link_bank_account_layout.view.*
-import kotlinx.android.synthetic.main.link_bank_account_layout.view.bank_deposit_instruction
-import kotlinx.android.synthetic.main.link_bank_account_layout.view.title
+import kotlinx.android.synthetic.main.dialog_sheet_link_bank_account.view.*
+import kotlinx.android.synthetic.main.dialog_sheet_link_bank_account.view.title
 import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
 import piuk.blockchain.android.coincore.FiatAccount
@@ -28,8 +27,8 @@ import piuk.blockchain.android.ui.base.SlidingModalBottomDialog
 import piuk.blockchain.android.util.StringUtils
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.visible
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.visible
 
 class LinkBankAccountDetailsBottomSheet : SlidingModalBottomDialog() {
 
@@ -46,7 +45,7 @@ class LinkBankAccountDetailsBottomSheet : SlidingModalBottomDialog() {
         arguments?.getBoolean(IS_FOR_LINK) ?: false
     }
 
-    override val layoutResource = R.layout.link_bank_account_layout
+    override val layoutResource = R.layout.dialog_sheet_link_bank_account
 
     override fun initControls(view: View) {
         compositeDisposable += custodialWalletManager.getBankAccountDetails(fiatCurrency)
@@ -102,7 +101,7 @@ class LinkBankAccountDetailsBottomSheet : SlidingModalBottomDialog() {
                     "modular_terms_and_conditions" to Uri.parse(MODULAR_TERMS_AND_CONDITIONS)
                 )
                 bank_deposit_instruction.text =
-                    stringUtils.getStringWithMappedLinks(
+                    stringUtils.getStringWithMappedAnnotations(
                         R.string.by_depositing_funds_terms_and_conds,
                         linksMap,
                         requireActivity()

@@ -9,7 +9,7 @@ import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.activity.detail.Action
 import piuk.blockchain.android.ui.activity.detail.ActivityDetailsType
 import piuk.blockchain.android.ui.adapters.AdapterDelegate
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
+import piuk.blockchain.android.util.inflate
 
 class ActivityDetailActionItemDelegate<in T>(
     private val onActionItemClicked: () -> Unit

@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import com.blockchain.notifications.analytics.logEvent
 import piuk.blockchain.android.ui.kyc.navhost.KycProgressListener
-import piuk.blockchain.android.ui.kyc.navhost.models.KycStep
 import piuk.blockchain.android.ui.kyc.navigate
 import com.blockchain.notifications.analytics.AnalyticsEvents
 import com.blockchain.ui.extensions.throttledClicks
@@ -15,13 +14,15 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 import piuk.blockchain.android.R
-import piuk.blockchain.androidcoreui.utils.ParentActivityDelegate
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
+import piuk.blockchain.android.ui.kyc.ParentActivityDelegate
+import piuk.blockchain.android.util.inflate
 import timber.log.Timber
 
 class KycMoreInfoSplashFragment : Fragment() {
 
-    private val progressListener: KycProgressListener by ParentActivityDelegate(this)
+    private val progressListener: KycProgressListener by ParentActivityDelegate(
+        this
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,14 +35,13 @@ class KycMoreInfoSplashFragment : Fragment() {
         logEvent(AnalyticsEvents.KycMoreInfo)
 
         progressListener.setHostTitle(R.string.kyc_more_info_splash_title)
-        progressListener.incrementProgress(KycStep.SplashPage)
     }
 
     private val disposable = CompositeDisposable()
 
     override fun onResume() {
         super.onResume()
-        disposable += view!!.findViewById<View>(R.id.button_kyc_more_info_splash_next)
+        disposable += requireView().findViewById<View>(R.id.button_kyc_more_info_splash_next)
             .throttledClicks()
             .subscribeBy(
                 onNext = {

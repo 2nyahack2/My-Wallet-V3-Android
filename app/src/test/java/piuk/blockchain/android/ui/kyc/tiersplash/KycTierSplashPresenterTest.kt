@@ -2,12 +2,12 @@ package piuk.blockchain.android.ui.kyc.tiersplash
 
 import androidx.navigation.NavDirections
 import com.blockchain.android.testutils.rxInit
-import com.blockchain.swap.nabu.models.nabu.KycTierState
-import com.blockchain.swap.nabu.models.nabu.LimitsJson
-import com.blockchain.swap.nabu.models.nabu.TierResponse
-import com.blockchain.swap.nabu.models.nabu.KycTiers
-import com.blockchain.swap.nabu.service.TierService
-import com.blockchain.swap.nabu.service.TierUpdater
+import com.blockchain.nabu.models.responses.nabu.KycTierState
+import com.blockchain.nabu.models.responses.nabu.LimitsJson
+import com.blockchain.nabu.models.responses.nabu.TierResponse
+import com.blockchain.nabu.models.responses.nabu.KycTiers
+import com.blockchain.nabu.service.TierService
+import com.blockchain.nabu.service.TierUpdater
 import com.blockchain.testutils.usd
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
@@ -56,7 +56,7 @@ class KycTierSplashPresenterTest {
             .tier1Selected()
         verify(tierUpdater).setUserTier(1)
         verify(view, never()).navigateTo(any(), any())
-        verify(view).showErrorToast(R.string.kyc_non_specific_server_error)
+        verify(view).showError(R.string.kyc_non_specific_server_error)
     }
 
     @Test
@@ -106,7 +106,7 @@ class KycTierSplashPresenterTest {
             .tier2Selected()
         verify(tierUpdater).setUserTier(2)
         verify(view, never()).navigateTo(any(), any())
-        verify(view).showErrorToast(R.string.kyc_non_specific_server_error)
+        verify(view).showError(R.string.kyc_non_specific_server_error)
     }
 
     @Test

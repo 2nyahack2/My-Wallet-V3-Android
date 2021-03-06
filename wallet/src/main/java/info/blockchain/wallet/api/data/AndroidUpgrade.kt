@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
     isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 data class AndroidUpgrade(
     @JsonProperty("latestStoreVersion") val latestStoreVersion: String = "",
-    @JsonProperty("updateType") val updateType: UpdateType = UpdateType.NONE
+    @JsonProperty("updateType") val updateType: String = ""
 )
 
 enum class UpdateType {

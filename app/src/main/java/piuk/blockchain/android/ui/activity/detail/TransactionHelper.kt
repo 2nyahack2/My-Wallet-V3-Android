@@ -1,5 +1,6 @@
 package piuk.blockchain.android.ui.activity.detail
 
+import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
 import info.blockchain.balance.Money
 import info.blockchain.wallet.multiaddress.TransactionSummary
@@ -12,6 +13,7 @@ import java.util.ArrayList
 import java.util.HashMap
 import java.util.TreeMap
 
+@Deprecated("Switch to coincore")
 class TransactionHelper(
     private val payloadDataManager: PayloadDataManager,
     private val bchDataManager: BchDataManager
@@ -31,13 +33,13 @@ class TransactionHelper(
         val inputXpubList = ArrayList<String>()
 
         // Inputs / From field
-        if (tx.direction == TransactionSummary.Direction.RECEIVED && tx.inputsMap.isNotEmpty()) {
+        if (tx.transactionType == TransactionSummary.TransactionType.RECEIVED && tx.inputsMap.isNotEmpty()) {
             // Only 1 addr for receive
             val treeMap = TreeMap(tx.inputsMap)
             inputMap[treeMap.lastKey()] = treeMap.lastEntry().value
         } else {
             for (inputAddress in tx.inputsMap.keys) {
-                val inputValue = tx.inputsMap[inputAddress] ?: CryptoValue.ZeroBtc
+                val inputValue = tx.inputsMap[inputAddress] ?: CryptoValue.zero(CryptoCurrency.BTC)
                 // Move or Send
                 // The address belongs to us
                 val xpub = payloadDataManager.getXpubFromAddress(inputAddress)
@@ -55,7 +57,7 @@ class TransactionHelper(
 
         // Outputs / To field
         for (outputAddress in tx.outputsMap.keys) {
-            val outputValue = tx.outputsMap[outputAddress] ?: CryptoValue.ZeroBtc
+            val outputValue = tx.outputsMap[outputAddress] ?: CryptoValue.zero(CryptoCurrency.BTC)
             if (payloadDataManager.isOwnHDAddress(outputAddress)) {
                 // If output address belongs to an xpub we own - we have to check if it's change
                 val xpub = payloadDataManager.getXpubFromAddress(outputAddress)
@@ -70,8 +72,7 @@ class TransactionHelper(
                     outputMap[outputAddress] = outputValue
                 }
             } else if (
-                payloadDataManager.wallet!!.legacyAddressStringList.contains(outputAddress) ||
-                payloadDataManager.wallet!!.watchOnlyAddressStringList.contains(outputAddress)
+                payloadDataManager.wallet!!.legacyAddressStringList.contains(outputAddress)
             ) { // If output address belongs to a legacy address we own - we have to check if it's change
                 // If it goes back to same address AND if it's not the total amount sent
                 // (inputs x and y could send to output y in which case y is not receiving change,
@@ -87,7 +88,7 @@ class TransactionHelper(
                 }
                 outputMap[outputAddress] = outputValue
             } else {
-                if (tx.direction != TransactionSummary.Direction.RECEIVED) {
+                if (tx.transactionType != TransactionSummary.TransactionType.RECEIVED) {
                     outputMap[outputAddress] = outputValue
                 }
             }
@@ -102,7 +103,7 @@ class TransactionHelper(
         val outputMap = HashMap<String, Money>()
         val inputXpubList = ArrayList<String>()
         // Inputs / From field
-        if (tx.direction == TransactionSummary.Direction.RECEIVED && tx.inputsMap.isNotEmpty()) {
+        if (tx.transactionType == TransactionSummary.TransactionType.RECEIVED && tx.inputsMap.isNotEmpty()) {
             for ((address, value) in tx.inputsMap) {
                 if (value.toBigInteger() == Payment.DUST)
                     continue
@@ -110,7 +111,7 @@ class TransactionHelper(
             }
         } else {
             for (inputAddress in tx.inputsMap.keys) {
-                val inputValue = tx.inputsMap[inputAddress] ?: CryptoValue.ZeroBch
+                val inputValue = tx.inputsMap[inputAddress] ?: CryptoValue.zero(CryptoCurrency.BCH)
                 // Move or Send
                 // The address belongs to us
                 val xpub = bchDataManager.getXpubFromAddress(inputAddress)
@@ -130,7 +131,7 @@ class TransactionHelper(
         }
         // Outputs / To field
         for (outputAddress in tx.outputsMap.keys) {
-            val outputValue = tx.outputsMap[outputAddress] ?: CryptoValue.ZeroBch
+            val outputValue = tx.outputsMap[outputAddress] ?: CryptoValue.zero(CryptoCurrency.BCH)
             // Skip dust output
             if (outputValue.toBigInteger() == Payment.DUST)
                 continue
@@ -149,8 +150,7 @@ class TransactionHelper(
                     outputMap[outputAddress] = outputValue
                 }
             } else if (
-                bchDataManager.getLegacyAddressStringList().contains(outputAddress) ||
-                bchDataManager.getWatchOnlyAddressStringList().contains(outputAddress)
+                bchDataManager.getLegacyAddressStringList().contains(outputAddress)
             ) { // If output address belongs to a legacy address we own - we have to check if it's
                 // change
                 // If it goes back to same address AND if it's not the total amount sent
@@ -167,7 +167,7 @@ class TransactionHelper(
                 }
                 outputMap[outputAddress] = outputValue
             } else {
-                if (tx.direction != TransactionSummary.Direction.RECEIVED) {
+                if (tx.transactionType != TransactionSummary.TransactionType.RECEIVED) {
                     outputMap[outputAddress] = outputValue
                 }
             }

@@ -34,8 +34,8 @@ public class FeeDataManager {
             return Observable.just(FeeOptions.Companion.testnetFeeOptions());
         } else {
             return rxPinning.call(() -> feeApi.getBtcFeeOptions())
-                    .onErrorReturnItem(FeeOptions.Companion.defaultFee(CryptoCurrency.BTC))
-                    .observeOn(AndroidSchedulers.mainThread());
+                .onErrorReturnItem(FeeOptions.Companion.defaultFee(CryptoCurrency.BTC))
+                .observeOn(AndroidSchedulers.mainThread());
         }
     }
 

@@ -18,9 +18,9 @@ import piuk.blockchain.android.campaign.blockstackCampaignName
 import piuk.blockchain.android.campaign.sunriverCampaignName
 import piuk.blockchain.android.ui.base.SlidingModalBottomDialog
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.goneIf
-import piuk.blockchain.androidcoreui.utils.extensions.visible
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.goneIf
+import piuk.blockchain.android.util.visible
 import java.lang.IllegalStateException
 import java.text.DateFormat
 
@@ -99,7 +99,7 @@ class AirdropStatusSheet : SlidingModalBottomDialog(), AirdropCentreView {
                 setStatusView(
                     R.string.airdrop_status_expired,
                     R.color.grey_600,
-                    R.drawable.bkgd_status_expired
+                    R.drawable.bkgd_grey_100_rounded
                 )
             AirdropState.PENDING ->
                 setStatusView(
@@ -111,7 +111,7 @@ class AirdropStatusSheet : SlidingModalBottomDialog(), AirdropCentreView {
                 setStatusView(
                     R.string.airdrop_status_received,
                     R.color.green_600,
-                    R.drawable.bkgd_status_received
+                    R.drawable.bkgd_green_100_rounded
                 )
             AirdropState.REGISTERED -> TODO()
         }.exhaustive

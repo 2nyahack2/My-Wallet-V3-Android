@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/standard_margin"
+    android:layout_marginEnd="@dimen/standard_margin"
+    android:paddingTop="@dimen/very_small_margin"
+    android:paddingBottom="@dimen/very_small_margin">
+
+    <ViewSwitcher
+        android:id="@+id/fee_switcher"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:measureAllChildren="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/fee_label"
+                style="@style/Text.Light.14"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/send_confirmation_fee"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/fee_option_select_spinner"
+                style="@style/Text.Light.14"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/spinner_arrow_bkgd"
+                android:overlapAnchor="true"
+                android:spinnerMode="dropdown"
+                app:layout_constraintTop_toBottomOf="@id/fee_option_label" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/fee_option_label"
+            style="@style/Text.Light.14"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/send_confirmation_tx_fee"
+            app:layout_constraintTop_toTopOf="parent" />
+    </ViewSwitcher>
+
+    <ViewSwitcher
+        android:id="@+id/fee_type_switcher"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:measureAllChildren="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fee_switcher">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/fee_option_value"
+            style="@style/Text.Semibold.14"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/fee_switcher"
+            tools:text="0.0001BTC" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/tiny_margin">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/fee_option_custom_il"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:errorEnabled="true"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/fee_option_custom"
+                    style="@style/Text.Semibold.14"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/fee_options_sat_byte_hint"
+                    android:imeOptions="actionDone"
+                    android:inputType="number"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/fee_switcher" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/fee_option_custom_bounds"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/miniscule_margin"
+                android:drawableStart="@drawable/ic_information"
+                android:drawablePadding="@dimen/miniscule_margin"
+                app:layout_constraintTop_toBottomOf="@id/fee_option_custom_il" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ViewSwitcher>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/fee_learn_more"
+        style="@style/Text.Semibold.12"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fee_type_switcher"
+        tools:text="Learn more about network fees" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

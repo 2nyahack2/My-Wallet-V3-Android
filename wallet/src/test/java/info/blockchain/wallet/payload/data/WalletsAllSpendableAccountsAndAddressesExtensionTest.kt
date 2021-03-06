@@ -31,15 +31,6 @@ class WalletsAllSpendableAccountsAndAddressesExtensionTest {
     }
 
     @Test
-    fun `one without private key`() {
-        Wallet().apply {
-            legacyAddressList.add(LegacyAddress().apply {
-                address = "Address1"
-            })
-        }.allSpendableAccountsAndAddresses() `should equal` emptySet()
-    }
-
-    @Test
     fun `two spendable`() {
         Wallet().apply {
             legacyAddressList.add(legacyAddressWithPrivateKey("Address1"))
@@ -82,7 +73,6 @@ class WalletsAllSpendableAccountsAndAddressesExtensionTest {
             hdWallets = listOf(hdWallet("XPub1", "XPub2"))
             legacyAddressList.add(legacyAddressWithPrivateKey("Address1"))
             legacyAddressList.add(legacyAddressWithPrivateKey("Address2"))
-            legacyAddressList.add(LegacyAddress().also { it.address = "Address3" })
             legacyAddressList.add(legacyAddressWithPrivateKey("Address4").apply { archive() })
         }.allSpendableAccountsAndAddresses() `should equal` setOf("XPub1", "XPub2", "Address1", "Address2")
     }

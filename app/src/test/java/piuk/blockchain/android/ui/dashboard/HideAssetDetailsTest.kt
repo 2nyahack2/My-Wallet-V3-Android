@@ -17,7 +17,6 @@ class HideAssetDetailsTest {
                 CryptoCurrency.ETHER to initialEthState,
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = null,
             showDashboardSheet = null,
             announcement = testAnnouncementCard_1
         )
@@ -35,7 +34,6 @@ class HideAssetDetailsTest {
                 CryptoCurrency.ETHER to initialEthState,
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = CryptoCurrency.ETHER,
             showDashboardSheet = null,
             announcement = testAnnouncementCard_1
         )
@@ -43,7 +41,6 @@ class HideAssetDetailsTest {
         val result = subject.reduce(initialState)
 
         assertEquals(result.assets, initialState.assets)
-        assertNull(result.showAssetSheetFor)
         assertNull(result.showDashboardSheet)
         assertEquals(result.announcement, initialState.announcement)
     }
@@ -57,7 +54,6 @@ class HideAssetDetailsTest {
                 CryptoCurrency.ETHER to initialEthState,
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = null,
             showDashboardSheet = DashboardSheet.STX_AIRDROP_COMPLETE,
             announcement = testAnnouncementCard_1
         )
@@ -65,7 +61,6 @@ class HideAssetDetailsTest {
         val result = subject.reduce(initialState)
 
         assertEquals(result.assets, initialState.assets)
-        assertNull(result.showAssetSheetFor)
         assertNull(result.showDashboardSheet)
         assertEquals(result.announcement, initialState.announcement)
     }

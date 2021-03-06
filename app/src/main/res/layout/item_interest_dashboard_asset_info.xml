@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/standard_margin">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/item_interest_asset_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/item_interest_asset_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/item_interest_asset_title"
+        tools:src="@drawable/vector_bitcoin_colored" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/item_interest_asset_title"
+        style="@style/Text.Semibold.20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/tiny_margin"
+        app:layout_constraintStart_toEndOf="@id/item_interest_asset_icon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Bitcoin" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/item_interest_info_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/very_small_margin"
+        app:layout_constraintEnd_toEndOf="@id/item_interest_asset_icon"
+        app:layout_constraintStart_toStartOf="@id/item_interest_asset_icon"
+        app:layout_constraintTop_toBottomOf="@id/item_interest_asset_icon"
+        app:srcCompat="@drawable/ic_information" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/item_interest_info_text"
+        style="@style/Text.Light.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@id/item_interest_info_icon"
+        app:layout_constraintStart_toStartOf="@id/item_interest_asset_title"
+        app:layout_constraintTop_toTopOf="@id/item_interest_info_icon"
+        tools:text="Earn up to 5% annually on your CRYPTO" />
+
+    <View
+        android:id="@+id/item_interest_separator"
+        style="@style/SeparatorWithoutMargins"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginTop="@dimen/very_small_margin"
+        app:layout_constraintTop_toBottomOf="@id/item_interest_info_icon" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/item_interest_acc_balance_title"
+        style="@style/Text.Standard.12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/very_small_margin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/item_interest_separator"
+        tools:text="BTC Balance" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/item_interest_acc_balance_label"
+        style="@style/Text.Semibold.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@id/item_interest_acc_balance_title"
+        app:layout_constraintTop_toBottomOf="@id/item_interest_acc_balance_title"
+        tools:text="0.00 BTC" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/item_interest_acc_earned_title"
+        style="@style/Text.Standard.12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/interest_dashboard_item_accrued_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/item_interest_acc_balance_title"
+        app:layout_constraintTop_toTopOf="@id/item_interest_acc_balance_title" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/item_interest_acc_earned_label"
+        style="@style/Text.Semibold.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@id/item_interest_acc_earned_title"
+        app:layout_constraintTop_toBottomOf="@id/item_interest_acc_earned_title"
+        tools:text="0.00 BTC" />
+
+
+    <Button
+        android:id="@+id/item_interest_cta"
+        style="@style/CtaButton.NoMargin.Blue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/very_small_margin"
+        app:layout_constraintBottom_toTopOf="@id/item_interest_explainer"
+        app:layout_constraintTop_toBottomOf="@id/item_interest_acc_balance_label"
+        tools:text="Earn interest" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/item_interest_explainer"
+        style="@style/Text.Light.14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/tiny_margin"
+        android:drawableStart="@drawable/ic_information"
+        android:drawablePadding="@dimen/miniscule_margin"
+        android:gravity="start"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/item_interest_cta"
+        tools:text="There was an issue with interest and lets make this message long"
+        tools:visibility="visible" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

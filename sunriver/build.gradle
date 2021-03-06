@@ -12,9 +12,9 @@ dependencies {
     api project(':balance')
     api project(':common:interface')
     api project(':common:network')
-    implementation project(':sunriver:stellar-sdk-wrapper')
 
     implementation Libraries.moshiKotlin
+    implementation Libraries.sunriver
 
     // Derivation
     testImplementation 'io.github.novacrypto:BIP39:2018.10.06'

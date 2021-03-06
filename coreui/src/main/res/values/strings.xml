@@ -23,6 +23,7 @@
     <string name="stacks_1" translatable="false">Stacks</string>
     <string name="algorand" translatable="false">Algorand</string>
     <string name="usdt" translatable="false">Tether</string>
+    <string name="dgld" translatable="false">Wrapped-DGLD</string>
 
     <!-- Country Selection Dialog -->
     <string name="search_country">Search Country</string>

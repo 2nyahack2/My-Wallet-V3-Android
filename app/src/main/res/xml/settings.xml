@@ -103,6 +103,12 @@
             android:summary="@string/swipe_receive_preference_summary"
             android:title="@string/swipe_receive_hint"
             app:iconSpaceReserved="false" />
+        <piuk.blockchain.android.ui.settings.preferences.CustomSwitchPreference
+            android:defaultValue="true"
+            android:key="cloud_backup"
+            android:summary="@string/enable_cloud_backup_summary"
+            android:title="@string/enable_cloud_backup"
+            app:iconSpaceReserved="false" />
     </piuk.blockchain.android.ui.settings.preferences.CustomPreferenceCategory>
 
     <piuk.blockchain.android.ui.settings.preferences.CustomPreferenceCategory

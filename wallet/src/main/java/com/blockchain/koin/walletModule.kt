@@ -41,7 +41,7 @@ val walletModule = module {
 
     single { get<Retrofit>(apiRetrofit).create(MetadataService::class.java) }
 
-    single { get<Retrofit>(apiRetrofit).create(PriceEndpoints::class.java) }
+    single { get<Retrofit>(kotlinApiRetrofit).create(PriceEndpoints::class.java) }
 
     factory { get<PriceApi>() as CurrentPriceApi }
 

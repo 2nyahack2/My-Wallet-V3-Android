@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import piuk.blockchain.android.ui.kyc.navhost.KycProgressListener
-import piuk.blockchain.android.ui.kyc.navhost.models.KycStep
 import piuk.blockchain.android.ui.kyc.navigate
 import piuk.blockchain.android.ui.kyc.reentry.KycNavigator
 import com.blockchain.notifications.analytics.AnalyticsEvents
@@ -17,15 +16,16 @@ import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
-import piuk.blockchain.androidcoreui.utils.ParentActivityDelegate
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
+import piuk.blockchain.android.ui.kyc.ParentActivityDelegate
+import piuk.blockchain.android.util.inflate
 import timber.log.Timber
-import kotlinx.android.synthetic.main.fragment_kyc_resubmission_splash
-    .button_kyc_resubmission_splash_next as buttonContinue
+import kotlinx.android.synthetic.main.fragment_kyc_resubmission_splash.button_kyc_resubmission_splash_next as buttonContinue
 
 class KycResubmissionSplashFragment : Fragment() {
 
-    private val progressListener: KycProgressListener by ParentActivityDelegate(this)
+    private val progressListener: KycProgressListener by ParentActivityDelegate(
+        this
+    )
 
     private val kycNavigator: KycNavigator by inject()
 
@@ -40,7 +40,6 @@ class KycResubmissionSplashFragment : Fragment() {
         logEvent(AnalyticsEvents.KycResubmission)
 
         progressListener.setHostTitle(R.string.kyc_resubmission_splash_title)
-        progressListener.incrementProgress(KycStep.SplashPage)
     }
 
     private val disposable = CompositeDisposable()

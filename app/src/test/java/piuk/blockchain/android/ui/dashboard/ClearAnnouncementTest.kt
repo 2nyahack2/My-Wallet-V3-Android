@@ -24,14 +24,12 @@ class ClearAnnouncementTest {
                 CryptoCurrency.ETHER to initialEthState,
                 CryptoCurrency.XLM to initialXlmState
             ),
-            showAssetSheetFor = CryptoCurrency.ETHER,
             announcement = testAnnouncementCard_1
         )
 
         val result = subject.reduce(initialState)
 
         assertEquals(result.assets, initialState.assets)
-        assertEquals(result.showAssetSheetFor, initialState.showAssetSheetFor)
         assertNull(result.announcement)
     }
 }

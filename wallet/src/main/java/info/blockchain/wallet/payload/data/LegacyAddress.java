@@ -8,12 +8,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.moshi.Json;
-import info.blockchain.wallet.BlockchainFramework;
-import info.blockchain.wallet.api.PersistentUrls;
+
 import org.bitcoinj.core.Base58;
 import org.bitcoinj.core.ECKey;
 
 import java.io.IOException;
+
+import javax.annotation.Nonnull;
+
+import info.blockchain.wallet.BlockchainFramework;
+import info.blockchain.wallet.api.PersistentUrls;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect(fieldVisibility = Visibility.NONE,
@@ -72,7 +76,10 @@ public class LegacyAddress implements JsonSerializableAccount {
     }
 
     public String getLabel() {
-        return label;
+        if(label != null)
+            return label;
+        else
+            return address;
     }
 
     public long getCreatedTime() {
@@ -89,10 +96,6 @@ public class LegacyAddress implements JsonSerializableAccount {
 
     public String getCreatedDeviceVersion() {
         return createdDeviceVersion;
-    }
-
-    public boolean isWatchOnly() {
-        return (privateKey == null);
     }
 
     public void setAddress(String address) {

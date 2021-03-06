@@ -29,8 +29,7 @@ import static org.junit.Assert.assertTrue;
 
 public class HDWalletTest extends MockedResponseTest {
 
-    private NetworkParameters networkParameters = BitcoinMainNetParams.get();
-    private boolean useNewCoinSelection = true;
+    private final NetworkParameters networkParameters = BitcoinMainNetParams.get();
 
     @Test
     public void fromJson_1() throws Exception {
@@ -399,8 +398,7 @@ public class HDWalletTest extends MockedResponseTest {
                 .getSpendableCoins(unspentOutputs,
                         BigInteger.valueOf(spendAmount),
                         BigInteger.valueOf(1000L),
-                        false,
-                        useNewCoinSelection);
+                        false);
 
         assertEquals(789, paymentBundle.getAbsoluteFee().longValue());
 

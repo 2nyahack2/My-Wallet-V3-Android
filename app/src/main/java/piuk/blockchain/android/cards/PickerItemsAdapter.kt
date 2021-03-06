@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.picker_item.view.*
 import piuk.blockchain.android.R
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.visible
+import piuk.blockchain.android.util.visible
+import piuk.blockchain.android.util.gone
 
 class PickerItemsAdapter(private val block: (PickerItem) -> Unit) :
     RecyclerView.Adapter<PickerItemsAdapter.ViewHolder>() {

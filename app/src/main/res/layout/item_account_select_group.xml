@@ -1,23 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<piuk.blockchain.android.ui.customviews.account.AccountInfoGroup
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/account_group"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-    <piuk.blockchain.android.ui.customviews.account.AccountInfoGroup
-        android:id="@+id/account_group"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <piuk.blockchain.android.ui.customviews.account.StatusInfoLine
-        android:id="@+id/group_status"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/standard_margin"
-        android:layout_marginBottom="@dimen/smallest_margin"/>
-
-</LinearLayout>
+    android:layout_height="wrap_content" />

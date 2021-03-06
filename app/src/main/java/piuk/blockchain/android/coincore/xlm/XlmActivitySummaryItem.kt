@@ -1,8 +1,8 @@
 package piuk.blockchain.android.coincore.xlm
 
 import com.blockchain.sunriver.models.XlmTransaction
-import com.blockchain.swap.nabu.extensions.fromIso8601ToUtc
-import com.blockchain.swap.nabu.extensions.toLocalTime
+import com.blockchain.nabu.extensions.fromIso8601ToUtc
+import com.blockchain.nabu.extensions.toLocalTime
 import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
 import info.blockchain.wallet.multiaddress.TransactionSummary
@@ -19,11 +19,11 @@ class XlmActivitySummaryItem(
 ) : NonCustodialActivitySummaryItem() {
     override val cryptoCurrency = CryptoCurrency.XLM
 
-    override val direction: TransactionSummary.Direction
+    override val transactionType: TransactionSummary.TransactionType
         get() = if (xlmTransaction.value > CryptoValue.ZeroXlm) {
-            TransactionSummary.Direction.RECEIVED
+            TransactionSummary.TransactionType.RECEIVED
         } else {
-            TransactionSummary.Direction.SENT
+            TransactionSummary.TransactionType.SENT
         }
 
     override val timeStampMs: Long
@@ -51,4 +51,7 @@ class XlmActivitySummaryItem(
 
     override val confirmations: Int
         get() = CryptoCurrency.XLM.requiredConfirmations
+
+    val xlmMemo: String
+        get() = xlmTransaction.memo.value
 }

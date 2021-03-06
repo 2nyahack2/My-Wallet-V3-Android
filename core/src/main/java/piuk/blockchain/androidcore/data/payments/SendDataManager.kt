@@ -6,7 +6,7 @@ import info.blockchain.balance.CryptoCurrency
 import info.blockchain.balance.CryptoValue
 import info.blockchain.wallet.payment.SpendableUnspentOutputs
 import io.reactivex.Observable
-import org.apache.commons.lang3.tuple.Pair
+import io.reactivex.Single
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.core.Transaction
@@ -14,7 +14,6 @@ import org.bitcoinj.crypto.BIP38PrivateKey
 import piuk.blockchain.androidcore.data.rxjava.RxBus
 import piuk.blockchain.androidcore.data.rxjava.RxPinning
 import piuk.blockchain.androidcore.utils.extensions.applySchedulers
-import java.io.UnsupportedEncodingException
 import java.math.BigInteger
 
 class SendDataManager(
@@ -45,7 +44,6 @@ class SendDataManager(
         bigIntFee: BigInteger,
         bigIntAmount: BigInteger
     ): Observable<String> {
-
         return rxPinning.call<String> {
             paymentService.submitBtcPayment(
                 unspentOutputBundle,
@@ -55,11 +53,20 @@ class SendDataManager(
                 bigIntFee,
                 bigIntAmount
             )
-        }.logLastTx()
-            .applySchedulers()
+        }.logLastTx().applySchedulers()
     }
 
-    fun getTransaction(
+    fun submitBtcPayment(
+        signedTx: Transaction
+    ): Single<String> =
+        rxPinning.callSingle<String> {
+            paymentService.submitBtcPayment(
+                signedTx
+            )
+        }.logLastTx()
+            .applySchedulers()
+
+    fun createAndSignBtcTransaction(
         unspentOutputBundle: SpendableUnspentOutputs,
         keys: List<ECKey>,
         toAddress: String,
@@ -67,7 +74,7 @@ class SendDataManager(
         bigIntFee: BigInteger,
         bigIntAmount: BigInteger
     ): Transaction {
-        return paymentService.signAngGetTx(
+        return paymentService.signAngGetBtcTx(
             unspentOutputBundle, keys, toAddress, changeAddress, bigIntFee, bigIntAmount
         )
     }
@@ -130,8 +137,9 @@ class SendDataManager(
      * @return An [Observable] wrapping an [UnspentOutputs] object
      */
     fun getUnspentBtcOutputs(address: String): Observable<UnspentOutputs> =
-        rxPinning.call<UnspentOutputs> { paymentService.getUnspentBtcOutputs(address) }
-            .applySchedulers()
+        rxPinning.call<UnspentOutputs> {
+            paymentService.getUnspentBtcOutputs(address)
+        }.applySchedulers()
 
     /**
      * Returns an [UnspentOutputs] object containing all the unspent outputs for a given
@@ -158,42 +166,39 @@ class SendDataManager(
      * @return An [SpendableUnspentOutputs] object, which wraps a list of spendable outputs
      * for the given inputs
      */
-    @Throws(UnsupportedEncodingException::class)
     fun getSpendableCoins(
         unspentCoins: UnspentOutputs,
         paymentAmount: CryptoValue,
-        feePerKb: BigInteger,
-        useNewCoinSelection: Boolean
+        feePerKb: CryptoValue
     ): SpendableUnspentOutputs = paymentService.getSpendableCoins(
         unspentCoins,
         paymentAmount.toBigInteger(),
-        feePerKb,
-        paymentAmount.currency == CryptoCurrency.BCH,
-        useNewCoinSelection
+        feePerKb.toBigInteger(),
+        paymentAmount.currency == CryptoCurrency.BCH
     )
 
     /**
      * Calculates the total amount of bitcoin or bitcoin cash that can be swept from an [UnspentOutputs]
-     * object and returns the amount that can be recovered, along with the fee (in absolute terms)
-     * necessary to sweep those coins.
+     * object and returns the amount that can be recovered, accounting for fees
      *
      * @param cryptoCurrency The currency for which you wish to calculate the max available.
      * @param unspentCoins An [UnspentOutputs] object that you wish to sweep
      * @param feePerKb The current fee per kB on the network
-     * @return A [Pair] object, where left = the sweepable amount as a [BigInteger],
-     * right = the absolute fee needed to sweep those coins, also as a [BigInteger]
+     * @return the sweepable amount as a CryptoValue
      */
     fun getMaximumAvailable(
         cryptoCurrency: CryptoCurrency,
         unspentCoins: UnspentOutputs,
-        feePerKb: BigInteger,
-        useNewCoinSelection: Boolean
-    ): Pair<BigInteger, BigInteger> = paymentService.getMaximumAvailable(
-        unspentCoins,
-        feePerKb,
-        cryptoCurrency == CryptoCurrency.BCH,
-        useNewCoinSelection
-    )
+        feePerKb: CryptoValue
+    ): CryptoValue =
+        CryptoValue(
+            cryptoCurrency,
+            paymentService.getMaximumAvailable(
+                unspentCoins,
+                feePerKb.toBigInteger(),
+        cryptoCurrency == CryptoCurrency.BCH
+            ).left
+        )
 
     /**
      * Returns true if the `absoluteFee` is adequate for the number of inputs/outputs in the
@@ -233,5 +238,12 @@ class SendDataManager(
             lastTxUpdater.updateLastTxTime()
                 .onErrorComplete()
                 .andThen(Observable.just(it))
+        }
+
+    private fun Single<String>.logLastTx(): Single<String> =
+        this.flatMap {
+            lastTxUpdater.updateLastTxTime()
+                .onErrorComplete()
+                .andThen(Single.just(it))
         }
 }

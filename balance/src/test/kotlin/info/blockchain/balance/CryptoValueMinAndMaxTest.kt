@@ -6,56 +6,55 @@ import org.amshove.kluent.`should be`
 import org.amshove.kluent.`should throw the Exception`
 import org.amshove.kluent.`with message`
 import org.junit.Test
-import java.math.BigInteger
 
 class CryptoValueMinAndMaxTest {
 
     @Test
     fun `max of two`() {
-        val a = CryptoValue.bitcoinCashFromSatoshis(1)
-        val b = CryptoValue.bitcoinCashFromSatoshis(2)
+        val a = 1.satoshiCash()
+        val b = 2.satoshiCash()
         max(a, b) `should be` b
     }
 
     @Test
     fun `max of two reversed`() {
-        val a = CryptoValue.bitcoinCashFromSatoshis(1)
-        val b = CryptoValue.bitcoinCashFromSatoshis(2)
+        val a = 1.satoshiCash()
+        val b = 2.satoshiCash()
         max(b, a) `should be` b
     }
 
     @Test
     fun `max of two the same`() {
-        val a = CryptoValue.bitcoinCashFromSatoshis(1)
-        val b = CryptoValue.bitcoinCashFromSatoshis(1)
+        val a = 1.satoshiCash()
+        val b = 1.satoshiCash()
         max(a, b) `should be` a
     }
 
     @Test
     fun `min of two`() {
-        val a = CryptoValue.bitcoinCashFromSatoshis(1)
-        val b = CryptoValue.bitcoinCashFromSatoshis(2)
+        val a = 1.satoshiCash()
+        val b = 2.satoshiCash()
         min(a, b) `should be` a
     }
 
     @Test
     fun `min of two reversed`() {
-        val a = CryptoValue.bitcoinCashFromSatoshis(1)
-        val b = CryptoValue.bitcoinCashFromSatoshis(2)
+        val a = 1.satoshiCash()
+        val b = 2.satoshiCash()
         min(b, a) `should be` a
     }
 
     @Test
     fun `min of two the same`() {
-        val a = CryptoValue.bitcoinCashFromSatoshis(1)
-        val b = CryptoValue.bitcoinCashFromSatoshis(1)
+        val a = 1.satoshiCash()
+        val b = 1.satoshiCash()
         min(a, b) `should be` a
     }
 
     @Test
     fun `max of two with different currencies`() {
-        val a = CryptoValue.bitcoinFromSatoshis(1)
-        val b = CryptoValue.bitcoinCashFromSatoshis(2);
+        val a = 1.satoshi()
+        val b = 2.satoshiCash();
         {
             max(a, b)
         } `should throw the Exception` Exception::class `with message` "Can't compare BTC and BCH"
@@ -63,8 +62,8 @@ class CryptoValueMinAndMaxTest {
 
     @Test
     fun `min of two with different currencies`() {
-        val a = CryptoValue(CryptoCurrency.ETHER, BigInteger.ONE)
-        val b = CryptoValue.bitcoinFromSatoshis(2);
+        val a = 1.ether()
+        val b = 2.satoshi();
         {
             min(a, b)
         } `should throw the Exception` Exception::class `with message` "Can't compare ETH and BTC"

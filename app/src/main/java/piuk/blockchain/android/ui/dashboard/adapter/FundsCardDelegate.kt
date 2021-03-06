@@ -14,9 +14,9 @@ import piuk.blockchain.android.coincore.FiatAccount
 import piuk.blockchain.android.ui.adapters.AdapterDelegate
 import piuk.blockchain.android.ui.dashboard.FiatAssetState
 import piuk.blockchain.android.ui.dashboard.FiatBalanceInfo
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.visibleIf
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.inflate
+import piuk.blockchain.android.util.visibleIf
 
 class FundsCardDelegate<in T>(
     private val selectedFiat: String,
@@ -139,6 +139,7 @@ private fun TextView.setStringFromTicker(context: Context, ticker: String) {
         when (ticker) {
             "EUR" -> R.string.euros
             "GBP" -> R.string.pounds
+            "USD" -> R.string.us_dollars
             else -> R.string.empty
         }
     )

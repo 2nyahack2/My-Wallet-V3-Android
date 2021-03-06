@@ -19,6 +19,8 @@ interface RemoteConfig {
     fun getIfFeatureEnabled(key: String): Single<Boolean>
 
     fun getRawJson(key: String): Single<String>
+
+    fun getFeatureCount(key: String): Single<Long>
 }
 
 class RemoteConfiguration(private val remoteConfig: FirebaseRemoteConfig) :
@@ -41,6 +43,9 @@ class RemoteConfiguration(private val remoteConfig: FirebaseRemoteConfig) :
 
     override fun getABVariant(key: String): Single<String> =
         configuration.map { it.getString(key) }
+
+    override fun getFeatureCount(key: String): Single<Long> =
+        configuration.map { it.getLong(key) }
 }
 
 fun RemoteConfig.featureFlag(key: String): FeatureFlag = object :

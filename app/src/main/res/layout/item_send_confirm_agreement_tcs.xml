@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/standard_margin"
+    android:layout_marginEnd="@dimen/standard_margin"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:paddingTop="@dimen/very_small_margin"
+    android:paddingBottom="@dimen/very_small_margin">
+
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/confirm_details_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:button="@drawable/checkbox_selector_blue" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/confirm_details_checkbox_text"
+        style="@style/Text.Standard.14"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/very_small_margin"
+        tools:text="@string/send_confirmation_interest_tos_pp" />
+</LinearLayout>

@@ -48,7 +48,8 @@ internal class XlmMetaDataInitializer(
 
     private fun newXlmMetaData(): Maybe<XlmMetaData> = seedAccess.seed.deriveMetadata()
 
-    private fun newXlmMetaDataPrompt(): Maybe<XlmMetaData> = seedAccess.seedPromptIfRequired.deriveMetadata()
+    private fun newXlmMetaDataPrompt(): Maybe<XlmMetaData> =
+        seedAccess.seedPromptIfRequired.deriveMetadata()
 
     private fun Maybe<XlmMetaData>.compareForLog(): Maybe<XlmMetaData> =
         flatMap { loaded ->

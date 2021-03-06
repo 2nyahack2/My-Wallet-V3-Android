@@ -1,5 +1,7 @@
 package info.blockchain.wallet.api;
 
+import java.util.Map;
+
 import info.blockchain.wallet.api.data.Settings;
 import info.blockchain.wallet.api.data.SignedToken;
 import info.blockchain.wallet.api.data.Status;
@@ -17,8 +19,6 @@ import retrofit2.http.HeaderMap;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
-
-import java.util.Map;
 
 public interface WalletExplorerEndpoints {
 

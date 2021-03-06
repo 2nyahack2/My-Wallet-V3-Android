@@ -5,24 +5,27 @@ import android.text.Editable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import com.blockchain.koin.scopedInject
-import com.blockchain.notifications.analytics.SimpleBuyAnalytics
-import com.blockchain.swap.nabu.datamanagers.CustodialWalletManager
-import com.blockchain.swap.nabu.datamanagers.PaymentMethod
-import com.blockchain.swap.nabu.datamanagers.custodialwalletimpl.CardStatus
+import piuk.blockchain.android.simplebuy.SimpleBuyAnalytics
+import com.blockchain.preferences.SimpleBuyPrefs
+import com.blockchain.nabu.datamanagers.CustodialWalletManager
+import com.blockchain.nabu.datamanagers.PaymentMethod
+import com.blockchain.nabu.datamanagers.custodialwalletimpl.CardStatus
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.android.synthetic.main.fragment_add_new_card.*
+import org.koin.android.ext.android.inject
 import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.base.mvi.MviFragment
 import piuk.blockchain.android.ui.base.setupToolbar
-import piuk.blockchain.androidcoreui.utils.extensions.gone
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.visible
-import piuk.blockchain.androidcoreui.utils.helperfunctions.AfterTextChangedWatcher
-import java.util.Date
+import piuk.blockchain.android.util.gone
+import piuk.blockchain.android.util.inflate
+import piuk.blockchain.android.util.visible
+import piuk.blockchain.android.util.AfterTextChangedWatcher
 import java.util.Calendar
+import java.util.Date
 
 class AddNewCardFragment : MviFragment<CardModel, CardIntent, CardState>(), AddCardFlowFragment {
 
@@ -31,6 +34,7 @@ class AddNewCardFragment : MviFragment<CardModel, CardIntent, CardState>(), AddC
     private var availableCards: List<PaymentMethod.Card> = emptyList()
     private val compositeDisposable = CompositeDisposable()
     private val custodialWalletManager: CustodialWalletManager by scopedInject()
+    private val simpleBuyPrefs: SimpleBuyPrefs by inject()
 
     override val navigator: AddCardNavigator
         get() = (activity as? AddCardNavigator)
@@ -60,6 +64,8 @@ class AddNewCardFragment : MviFragment<CardModel, CardIntent, CardState>(), AddC
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        activity.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+
         card_name.addTextChangedListener(textWatcher)
         card_number.addTextChangedListener(textWatcher)
         cvv.addTextChangedListener(textWatcher)
@@ -77,6 +83,8 @@ class AddNewCardFragment : MviFragment<CardModel, CardIntent, CardState>(), AddC
                         year = expiry_date.year.toInt(),
                         cvv = cvv.text.toString()
                     ))
+                    activity.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+
                     navigator.navigateToBillingDetails()
                     analytics.logEvent(SimpleBuyAnalytics.CARD_INFO_SET)
                 }
@@ -87,10 +95,22 @@ class AddNewCardFragment : MviFragment<CardModel, CardIntent, CardState>(), AddC
             CardStatus.ACTIVE)).subscribeBy(onSuccess = {
             availableCards = it
         })
-
         card_number.displayCardTypeIcon(false)
         activity.setupToolbar(R.string.add_card_title)
         analytics.logEvent(SimpleBuyAnalytics.ADD_CARD)
+
+        setupCardInfo()
+    }
+
+    private fun setupCardInfo() {
+        if (simpleBuyPrefs.addCardInfoDismissed) {
+            card_info_group.gone()
+        } else {
+            card_info_close.setOnClickListener {
+                simpleBuyPrefs.addCardInfoDismissed = true
+                card_info_group.gone()
+            }
+        }
     }
 
     private fun cardHasAlreadyBeenAdded(): Boolean {

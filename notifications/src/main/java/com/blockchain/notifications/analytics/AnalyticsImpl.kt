@@ -9,6 +9,8 @@ class AnalyticsImpl internal constructor(
     private val store: SharedPreferences
 ) : Analytics {
 
+    private val sentAnalytics = mutableSetOf<String>()
+
     override fun logEvent(analyticsEvent: AnalyticsEvent) {
         firebaseAnalytics.logEvent(analyticsEvent.event, toBundle(analyticsEvent.params))
     }
@@ -17,6 +19,13 @@ class AnalyticsImpl internal constructor(
         if (!hasSentMetric(analyticsEvent.event)) {
             setMetricAsSent(analyticsEvent.event)
             logEvent(analyticsEvent)
+        }
+    }
+
+    override fun logEventOnceForSession(analyticsEvent: AnalyticsEvent) {
+        if (!sentAnalytics.contains(analyticsEvent.event)) {
+            logEvent(analyticsEvent)
+            sentAnalytics.add(analyticsEvent.event)
         }
     }
 

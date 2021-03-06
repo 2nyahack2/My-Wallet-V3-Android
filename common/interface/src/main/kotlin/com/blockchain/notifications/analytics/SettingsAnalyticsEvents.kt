@@ -6,6 +6,7 @@ sealed class SettingsAnalyticsEvents(override val event: String, override val pa
     object PhoneClicked : SettingsAnalyticsEvents("settings_phone_clicked")
     object SwapLimitChecked : SettingsAnalyticsEvents("settings_swap_limit_clicked")
     object SwipeToReceiveSwitch : SettingsAnalyticsEvents("settings_swipe_to_receive_switch")
+    object CloudBackupSwitch : SettingsAnalyticsEvents("settings_cloud_backup_switch")
     object WalletIdCopyClicked : SettingsAnalyticsEvents("settings_wallet_id_copy_click")
     object WalletIdCopyCopied : SettingsAnalyticsEvents("settings_wallet_id_copied")
     object EmailNotificationClicked : SettingsAnalyticsEvents("settings_email_notif_switch")

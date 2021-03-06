@@ -14,8 +14,6 @@ import info.blockchain.wallet.payment.Payment
 import info.blockchain.wallet.settings.SettingsManager
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import piuk.blockchain.android.data.fingerprint.FingerprintAuth
-import piuk.blockchain.android.data.fingerprint.FingerprintAuthImpl
 import piuk.blockchain.android.everypay.service.EveryPayService
 import retrofit2.Retrofit
 
@@ -41,8 +39,6 @@ val serviceModule = module {
                 get() = BlockchainFramework.getApiCode()
         }
     }.bind(ApiCode::class)
-
-    factory { FingerprintAuthImpl() }.bind(FingerprintAuth::class)
 
     factory { EthAccountApi(get()) }
 }

@@ -3,7 +3,7 @@ package piuk.blockchain.android.ui.start
 import androidx.annotation.CallSuper
 import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
-
+import com.blockchain.logging.CrashLogger
 import info.blockchain.wallet.api.data.Settings
 import info.blockchain.wallet.exceptions.DecryptionException
 import info.blockchain.wallet.exceptions.HDWalletException
@@ -21,18 +21,18 @@ import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.base.MvpPresenter
 import piuk.blockchain.android.ui.base.MvpView
 import piuk.blockchain.android.ui.launcher.LauncherActivity
+import piuk.blockchain.android.util.AppUtil
 import piuk.blockchain.androidcore.data.auth.AuthDataManager
 import piuk.blockchain.androidcore.data.payload.PayloadDataManager
 import piuk.blockchain.androidcore.utils.PersistentPrefs
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.android.util.AppUtil
 import retrofit2.Response
 import timber.log.Timber
-import java.lang.RuntimeException
 
 interface PasswordAuthView : MvpView {
     fun goToPinPage()
     fun showToast(@StringRes messageId: Int, @ToastCustom.ToastType toastType: String)
+    fun showErrorToastWithParameter(@StringRes messageId: Int, message: String)
     fun updateWaitingForAuthDialog(secondsRemaining: Int)
     fun resetPasswordField()
     fun showTwoFactorCodeNeededDialog(
@@ -50,6 +50,7 @@ abstract class PasswordAuthPresenter<T : PasswordAuthView> : MvpPresenter<T>() {
     protected abstract val authDataManager: AuthDataManager
     protected abstract val payloadDataManager: PayloadDataManager
     protected abstract val prefs: PersistentPrefs
+    protected abstract val crashLogger: CrashLogger
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     val authDisposable = CompositeDisposable()
@@ -60,7 +61,8 @@ abstract class PasswordAuthPresenter<T : PasswordAuthView> : MvpPresenter<T>() {
         }
     }
 
-    override fun onViewDetached() { /* no-op */ }
+    override fun onViewDetached() { /* no-op */
+    }
 
     override val alwaysDisableScreenshots = true
     override val enableLogoutTimer = false
@@ -116,22 +118,56 @@ abstract class PasswordAuthPresenter<T : PasswordAuthView> : MvpPresenter<T>() {
             .flatMap { sessionId -> authDataManager.getEncryptedPayload(guid, sessionId) }
             .subscribe(
                 { response -> handleResponse(password, guid, response) },
-                { throwable ->
-                    Timber.e(throwable)
-                    sessionId = null
-                    onAuthFailed()
-                }
+                { throwable -> handleSessionError(throwable) }
             )
+    }
+
+    fun requestNew2FaCode(password: String, guid: String) {
+        compositeDisposable += getSessionId(guid)
+            .doOnSubscribe {
+                view?.showProgressDialog(R.string.two_fa_new_request)
+            }
+            .doOnNext { s -> sessionId = s }
+            .flatMap { sessionId -> authDataManager.getEncryptedPayload(guid, sessionId) }
+            .subscribe(
+                { response -> handleResponse(password, guid, response) },
+                { throwable -> handleSessionError(throwable) }
+            )
+    }
+
+    private fun handleSessionError(throwable: Throwable) {
+        Timber.e(throwable)
+        sessionId = null
+        onAuthFailed()
     }
 
     private fun handleResponse(password: String, guid: String, response: Response<ResponseBody>) {
         val errorBody = if (response.errorBody() != null) response.errorBody()!!.string() else ""
 
-        if (errorBody.contains(KEY_AUTH_REQUIRED)) {
-            waitForEmailAuth(password, guid)
-        } else {
-            // No 2FA
-            checkTwoFactor(password, guid, response)
+        when {
+            errorBody.contains(KEY_AUTH_REQUIRED) -> {
+                waitForEmailAuth(password, guid)
+            }
+            errorBody.contains(INITIAL_ERROR) -> {
+                decodeBodyAndShowError(errorBody)
+            }
+            else -> {
+                // No 2FA
+                checkTwoFactor(password, guid, response)
+            }
+        }
+    }
+
+    private fun decodeBodyAndShowError(errorBody: String) {
+        view?.dismissProgressDialog()
+        try {
+            val json = JSONObject(errorBody)
+            val errorReason = json.getString(INITIAL_ERROR)
+            crashLogger.logState(INITIAL_ERROR, errorReason)
+            view?.showErrorToastWithParameter(R.string.common_replaceable_value, errorReason)
+        } catch (e: Exception) {
+            crashLogger.logState(INITIAL_ERROR, e.message!!)
+            view?.showToast(R.string.common_error, ToastCustom.TYPE_ERROR)
         }
     }
 
@@ -201,7 +237,7 @@ abstract class PasswordAuthPresenter<T : PasswordAuthView> : MvpPresenter<T>() {
                 appUtil.sharedKey = payloadDataManager.wallet!!.sharedKey
                 prefs.setValue(PersistentPrefs.KEY_WALLET_GUID, payloadDataManager.wallet!!.guid)
                 prefs.setValue(PersistentPrefs.KEY_EMAIL_VERIFIED, true)
-                prefs.removeValue(PersistentPrefs.KEY_PIN_IDENTIFIER)
+                prefs.pinId = ""
             }
             .subscribeBy(
                 onComplete = {
@@ -218,7 +254,8 @@ abstract class PasswordAuthPresenter<T : PasswordAuthView> : MvpPresenter<T>() {
     }
 
     @CallSuper
-    protected open fun onAuthFailed() { }
+    protected open fun onAuthFailed() {
+    }
 
     @CallSuper
     protected open fun onAuthComplete() {
@@ -251,6 +288,7 @@ abstract class PasswordAuthPresenter<T : PasswordAuthView> : MvpPresenter<T>() {
     companion object {
         @VisibleForTesting
         internal val KEY_AUTH_REQUIRED = "authorization_required"
+        internal val INITIAL_ERROR = "initial_error"
     }
 
     fun cancelAuthTimer() {

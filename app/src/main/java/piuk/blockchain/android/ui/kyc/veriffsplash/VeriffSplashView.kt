@@ -1,6 +1,6 @@
 package piuk.blockchain.android.ui.kyc.veriffsplash
 
-import com.blockchain.swap.nabu.models.nabu.SupportedDocuments
+import com.blockchain.nabu.models.responses.nabu.SupportedDocuments
 import com.blockchain.veriff.VeriffApplicantAndToken
 import io.reactivex.Observable
 import piuk.blockchain.androidcoreui.ui.base.UiState
@@ -24,7 +24,7 @@ interface VeriffSplashView : View {
 
     fun setUiState(@UiState.UiStateDef state: Int)
 
-    fun showErrorToast(message: Int)
+    fun showError(message: Int)
 
     fun showProgressDialog(cancelable: Boolean)
 

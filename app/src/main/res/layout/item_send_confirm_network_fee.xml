@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/item_account_parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/standard_margin"
+    android:paddingTop="@dimen/very_small_margin"
+    android:paddingEnd="@dimen/standard_margin"
+    android:paddingBottom="@dimen/very_small_margin">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/confirmation_fee_label"
+        style="@style/Text.Light.14"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Label" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/confirmation_fee_value"
+        style="@style/Text.Semibold.16"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        tools:text="Value" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/confirmation_free_label"
+        style="@style/Text.Semibold.12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/bkgd_green_100_rounded"
+        android:text="@string/common_free"
+        android:textAllCaps="true"
+        android:textColor="@color/green_600"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/confirmation_learn_more"
+        style="@style/Text.Semibold.12"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/tiny_margin"
+        tools:text="Learn more about network fees" />
+
+</LinearLayout>

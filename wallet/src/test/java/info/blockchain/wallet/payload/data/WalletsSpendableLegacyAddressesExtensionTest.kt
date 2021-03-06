@@ -31,15 +31,6 @@ class WalletsSpendableLegacyAddressesExtensionTest {
     }
 
     @Test
-    fun `one without private key`() {
-        Wallet().apply {
-            legacyAddressList.add(LegacyAddress().apply {
-                address = "Address1"
-            })
-        }.spendableLegacyAddressStrings() `should equal` emptySet()
-    }
-
-    @Test
     fun `two spendable`() {
         Wallet().apply {
             legacyAddressList.add(legacyAddressWithPrivateKey("Address1", "PRIVATE_KEY1"))

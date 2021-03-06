@@ -33,7 +33,7 @@ class EthereumAccount : JsonSerializableAccount {
     private val archived: Boolean = false
 
     @JsonProperty("label")
-    var label = ""
+    override var label = ""
 
     @JsonProperty("correct")
     var isCorrect: Boolean = false

@@ -6,11 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.blockchain.koin.scopedInject
-import com.blockchain.notifications.analytics.SimpleBuyAnalytics
-import com.blockchain.swap.nabu.NabuToken
-import com.blockchain.swap.nabu.datamanagers.BillingAddress
-import com.blockchain.swap.nabu.datamanagers.NabuDataManager
-import com.blockchain.swap.nabu.models.nabu.NabuUser
+import com.blockchain.nabu.NabuToken
+import com.blockchain.nabu.datamanagers.BillingAddress
+import com.blockchain.nabu.datamanagers.NabuDataManager
+import com.blockchain.nabu.models.responses.nabu.NabuUser
+import piuk.blockchain.android.simplebuy.SimpleBuyAnalytics
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
@@ -20,9 +20,9 @@ import piuk.blockchain.android.R
 import piuk.blockchain.android.ui.base.mvi.MviFragment
 import piuk.blockchain.android.ui.base.setupToolbar
 import piuk.blockchain.android.util.US
-import piuk.blockchain.androidcoreui.utils.extensions.inflate
-import piuk.blockchain.androidcoreui.utils.extensions.visibleIf
-import piuk.blockchain.androidcoreui.utils.helperfunctions.AfterTextChangedWatcher
+import piuk.blockchain.android.util.inflate
+import piuk.blockchain.android.util.visibleIf
+import piuk.blockchain.android.util.AfterTextChangedWatcher
 import java.util.Locale
 
 class BillingAddressFragment : MviFragment<CardModel, CardIntent, CardState>(),
@@ -67,17 +67,17 @@ class BillingAddressFragment : MviFragment<CardModel, CardIntent, CardState>(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        header.setOnClickListener {
+        billing_header.setOnClickListener {
             SearchPickerItemBottomSheet.newInstance(Locale.getISOCountries().toList().map {
                 CountryPickerItem(it)
-            }).show(childFragmentManager, "BOTTOM_SHEET")
+            }).show(childFragmentManager, BOTTOM_SHEET)
         }
         state.setOnClickListener {
             SearchPickerItemBottomSheet.newInstance(
                 US.values().map {
                     StatePickerItem(it.ANSIAbbreviation, it.unabbreviated)
                 }
-            ).show(childFragmentManager, "BOTTOM_SHEET")
+            ).show(childFragmentManager, BOTTOM_SHEET)
         }
 
         full_name.addTextChangedListener(textWatcher)

@@ -1,5 +1,7 @@
 package piuk.blockchain.android.ui.settings
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -7,6 +9,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ShortcutManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.text.Editable
@@ -17,11 +20,11 @@ import android.text.util.Linkify
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity.RESULT_CANCELED
+import androidx.appcompat.app.AppCompatActivity.RESULT_FIRST_USER
 import androidx.appcompat.app.AppCompatActivity.RESULT_OK
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.core.content.ContextCompat
@@ -30,17 +33,21 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
 import com.blockchain.koin.scopedInject
+import com.blockchain.nabu.datamanagers.PaymentMethod
+import com.blockchain.nabu.datamanagers.custodialwalletimpl.PaymentMethodType
+import com.blockchain.nabu.models.data.Bank
+import com.blockchain.nabu.models.data.LinkBankTransfer
+import com.blockchain.nabu.models.responses.nabu.KycTiers
 import com.blockchain.notifications.analytics.Analytics
+import com.blockchain.notifications.analytics.AnalyticsEvent
 import com.blockchain.notifications.analytics.AnalyticsEvents
 import com.blockchain.notifications.analytics.SettingsAnalyticsEvents
-import com.blockchain.notifications.analytics.SimpleBuyAnalytics
-import com.blockchain.notifications.analytics.linkBankEventWithCurrency
-import com.blockchain.swap.nabu.datamanagers.LinkedBank
-import com.blockchain.swap.nabu.datamanagers.PaymentMethod
-import com.blockchain.swap.nabu.models.nabu.KycTiers
-import com.blockchain.ui.dialog.MaterialProgressDialog
+import com.blockchain.preferences.CurrencyPrefs
 import com.blockchain.ui.urllinks.URL_PRIVACY_POLICY
 import com.blockchain.ui.urllinks.URL_TOS_POLICY
+import com.google.android.play.core.review.ReviewInfo
+import com.google.android.play.core.review.ReviewManager
+import com.google.android.play.core.review.ReviewManagerFactory
 import com.mukesh.countrypicker.fragments.CountryPicker
 import info.blockchain.wallet.api.data.Settings
 import info.blockchain.wallet.util.FormatsUtil
@@ -54,33 +61,50 @@ import piuk.blockchain.android.R.string.success
 import piuk.blockchain.android.campaign.CampaignType
 import piuk.blockchain.android.cards.CardDetailsActivity
 import piuk.blockchain.android.cards.RemoveCardBottomSheet
+import piuk.blockchain.android.data.biometrics.BiometricAuthError
+import piuk.blockchain.android.data.biometrics.BiometricAuthLockout
+import piuk.blockchain.android.data.biometrics.BiometricAuthLockoutPermanent
+import piuk.blockchain.android.data.biometrics.BiometricAuthOther
+import piuk.blockchain.android.data.biometrics.BiometricKeysInvalidated
+import piuk.blockchain.android.data.biometrics.BiometricsCallback
+import piuk.blockchain.android.data.biometrics.BiometricsController
+import piuk.blockchain.android.data.biometrics.BiometricsNoSuitableMethods
 import piuk.blockchain.android.simplebuy.RemoveLinkedBankBottomSheet
 import piuk.blockchain.android.simplebuy.RemovePaymentMethodBottomSheetHost
+import piuk.blockchain.android.simplebuy.SimpleBuyAnalytics
+import piuk.blockchain.android.simplebuy.linkBankEventWithCurrency
 import piuk.blockchain.android.ui.auth.KEY_VALIDATING_PIN_FOR_RESULT
 import piuk.blockchain.android.ui.auth.PinEntryActivity
 import piuk.blockchain.android.ui.auth.REQUEST_CODE_VALIDATE_PIN
+import piuk.blockchain.android.ui.base.mvi.MviFragment.Companion.BOTTOM_SHEET
+import piuk.blockchain.android.ui.customviews.PasswordStrengthView
+import piuk.blockchain.android.ui.customviews.dialogs.MaterialProgressDialog
 import piuk.blockchain.android.ui.dashboard.sheets.LinkBankAccountDetailsBottomSheet
-import piuk.blockchain.android.ui.fingerprint.FingerprintDialog
-import piuk.blockchain.android.ui.fingerprint.FingerprintStage
+import piuk.blockchain.android.ui.dashboard.sheets.LinkBankMethodChooserBottomSheet
 import piuk.blockchain.android.ui.kyc.navhost.KycNavHostActivity
+import piuk.blockchain.android.ui.linkbank.LinkBankActivity
 import piuk.blockchain.android.ui.settings.preferences.BankPreference
 import piuk.blockchain.android.ui.settings.preferences.CardPreference
 import piuk.blockchain.android.ui.settings.preferences.KycStatusPreference
 import piuk.blockchain.android.ui.settings.preferences.ThePitStatusPreference
 import piuk.blockchain.android.ui.thepit.PitLaunchBottomDialog
 import piuk.blockchain.android.ui.thepit.PitPermissionsActivity
+import piuk.blockchain.android.util.AfterTextChangedWatcher
+import piuk.blockchain.android.util.AndroidUtils
 import piuk.blockchain.android.util.RootUtil
+import piuk.blockchain.android.util.ViewUtils
 import piuk.blockchain.androidcore.data.events.ActionEvent
 import piuk.blockchain.androidcore.data.rxjava.RxBus
 import piuk.blockchain.androidcore.utils.PersistentPrefs
 import piuk.blockchain.androidcore.utils.helperfunctions.unsafeLazy
 import piuk.blockchain.androidcoreui.ui.customviews.ToastCustom
-import piuk.blockchain.androidcoreui.utils.AndroidUtils
-import piuk.blockchain.androidcoreui.utils.ViewUtils
-import piuk.blockchain.androidcoreui.utils.helperfunctions.AfterTextChangedWatcher
 import piuk.blockchain.androidcoreui.utils.logging.Logging
+import timber.log.Timber
+import java.util.Locale
+import kotlin.math.roundToInt
 
-class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePaymentMethodBottomSheetHost {
+class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePaymentMethodBottomSheetHost, BankLinkingHost,
+    ReviewHost {
 
     // Profile
     private val kycStatusPref by lazy {
@@ -130,18 +154,29 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
         findPreference<SwitchPreferenceCompat>("receive_shortcuts_enabled")
     }
     private val swipeToReceivePrefs by lazy {
-        findPreference<SwitchPreferenceCompat>("swipe_to_receive_enabled")
+        findPreference<SwitchPreferenceCompat>(PersistentPrefs.KEY_SWIPE_TO_RECEIVE_ENABLED)
     }
     private val screenshotPref by lazy {
         findPreference<SwitchPreferenceCompat>("screenshots_enabled")
     }
+    private val cloudBackupPref by lazy {
+        findPreference<SwitchPreferenceCompat>("cloud_backup")
+    }
 
     private val settingsPresenter: SettingsPresenter by scopedInject()
+    private val biometricsController: BiometricsController by scopedInject()
+    private val currencyPrefs: CurrencyPrefs by inject()
     private val analytics: Analytics by inject()
     private val rxBus: RxBus by inject()
 
     private var pwStrength = 0
     private var progressDialog: MaterialProgressDialog? = null
+
+    private val reviewManager: ReviewManager by lazy {
+        ReviewManagerFactory.create(activity)
+    }
+
+    private var reviewInfo: ReviewInfo? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,6 +185,19 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
 
         analytics.logEvent(AnalyticsEvents.Settings)
         Logging.logContentView(javaClass.simpleName)
+
+        initReviews()
+    }
+
+    private fun initReviews() {
+        reviewManager.requestReviewFlow().addOnCompleteListener { request ->
+            if (request.isSuccessful) {
+                analytics.logEvent(ReviewAnalytics.REQUEST_REVIEW_SUCCESS)
+                reviewInfo = request.result
+            } else {
+                analytics.logEvent(ReviewAnalytics.REQUEST_REVIEW_FAILURE)
+            }
+        }
     }
 
     override fun setUpUi() {
@@ -169,11 +217,12 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
             analytics.logEvent(SettingsAnalyticsEvents.EmailClicked)
         }
         smsPref.onClick {
-            showDialogMobile()
+            settingsPresenter.onVerifySmsRequested()
             analytics.logEvent(SettingsAnalyticsEvents.PhoneClicked)
         }
 
         thePit.onClick { settingsPresenter.onThePitClicked() }
+        thePit?.isVisible = true
 
         // Preferences
         fiatPref.onClick { showDialogFiatUnits() }
@@ -193,7 +242,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
             analytics.logEvent(SettingsAnalyticsEvents.ChangePinClicked)
         }
         twoStepVerificationPref.onClick {
-            showDialogTwoFA()
+            settingsPresenter.onTwoStepVerificationRequested()
             analytics.logEvent(SettingsAnalyticsEvents.TwoFactorAuthClicked)
         }
 
@@ -217,7 +266,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
 
         launcherShortcutPrefs?.setOnPreferenceChangeListener { _, newValue ->
             if (!(newValue as Boolean) && AndroidUtils.is25orHigher()) {
-                activity!!.getSystemService(
+                settingsActivity.getSystemService(
                     ShortcutManager::class.java
                 )!!.removeAllDynamicShortcuts()
             }
@@ -226,18 +275,22 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
 
         swipeToReceivePrefs?.setOnPreferenceChangeListener { _, newValue ->
             if (!(newValue as Boolean)) {
-                settingsPresenter.clearSwipeToReceiveData()
+                settingsPresenter.clearOfflineAddressCache()
             } else {
-                AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+                AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
                     .setTitle(R.string.swipe_receive_hint)
                     .setMessage(R.string.swipe_receive_address_info)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        settingsPresenter.storeSwipeToReceiveAddresses()
-                    }
+                    .setPositiveButton(android.R.string.ok) { _, _ -> }
                     .setCancelable(false)
                     .show()
             }
             analytics.logEvent(SettingsAnalyticsEvents.SwipeToReceiveSwitch)
+            true
+        }
+
+        cloudBackupPref?.setOnPreferenceChangeListener { _, newValue ->
+            settingsPresenter.updateCloudData(newValue as Boolean)
+            analytics.logEvent(SettingsAnalyticsEvents.CloudBackupSwitch)
             true
         }
 
@@ -262,42 +315,77 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
             intent == null -> {
             }
             intent.hasExtra(EXTRA_SHOW_TWO_FA_DIALOG) ->
-                showDialogTwoFA()
+                settingsPresenter.onTwoStepVerificationRequested()
             intent.hasExtra(EXTRA_SHOW_ADD_EMAIL_DIALOG) ->
-                showUpdateEmailDialog(activity!!, settingsPresenter)
+                settingsPresenter.onEmailShowRequested()
         }
     }
 
-    override fun showProgressDialog(@StringRes message: Int) {
+    override fun showProgress() {
         progressDialog = MaterialProgressDialog(requireContext()).apply {
             setCancelable(false)
-            setMessage(message)
+            setMessage(R.string.please_wait)
             show()
         }
     }
 
-    override fun isPitEnabled(enabled: Boolean) {
-        thePit?.isVisible = enabled
+    override fun showEmailDialog(currentEmail: String, emailVerified: Boolean) {
+        showUpdateEmailDialog(settingsActivity, settingsPresenter, currentEmail, emailVerified)
     }
 
-    override fun hideProgressDialog() {
+    override fun hideProgress() {
         progressDialog?.dismiss()
         progressDialog = null
     }
 
-    override fun showToast(@StringRes message: Int, @ToastCustom.ToastType toastType: String) {
-        ToastCustom.makeText(activity, getString(message), ToastCustom.LENGTH_SHORT, toastType)
+    override fun showError(@StringRes message: Int) {
+        ToastCustom.makeText(
+            activity,
+            getString(message),
+            ToastCustom.LENGTH_SHORT,
+            ToastCustom.TYPE_ERROR
+        )
+    }
+
+    override fun showReviewDialog() {
+        reviewInfo?.let {
+            reviewManager.launchReviewFlow(activity, reviewInfo).addOnFailureListener {
+                analytics.logEvent(ReviewAnalytics.LAUNCH_REVIEW_FAILURE)
+                goToPlayStore()
+            }.addOnCompleteListener {
+                analytics.logEvent(ReviewAnalytics.LAUNCH_REVIEW_SUCCESS)
+            }
+        } ?: goToPlayStore()
+    }
+
+    private fun goToPlayStore() {
+        val flags = Intent.FLAG_ACTIVITY_NO_HISTORY or
+            Intent.FLAG_ACTIVITY_MULTIPLE_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
+        try {
+            val appPackageName = requireActivity().packageName
+            Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("market://details?id=$appPackageName")
+            ).let {
+                it.addFlags(flags)
+                startActivity(it)
+            }
+        } catch (e: ActivityNotFoundException) {
+            Timber.e(e, "Google Play Store not found")
+        }
     }
 
     override fun showWarningDialog(@StringRes message: Int) {
-        AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
-            .setTitle(R.string.app_name)
-            .setMessage(message)
-            .setCancelable(true)
-            .setPositiveButton(android.R.string.ok, null)
-            .setOnDismissListener { showDialogVerifySms() }
-            .create()
-            .show()
+        activity?.let {
+            AlertDialog.Builder(it, R.style.AlertDialogStyle)
+                .setTitle(R.string.app_name)
+                .setMessage(message)
+                .setCancelable(true)
+                .setPositiveButton(android.R.string.ok, null)
+                .setOnDismissListener { showDialogVerifySms() }
+                .create()
+                .show()
+        }
     }
 
     private val compositeDisposable = CompositeDisposable()
@@ -334,12 +422,28 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
         guidPref?.summary = summary
     }
 
-    override fun setEmailSummary(summary: String) {
-        emailPref?.summary = summary
+    override fun setEmailSummary(email: String, isVerified: Boolean) {
+        emailPref?.summary = when {
+            email.isEmpty() -> getString(R.string.not_specified)
+            isVerified -> "$email  (${getString(R.string.verified)})"
+            else -> "$email  (${getString(R.string.unverified)})"
+        }
     }
 
-    override fun setSmsSummary(summary: String) {
-        smsPref?.summary = summary
+    override fun setEmailUnknown() {
+        emailPref?.summary = getString(R.string.not_specified)
+    }
+
+    override fun setSmsSummary(smsNumber: String, isVerified: Boolean) {
+        smsPref?.summary = when {
+            smsNumber.isEmpty() -> getString(R.string.not_specified)
+            isVerified -> "$smsNumber (${getString(R.string.verified)})"
+            else -> "$smsNumber (${getString(R.string.unverified)})"
+        }
+    }
+
+    override fun setSmsUnknown() {
+        emailPref?.summary = getString(R.string.not_specified)
     }
 
     override fun setFiatSummary(summary: String) {
@@ -374,7 +478,26 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
         thePit?.setValue(isLinked)
     }
 
-    override fun updateBanks(banks: List<LinkedBank>) {
+    override fun updateLinkableBanks(linkableBanks: Set<LinkableBank>, linkedBanksCount: Int) {
+        if (linkableBanks.isEmpty()) {
+            banksPref?.isVisible = false
+        } else {
+            linkableBanks.forEach { linkableBank ->
+                banksPref?.findPreference<BankPreference>(LINK_BANK_KEY.plus(linkableBank.hashCode()))?.let {
+                    it.order = it.order + linkedBanksCount + linkableBanks.indexOf(linkableBank)
+                } ?: banksPref?.addPreference(
+                    BankPreference(context = requireContext(), fiatCurrency = linkableBank.currency).apply {
+                        onClick {
+                            linkBank(linkableBank)
+                        }
+                        key = LINK_BANK_KEY.plus(linkableBank.hashCode())
+                    }
+                )
+            }
+        }
+    }
+
+    override fun updateLinkedBanks(banks: Set<Bank>) {
         val existingBanks = prefsExistingBanks()
 
         val newBanks = banks.filterNot { existingBanks.contains(it.id) }
@@ -389,33 +512,36 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
                 }
             )
         }
-
-        addOrUpdateLinkBankForCurrencies(banks.size + 1, listOf("GBP", "EUR"))
     }
 
-    private fun addOrUpdateLinkBankForCurrencies(firstIndex: Int, currencies: List<String>) {
+    private fun removeBank(bank: Bank) {
+        RemoveLinkedBankBottomSheet.newInstance(bank).show(childFragmentManager, BOTTOM_SHEET)
+    }
 
-        currencies.forEach { currency ->
-            banksPref?.findPreference<BankPreference>(LINK_BANK_KEY.plus(currency))?.let {
-                it.order = it.order + firstIndex + currencies.indexOf(currency)
-            } ?: banksPref?.addPreference(
-                BankPreference(context = requireContext(), fiatCurrency = currency).apply {
-                    onClick {
-                        linkBankWithCurrency(currency)
-                    }
-                    key = LINK_BANK_KEY.plus(currency)
-                }
-            )
+    override fun linkBankWithWireTransfer(currency: String) {
+        LinkBankAccountDetailsBottomSheet.newInstance(currency).show(childFragmentManager, BOTTOM_SHEET)
+        analytics.logEvent(linkBankEventWithCurrency(SimpleBuyAnalytics.LINK_BANK_CLICKED, currency))
+    }
+
+    private fun linkBank(linkableBank: LinkableBank) {
+        require(linkableBank.linkMethods.isNotEmpty())
+        if (linkableBank.linkMethods.size > 1) {
+            showDialogForLinkBankMethodChooser(linkableBank)
+        } else {
+            when (linkableBank.linkMethods[0]) {
+                PaymentMethodType.FUNDS -> linkBankWithWireTransfer(linkableBank.currency)
+                PaymentMethodType.BANK_TRANSFER -> linkBankWithBankTransfer(linkableBank.currency)
+                else -> throw IllegalStateException("Not valid linkable bank type")
+            }
         }
     }
 
-    private fun removeBank(bank: LinkedBank) {
-        RemoveLinkedBankBottomSheet.newInstance(bank).show(childFragmentManager, "BOTTOM_SHEET")
+    override fun linkBankWithBankTransfer(currency: String) {
+        settingsPresenter.linkBank(currency)
     }
 
-    private fun linkBankWithCurrency(currency: String) {
-        LinkBankAccountDetailsBottomSheet.newInstance(currency).show(childFragmentManager, "BOTTOM_SHEET")
-        analytics.logEvent(linkBankEventWithCurrency(SimpleBuyAnalytics.LINK_BANK_CLICKED, currency))
+    private fun showDialogForLinkBankMethodChooser(linkableBank: LinkableBank) {
+        LinkBankMethodChooserBottomSheet.newInstance(linkableBank).show(childFragmentManager, BOTTOM_SHEET)
     }
 
     override fun updateCards(cards: List<PaymentMethod.Card>) {
@@ -428,7 +554,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
             cardsPref?.addPreference(
                 CardPreference(context = requireContext(), card = card).apply {
                     onClick {
-                        RemoveCardBottomSheet.newInstance(card).show(childFragmentManager, "BOTTOM_SHEET")
+                        RemoveCardBottomSheet.newInstance(card).show(childFragmentManager, BOTTOM_SHEET)
                     }
                     key = card.cardId
                 }
@@ -470,8 +596,11 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
         val existingBanks = mutableListOf<String>()
 
         for (i in (0 until (banksPref?.preferenceCount ?: 0))) {
-            existingBanks.add(banksPref?.getPreference(i)?.key.takeIf { it?.contains(LINK_BANK_KEY)?.not() ?: false }
-                ?: continue)
+            existingBanks.add(
+                banksPref?.getPreference(i)?.key.takeIf {
+                    it?.contains(LINK_BANK_KEY)?.not() ?: false
+                } ?: continue
+            )
         }
         return existingBanks
     }
@@ -485,11 +614,11 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
     }
 
     override fun showDisableFingerprintDialog() {
-        AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(R.string.app_name)
-            .setMessage(R.string.fingerprint_disable_message)
+            .setMessage(R.string.biometric_disable_message)
             .setCancelable(true)
-            .setPositiveButton(R.string.yes) { _, _ ->
+            .setPositiveButton(R.string.common_yes) { _, _ ->
                 settingsPresenter.setFingerprintUnlockEnabled(
                     false
                 )
@@ -502,14 +631,20 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
 
     override fun showNoFingerprintsAddedDialog() {
         updateFingerprintPreferenceStatus()
-        AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(R.string.app_name)
             .setMessage(R.string.fingerprint_no_fingerprints_added)
             .setCancelable(true)
-            .setPositiveButton(R.string.yes) { _, _ ->
+            .setPositiveButton(R.string.common_yes) { _, _ ->
                 startActivityForResult(
-                    Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS),
-                    0
+                    Intent(
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                            android.provider.Settings.ACTION_SECURITY_SETTINGS
+                        } else {
+                            android.provider.Settings.ACTION_BIOMETRIC_ENROLL
+                        }
+                    ),
+                    REQUEST_CODE_BIOMETRIC_ENROLLMENT
                 )
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -517,31 +652,64 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
     }
 
     override fun updateFingerprintPreferenceStatus() {
-        fingerprintPref.isChecked = settingsPresenter.ifFingerprintUnlockEnabled
+        fingerprintPref.isChecked = settingsPresenter.isFingerprintUnlockEnabled
     }
 
     override fun showFingerprintDialog(pincode: String) {
-        val dialog = FingerprintDialog.newInstance(pincode, FingerprintStage.REGISTER_FINGERPRINT)
-        dialog.setAuthCallback(object : FingerprintDialog.FingerprintAuthCallback {
-            override fun onAuthenticated(data: String?) {
-                dialog.dismissAllowingStateLoss()
+        biometricsController.init(this, BiometricsController.BiometricsType.TYPE_REGISTER, object : BiometricsCallback {
+            override fun onAuthSuccess(data: String) {
                 settingsPresenter.setFingerprintUnlockEnabled(true)
+                fingerprintPref.isChecked = settingsPresenter.isFingerprintUnlockEnabled
             }
 
-            override fun onCanceled() {
-                dialog.dismissAllowingStateLoss()
+            override fun onAuthFailed(error: BiometricAuthError) {
+                handleAuthFailed(error)
+            }
+
+            override fun onAuthCancelled() {
                 settingsPresenter.setFingerprintUnlockEnabled(false)
-                fingerprintPref.isChecked = settingsPresenter.ifFingerprintUnlockEnabled
+                fingerprintPref.isChecked = settingsPresenter.isFingerprintUnlockEnabled
             }
         })
-        dialog.show(fragmentManager!!, FingerprintDialog.TAG)
+
+        biometricsController.authenticateForRegistration()
+    }
+
+    private fun handleAuthFailed(error: BiometricAuthError) {
+        when (error) {
+            is BiometricKeysInvalidated -> BiometricsController.showActionableInvalidatedKeysDialog(requireContext(),
+                positiveActionCallback = {
+                    settingsPresenter.onFingerprintClicked()
+                },
+                negativeActionCallback = {
+                    startActivityForResult(
+                        Intent(
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                                android.provider.Settings.ACTION_SECURITY_SETTINGS
+                            } else {
+                                android.provider.Settings.ACTION_BIOMETRIC_ENROLL
+                            }
+                        ),
+                        REQUEST_CODE_BIOMETRIC_ENROLLMENT
+                    )
+                })
+            is BiometricsNoSuitableMethods -> showNoFingerprintsAddedDialog()
+            is BiometricAuthLockout -> BiometricsController.showAuthLockoutDialog(requireContext())
+            is BiometricAuthLockoutPermanent -> BiometricsController.showPermanentAuthLockoutDialog(requireContext())
+            is BiometricAuthOther -> BiometricsController.showBiometricsGenericError(requireContext(), error.error)
+            else -> {
+                // do nothing
+            }
+        }
+        settingsPresenter.setFingerprintUnlockEnabled(false)
+        fingerprintPref.isChecked = settingsPresenter.isFingerprintUnlockEnabled
     }
 
     override fun showDialogSmsVerified() {
-        AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(success)
             .setMessage(R.string.sms_verified)
-            .setPositiveButton(R.string.dialog_continue) { _, _ -> showDialogTwoFA() }
+            .setPositiveButton(R.string.dialog_continue) { _, _ -> settingsPresenter.onTwoStepVerificationRequested() }
             .show()
     }
 
@@ -561,12 +729,11 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
     }
 
     private fun onUpdateEmailClicked() {
-        showUpdateEmailDialog(requireActivity(), settingsPresenter)
+        settingsPresenter.onEmailShowRequested()
     }
 
     private fun onAboutClicked() {
-        val aboutDialog = AboutDialog()
-        aboutDialog.show(fragmentManager!!, "ABOUT_DIALOG")
+        AboutDialog().show(childFragmentManager, "ABOUT_DIALOG")
     }
 
     private fun onTosClicked() {
@@ -582,7 +749,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
         val handler = Handler()
         handler.postDelayed({
             if (activity != null) {
-                AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+                AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
                     .setTitle(R.string.verify)
                     .setMessage(R.string.verify_email_notice)
                     .setCancelable(true)
@@ -592,23 +759,23 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
         }, 300)
     }
 
-    private fun showDialogMobile() {
-        if (settingsPresenter.authType != Settings.AUTH_TYPE_OFF) {
-            AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+    override fun showDialogMobile(authType: Int, isSmsVerified: Boolean, smsNumber: String) {
+        if (authType != Settings.AUTH_TYPE_OFF) {
+            AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
                 .setTitle(R.string.warning)
                 .setMessage(R.string.disable_2fa_first)
                 .setPositiveButton(android.R.string.ok, null)
                 .create()
                 .show()
         } else {
-            val inflater = activity!!.layoutInflater
+            val inflater = settingsActivity.layoutInflater
             val smsPickerView = inflater.inflate(R.layout.include_sms_update, null)
             val mobileNumber = smsPickerView.findViewById<EditText>(R.id.etSms)
             val countryTextView = smsPickerView.findViewById<TextView>(R.id.tvCountry)
             val mobileNumberTextView = smsPickerView.findViewById<TextView>(R.id.tvSms)
 
             val picker = CountryPicker.newInstance(getString(R.string.select_country))
-            val country = picker.getUserCountryInfo(activity!!)
+            val country = picker.getUserCountryInfo(requireActivity())
             if (country.dialCode == "+93") {
                 setCountryFlag(countryTextView, "+1", R.drawable.flag_us)
             } else {
@@ -616,19 +783,19 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
             }
 
             countryTextView.setOnClickListener {
-                picker.show(fragmentManager!!, "COUNTRY_PICKER")
+                picker.show(requireFragmentManager(), "COUNTRY_PICKER")
                 picker.setListener { _, _, dialCode, flagDrawableResID ->
                     setCountryFlag(countryTextView, dialCode, flagDrawableResID)
                     picker.dismiss()
                 }
             }
 
-            if (settingsPresenter.sms.isNotEmpty()) {
-                mobileNumberTextView.text = settingsPresenter.sms
+            if (smsNumber.isNotEmpty()) {
+                mobileNumberTextView.text = smsNumber
                 mobileNumberTextView.visibility = View.VISIBLE
             }
 
-            val alertDialogSmsBuilder = AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+            val alertDialogSmsBuilder = AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
                 .setTitle(R.string.mobile)
                 .setMessage(getString(R.string.mobile_description))
                 .setView(smsPickerView)
@@ -636,10 +803,10 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
                 .setPositiveButton(R.string.update, null)
                 .setNegativeButton(android.R.string.cancel, null)
 
-            if (!settingsPresenter.isSmsVerified && settingsPresenter.sms.isNotEmpty()) {
+            if (isSmsVerified && smsNumber.isNotEmpty()) {
                 alertDialogSmsBuilder.setNeutralButton(R.string.verify) { dialogInterface, i ->
                     settingsPresenter.updateSms(
-                        settingsPresenter.sms
+                        smsNumber
                     )
                 }
             }
@@ -664,25 +831,25 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
     }
 
     private fun showDialogGuid() {
-        AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(R.string.app_name)
             .setMessage(R.string.guid_to_clipboard)
             .setCancelable(false)
-            .setPositiveButton(R.string.yes) { _, _ ->
+            .setPositiveButton(R.string.common_yes) { _, _ ->
                 val clipboard =
-                    activity!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    settingsActivity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("guid", guidPref!!.summary)
-                clipboard.primaryClip = clip
+                clipboard.setPrimaryClip(clip)
                 showCustomToast(R.string.copied_to_clipboard)
                 analytics.logEvent(SettingsAnalyticsEvents.WalletIdCopyCopied)
             }
-            .setNegativeButton(R.string.no, null)
+            .setNegativeButton(R.string.common_no, null)
             .show()
     }
 
     private fun showDialogFiatUnits() {
         val currencies = settingsPresenter.currencyLabels
-        val strCurrency = settingsPresenter.fiatUnits
+        val strCurrency = currencyPrefs.selectedFiatCurrency
         var selected = 0
         for (i in currencies.indices) {
             if (currencies[i].endsWith(strCurrency)) {
@@ -691,7 +858,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
             }
         }
 
-        AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(R.string.select_currency)
             .setSingleChoiceItems(currencies, selected) { dialog, which ->
                 val fiatUnit = currencies[which].substring(currencies[which].length - 3)
@@ -701,21 +868,22 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
             .show()
     }
 
+    private val settingsActivity: Activity
+        get() = activity ?: throw IllegalStateException("Activity not found")
+
     override fun showDialogVerifySms() {
-        val editText = AppCompatEditText(activity!!)
+        val editText = AppCompatEditText(settingsActivity)
         editText.setSingleLine(true)
 
-        val dialog = AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        val dialog = AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(R.string.verify_mobile)
             .setMessage(R.string.verify_sms_summary)
-            .setView(ViewUtils.getAlertDialogPaddedView(activity, editText))
+            .setView(ViewUtils.getAlertDialogPaddedView(requireContext(), editText))
             .setCancelable(false)
             .setPositiveButton(R.string.verify, null)
             .setNegativeButton(android.R.string.cancel, null)
-            .setNeutralButton(R.string.resend) { dialogInterface, i ->
-                settingsPresenter.updateSms(
-                    settingsPresenter.sms
-                )
+            .setNeutralButton(R.string.resend) { _, _ ->
+                settingsPresenter.resendSms()
             }
             .create()
 
@@ -726,11 +894,10 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
                 if (codeS.isNotEmpty()) {
                     settingsPresenter.verifySms(codeS)
                     dialog.dismiss()
-                    ViewUtils.hideKeyboard(activity!!)
+                    ViewUtils.hideKeyboard(settingsActivity)
                 }
             }
         }
-
         dialog.show()
     }
 
@@ -742,29 +909,44 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK)
-            if (requestCode == REQUEST_CODE_VALIDATE_PIN) {
-                settingsPresenter.pinCodeValidatedForChange()
-            } else if (requestCode == CardDetailsActivity.ADD_CARD_REQUEST_CODE) {
-                updateCards(listOf(
-                    (data?.extras?.getSerializable(CardDetailsActivity.CARD_KEY) as? PaymentMethod.Card) ?: return
-                ))
+        if (resultCode == RESULT_OK) {
+            when (requestCode) {
+                REQUEST_CODE_VALIDATE_PIN -> {
+                    settingsPresenter.pinCodeValidatedForChange()
+                }
+                CardDetailsActivity.ADD_CARD_REQUEST_CODE -> {
+                    updateCards(
+                        listOf(
+                            (data?.extras?.getSerializable(CardDetailsActivity.CARD_KEY) as? PaymentMethod.Card)
+                                ?: return
+                        )
+                    )
+                }
+                LinkBankActivity.LINK_BANK_REQUEST_CODE -> {
+                    settingsPresenter.updateBanks()
+                }
+                REQUEST_CODE_BIOMETRIC_ENROLLMENT -> {
+                    settingsPresenter.onFingerprintClicked()
+                }
             }
+        } else if (resultCode == RESULT_FIRST_USER || resultCode == RESULT_CANCELED) {
+            if (requestCode == REQUEST_CODE_BIOMETRIC_ENROLLMENT) {
+                settingsPresenter.onFingerprintClicked()
+            }
+        }
     }
 
     private fun showDialogEmailNotifications() {
-        val dialog = AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        val dialog = AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(R.string.email_notifications)
             .setMessage(R.string.email_notifications_summary)
-            .setPositiveButton(R.string.enable) { dialogInterface, i ->
-                settingsPresenter.updateNotification(
-                    Settings.NOTIFICATION_TYPE_EMAIL,
+            .setPositiveButton(R.string.enable) { _, _ ->
+                settingsPresenter.updateEmailNotification(
                     true
                 )
             }
             .setNegativeButton(R.string.disable) { _, _ ->
-                settingsPresenter.updateNotification(
-                    Settings.NOTIFICATION_TYPE_EMAIL,
+                settingsPresenter.updateEmailNotification(
                     false
                 )
             }
@@ -777,7 +959,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
     }
 
     private fun showDialogPushNotifications() {
-        val dialog = AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        val dialog = AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(R.string.push_notifications)
             .setMessage(R.string.push_notifications_summary)
             .setPositiveButton(R.string.enable) { _, _ -> settingsPresenter.enablePushNotifications() }
@@ -791,7 +973,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
     }
 
     private fun showDialogChangePasswordWarning() {
-        AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(R.string.warning)
             .setMessage(R.string.change_password_summary)
             .setPositiveButton(R.string.dialog_continue) { _, _ -> showDialogChangePassword() }
@@ -799,35 +981,26 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
     }
 
     private fun showDialogChangePassword() {
-        val inflater = activity!!.layoutInflater
+        val inflater = settingsActivity.layoutInflater
         val pwLayout = inflater.inflate(R.layout.modal_change_password2, null) as LinearLayout
 
         val currentPassword = pwLayout.findViewById<AppCompatEditText>(R.id.current_password)
         val newPassword = pwLayout.findViewById<AppCompatEditText>(R.id.new_password)
-        val newPasswordConfirmation =
-            pwLayout.findViewById<AppCompatEditText>(R.id.confirm_password)
-
-        val entropyMeter = pwLayout.findViewById<RelativeLayout>(R.id.entropy_meter)
-        val passStrengthBar = pwLayout.findViewById<ProgressBar>(R.id.pass_strength_bar)
-        passStrengthBar.max = 100
-        val passStrengthVerdict = pwLayout.findViewById<TextView>(R.id.pass_strength_verdict)
+        val newPasswordConfirmation = pwLayout.findViewById<AppCompatEditText>(R.id.confirm_password)
+        val passwordStrength = pwLayout.findViewById<PasswordStrengthView>(R.id.password_strength)
 
         newPassword.addTextChangedListener(object : AfterTextChangedWatcher() {
             override fun afterTextChanged(editable: Editable) {
                 newPassword.postDelayed({
-                    if (activity != null && !activity!!.isFinishing) {
-                        entropyMeter.visibility = View.VISIBLE
-                        setPasswordStrength(
-                            passStrengthVerdict,
-                            passStrengthBar,
-                            editable.toString()
-                        )
+                    if (activity != null && !settingsActivity.isFinishing) {
+                        passwordStrength.visibility = View.VISIBLE
+                        setPasswordStrength(editable.toString(), passwordStrength)
                     }
                 }, 200)
             }
         })
 
-        val alertDialog = AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+        val alertDialog = AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
             .setTitle(R.string.change_password)
             .setCancelable(false)
             .setView(pwLayout)
@@ -855,11 +1028,11 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
                                     ToastCustom.TYPE_ERROR
                                 )
                             } else if (pwStrength < 50) {
-                                AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+                                AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
                                     .setTitle(R.string.app_name)
                                     .setMessage(R.string.weak_password)
                                     .setCancelable(false)
-                                    .setPositiveButton(R.string.yes) { _, _ ->
+                                    .setPositiveButton(R.string.common_yes) { _, _ ->
                                         newPasswordConfirmation.setText("")
                                         newPasswordConfirmation.requestFocus()
                                         newPassword.setText("")
@@ -907,36 +1080,36 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
         )
     }
 
-    private fun showDialogTwoFA() {
-        if (settingsPresenter.authType == Settings.AUTH_TYPE_GOOGLE_AUTHENTICATOR ||
-            settingsPresenter.authType == Settings.AUTH_TYPE_YUBI_KEY
+    override fun showDialogTwoFA(authType: Int, smsVerified: Boolean) {
+        if (authType == Settings.AUTH_TYPE_GOOGLE_AUTHENTICATOR ||
+            authType == Settings.AUTH_TYPE_YUBI_KEY
         ) {
             twoStepVerificationPref?.isChecked = true
-            AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+            AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
                 .setTitle(R.string.warning)
                 .setCancelable(false)
                 .setMessage(R.string.disable_online_only)
                 .setPositiveButton(android.R.string.ok, null)
                 .create()
                 .show()
-        } else if (!settingsPresenter.isSmsVerified) {
+        } else if (!smsVerified) {
             twoStepVerificationPref?.isChecked = false
-            showDialogMobile()
+            settingsPresenter.onVerifySmsRequested()
         } else {
             val message = Html.fromHtml(getString(R.string.two_fa_description, URL_LOGIN))
             val spannable = SpannableString(message)
             Linkify.addLinks(spannable, Linkify.WEB_URLS)
 
-            val alertDialogBuilder = AlertDialog.Builder(activity!!, R.style.AlertDialogStyle)
+            val alertDialogBuilder = AlertDialog.Builder(settingsActivity, R.style.AlertDialogStyle)
                 .setTitle(R.string.two_fa)
                 .setCancelable(false)
                 .setMessage(spannable)
                 .setNeutralButton(android.R.string.cancel) { _, _ ->
                     twoStepVerificationPref?.isChecked =
-                        settingsPresenter.authType != Settings.AUTH_TYPE_OFF
+                        authType != Settings.AUTH_TYPE_OFF
                 }
 
-            if (settingsPresenter.authType != Settings.AUTH_TYPE_OFF) {
+            if (authType != Settings.AUTH_TYPE_OFF) {
                 alertDialogBuilder.setNegativeButton(R.string.disable) { _, _ ->
                     settingsPresenter.updateTwoFa(
                         Settings.AUTH_TYPE_OFF
@@ -957,26 +1130,11 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
     }
 
     private fun setPasswordStrength(
-        passStrengthVerdict: TextView,
-        passStrengthBar: ProgressBar,
-        pw: String
+        pw: String,
+        passwordStrengthView: PasswordStrengthView
     ) {
-        if (activity != null && !activity!!.isFinishing) {
-            val strengthVerdicts = intArrayOf(
-                R.string.strength_weak,
-                R.string.strength_medium,
-                R.string.strength_normal,
-                R.string.strength_strong
-            )
-            val strengthColors = intArrayOf(
-                R.drawable.progress_red,
-                R.drawable.progress_orange,
-                R.drawable.progress_blue,
-                R.drawable.progress_green
-            )
-            pwStrength = Math.round(PasswordUtil.getStrength(pw)).toInt()
-
-            if (pw == settingsPresenter.email) pwStrength = 0
+        if (activity != null && !settingsActivity.isFinishing) {
+            pwStrength = PasswordUtil.getStrength(pw).roundToInt()
 
             // red
             var pwStrengthLevel = 0
@@ -990,10 +1148,8 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
                     pwStrengthLevel = 1
             }
 
-            passStrengthBar.progress = pwStrength
-            passStrengthBar.progressDrawable =
-                ContextCompat.getDrawable(activity!!, strengthColors[pwStrengthLevel])
-            passStrengthVerdict.text = resources.getString(strengthVerdicts[pwStrengthLevel])
+            passwordStrengthView.setStrengthProgress(pwStrength)
+            passwordStrengthView.updateLevelUI(pwStrengthLevel)
         }
     }
 
@@ -1004,14 +1160,14 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
 
     private fun setCountryFlag(tvCountry: TextView, dialCode: String, flagResourceId: Int) {
         tvCountry.text = dialCode
-        val drawable = ContextCompat.getDrawable(activity!!, flagResourceId)
+        val drawable = ContextCompat.getDrawable(settingsActivity, flagResourceId)
         drawable!!.alpha = 30
         tvCountry.background = drawable
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        hideProgressDialog()
+        hideProgress()
         settingsPresenter.onViewDestroyed()
     }
 
@@ -1022,6 +1178,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
         internal const val EXTRA_SHOW_TWO_FA_DIALOG = "show_two_fa_dialog"
         private const val ADD_CARD_KEY = "ADD_CARD_KEY"
         private const val LINK_BANK_KEY = "ADD_BANK_KEY"
+        private const val REQUEST_CODE_BIOMETRIC_ENROLLMENT = 666
     }
 
     override fun onCardRemoved(cardId: String) {
@@ -1045,6 +1202,12 @@ class SettingsFragment : PreferenceFragmentCompat(), SettingsView, RemovePayment
     override fun banksEnabled(enabled: Boolean) {
         banksPref?.isVisible = enabled
     }
+
+    override fun linkBankWithPartner(linkBankTransfer: LinkBankTransfer) {
+        startActivityForResult(
+            LinkBankActivity.newInstance(linkBankTransfer, requireContext()), LinkBankActivity.LINK_BANK_REQUEST_CODE
+        )
+    }
 }
 
 fun Preference?.onClick(onClick: () -> Unit) {
@@ -1052,4 +1215,25 @@ fun Preference?.onClick(onClick: () -> Unit) {
         onClick()
         true
     }
+}
+
+interface ReviewHost {
+    fun showReviewDialog()
+}
+
+enum class ReviewAnalytics : AnalyticsEvent {
+    REQUEST_REVIEW_SUCCESS,
+    REQUEST_REVIEW_FAILURE,
+    LAUNCH_REVIEW_SUCCESS,
+    LAUNCH_REVIEW_FAILURE;
+
+    override val event: String
+        get() = name.toLowerCase(Locale.ENGLISH)
+    override val params: Map<String, String>
+        get() = emptyMap()
+}
+
+interface BankLinkingHost {
+    fun linkBankWithWireTransfer(currency: String)
+    fun linkBankWithBankTransfer(currency: String)
 }

@@ -108,7 +108,7 @@
             app:width_weight="0.9"
             app:height_weight="0.8"
             app:use_gradient="true"
-            tools:text="$15,879.90" />
+            tools:text="15,879.90" />
 
         <com.elyeproj.loaderviewlibrary.LoaderTextView
             android:id="@+id/price_delta"

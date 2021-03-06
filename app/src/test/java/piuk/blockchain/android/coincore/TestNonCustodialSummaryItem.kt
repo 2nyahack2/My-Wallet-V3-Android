@@ -10,7 +10,7 @@ import piuk.blockchain.androidcore.data.exchangerate.ExchangeRateDataManager
 internal class TestNonCustodialSummaryItem(
     override val exchangeRates: ExchangeRateDataManager = mock(),
     override val cryptoCurrency: CryptoCurrency = CryptoCurrency.BTC,
-    override val direction: TransactionSummary.Direction = TransactionSummary.Direction.RECEIVED,
+    override val transactionType: TransactionSummary.TransactionType = TransactionSummary.TransactionType.RECEIVED,
     override val timeStampMs: Long = 0,
     override val value: CryptoValue = CryptoValue.ZeroBtc,
     override val fee: Observable<CryptoValue> = Observable.just(CryptoValue.ZeroBtc),

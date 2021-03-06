@@ -24,9 +24,19 @@
 
     <style name="CtaButton.White">
         <item name="android:background">@drawable/bkgd_button_white_selector</item>
-        <item name="android:textColor">@color/blue_600</item>
+        <item name="android:textColor">@color/button_white_text_states</item>
         <item name="android:layout_marginStart">@dimen/standard_margin</item>
         <item name="android:layout_marginEnd">@dimen/standard_margin</item>
+    </style>
+
+    <style name="CtaButton.White.Slim" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:background">@drawable/bkgd_button_white_selector</item>
+        <item name="android:textColor">@color/button_white_text_states</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:minHeight">36dp</item>
+        <item name="android:maxHeight">36dp</item>
+        <item name="android:paddingStart">@dimen/tiny_margin</item>
+        <item name="android:paddingEnd">@dimen/tiny_margin</item>
     </style>
 
     <style name="CtaButton.Black">
@@ -50,7 +60,7 @@
 
     <style name="CtaButton.NoMargin.White">
         <item name="android:background">@drawable/bkgd_button_white_selector</item>
-        <item name="android:textColor">@color/blue_600</item>
+        <item name="android:textColor">@color/button_white_text_states</item>
     </style>
 
 </resources>

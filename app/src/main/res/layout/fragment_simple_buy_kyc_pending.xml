@@ -6,7 +6,7 @@
     android:layout_height="match_parent">
 
     <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/kyc_failed_icon"
+        android:id="@+id/kyc_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -14,7 +14,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.35"
-        app:srcCompat="@drawable/ic_kyc_failed_warning" />
+        tools:srcCompat="@drawable/ic_bank_details_big" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/bank_linked_failed"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        tools:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintCircle="@+id/kyc_icon"
+        app:layout_constraintCircleAngle="45"
+        app:layout_constraintCircleRadius="35dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.35"
+        app:srcCompat="@drawable/ic_alert" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateDrawable="@drawable/ic_payment_progress_indeterminate"
+        app:layout_constraintCircle="@+id/kyc_icon"
+        app:layout_constraintCircleAngle="45"
+        app:layout_constraintCircleRadius="35dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ProgressBar
         android:id="@+id/kyc_progress"
@@ -54,10 +80,10 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="@dimen/standard_margin"
         android:gravity="center"
-        tools:text="@string/kyc_verifying_manual_review_required_info"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/verif_text" />
+        app:layout_constraintTop_toBottomOf="@+id/verif_text"
+        tools:text="@string/kyc_verifying_manual_review_required_info" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/continue_to_wallet"

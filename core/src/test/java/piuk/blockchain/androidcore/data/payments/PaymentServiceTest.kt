@@ -49,8 +49,6 @@ class PaymentServiceTest {
     private val environmentSettings: EnvironmentConfig = mock()
     private val dustService: DustService = mock()
 
-    private val useNewCoinSelection = true
-
     @get:Rule
     val rxSchedulers = rxInit {
         mainTrampoline()
@@ -562,13 +560,13 @@ class PaymentServiceTest {
         val mockPayment = mock(BigInteger::class.java)
         val mockFee = mock(BigInteger::class.java)
         val mockOutputs = mock(SpendableUnspentOutputs::class.java)
-        whenever(payment.getSpendableCoins(mockUnspent, mockPayment, mockFee, false, useNewCoinSelection))
+        whenever(payment.getSpendableCoins(mockUnspent, mockPayment, mockFee, false))
             .thenReturn(mockOutputs)
         // Act
-        val result = subject.getSpendableCoins(mockUnspent, mockPayment, mockFee, false, useNewCoinSelection)
+        val result = subject.getSpendableCoins(mockUnspent, mockPayment, mockFee, false)
         // Assert
         assertEquals(mockOutputs, result)
-        verify(payment).getSpendableCoins(mockUnspent, mockPayment, mockFee, false, useNewCoinSelection)
+        verify(payment).getSpendableCoins(mockUnspent, mockPayment, mockFee, false)
         verifyNoMoreInteractions(payment)
     }
 
@@ -578,13 +576,13 @@ class PaymentServiceTest {
         val mockUnspent = mock(UnspentOutputs::class.java)
         val mockFee = mock(BigInteger::class.java)
         val mockSweepableCoins = mock<Pair<BigInteger, BigInteger>>()
-        whenever(payment.getMaximumAvailable(mockUnspent, mockFee, false, useNewCoinSelection))
+        whenever(payment.getMaximumAvailable(mockUnspent, mockFee, false))
             .thenReturn(mockSweepableCoins)
         // Act
-        val result = subject.getMaximumAvailable(mockUnspent, mockFee, false, useNewCoinSelection)
+        val result = subject.getMaximumAvailable(mockUnspent, mockFee, false)
         // Assert
         assertEquals(mockSweepableCoins, result)
-        verify(payment).getMaximumAvailable(mockUnspent, mockFee, false, useNewCoinSelection)
+        verify(payment).getMaximumAvailable(mockUnspent, mockFee, false)
         verifyNoMoreInteractions(payment)
     }
 

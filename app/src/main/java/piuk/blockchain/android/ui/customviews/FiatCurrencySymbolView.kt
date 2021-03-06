@@ -16,9 +16,10 @@ class FiatCurrencySymbolView @JvmOverloads constructor(
         setImageDrawable(
             ContextCompat.getDrawable(context,
                 when (fiat) {
-                    "EUR" -> R.drawable.ic_vector_euro
-                    "GBP" -> R.drawable.ic_vector_pound
-                    else -> R.drawable.ic_vector_dollar // show dollar if currency isn't selected
+                    "EUR" -> R.drawable.ic_funds_euro
+                    "GBP" -> R.drawable.ic_funds_gbp
+                    "USD" -> R.drawable.ic_funds_usd
+                    else -> R.drawable.ic_funds_usd // show dollar if currency isn't selected
                 }
             ))
 }

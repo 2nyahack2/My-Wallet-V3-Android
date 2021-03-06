@@ -20,9 +20,9 @@
 #}
 
 # Application classes that will be serialized/deserialized over Gson
--keep class mobi.lab.veriff.data.** { *; }
+-keep class com.veriff.** { *; }
 
--dontwarn mobi.lab.veriff.fragment.BaseFragment
+-dontwarn com.veriff.fragment.BaseFragment
 
 
 -keepparameternames

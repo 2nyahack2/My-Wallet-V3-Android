@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+
+    <include layout="@layout/toolbar_general" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:background="@color/primary_navy_medium"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <SurfaceView
+                android:id="@+id/preview_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <piuk.blockchain.android.ui.scan.ViewfinderReticle
+                android:id="@+id/viewfinder_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
+        </FrameLayout>
+
+        <View
+            android:id="@+id/viewfinder_guide"
+            android:layout_width="280dp"
+            android:layout_height="280dp"
+            android:background="@color/red_300"
+            android:layout_marginTop="140dp"
+            android:visibility="invisible"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <TextView
+            android:id="@+id/instructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Text.White.Semibold.Centered.16"
+            android:layout_marginBottom="@dimen/huge_margin"
+            app:layout_constraintTop_toBottomOf="@id/viewfinder_guide"
+            app:layout_constraintBottom_toTopOf="@id/feedback_block"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="Be sure to only scan a BTC QR code"/>
+
+        <LinearLayout
+            android:id="@+id/feedback_block"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="vertical"
+            android:layout_marginStart="@dimen/huge_margin"
+            android:layout_marginEnd="@dimen/huge_margin"
+            android:paddingStart="@dimen/small_margin"
+            android:paddingEnd="@dimen/small_margin"
+            android:paddingTop="@dimen/small_margin"
+            android:paddingBottom="@dimen/small_margin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/feedback_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Text.Semibold.16"
+                android:layout_gravity="center"
+                android:gravity="center"
+                tools:text="Trying To Connect A Device?"/>
+
+            <TextView
+                android:id="@+id/feedback_body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Text.Standard.14"
+                android:layout_gravity="center"
+                android:gravity="center"
+                tools:text="Both devices need to be on the same WiFi network to securely connect."/>
+
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

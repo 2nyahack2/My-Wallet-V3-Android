@@ -18,11 +18,9 @@ interface AnnouncementHost {
 
     fun showAnnouncementCard(card: AnnouncementCard)
     fun dismissAnnouncementCard()
-
+    fun startSwap()
     // Actions
     fun startKyc(campaignType: CampaignType)
-
-    fun startSwap(swapTarget: CryptoCurrency = CryptoCurrency.ETHER)
 
     fun startPitLinking()
     fun startFundsBackup()
@@ -33,12 +31,14 @@ interface AnnouncementHost {
     fun startTransferCrypto()
 
     fun startStxReceivedDetail()
-    fun startSimpleBuyPaymentDetail()
     fun finishSimpleBuySignup()
-    fun startSimpleBuy()
+    fun startSimpleBuy(cryptoCurrency: CryptoCurrency = CryptoCurrency.BTC)
+    fun startInterestDashboard()
+    fun startSell()
 
     fun showFiatFundsKyc()
     fun showBankLinking()
+    fun openBrowserLink(url: String)
 }
 
 abstract class AnnouncementRule(private val dismissRecorder: DismissRecorder) {
